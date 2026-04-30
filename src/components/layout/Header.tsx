@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Lock, Unlock, ChevronLeft, Grid3X3 } from 'lucide-react';
+import { Menu, X, Grid3X3, Home } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { brandInfo, categories } from '@/lib/products';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ export function Header() {
   const { isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,11 +25,6 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const handleCategoryClick = (categoryId: string) => {
-    setActiveCategory(categoryId);
-    setIsMobileMenuOpen(false);
-  };
 
   return (
     <>
@@ -43,25 +37,33 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
-            <Link
-              href="/"
-              className="flex items-center gap-2 group"
-            >
-              <ChevronLeft
-                className={`w-5 h-5 transition-transform duration-300 ${
-                  isScrolled ? 'text-foreground' : 'text-foreground/60'
-                } group-hover:-translate-x-1`}
-              />
-              <span
-                className={`font-display text-xl md:text-2xl tracking-widest transition-colors duration-300 ${
-                  isScrolled ? 'text-foreground' : 'text-foreground'
-                }`}
-              >
+            {/* Left: Brand + Login */}
+            <div className="flex items-center gap-3">
+              <span className="font-display text-lg md:text-xl tracking-widest">
                 {brandInfo.name}
               </span>
-            </Link>
+              
+              {/* Login button */}
+              {!isAuthenticated ? (
+                <button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  登录
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    logout();
+                  }}
+                  className="text-sm text-green-600 hover:text-green-700 transition-colors"
+                >
+                  已登录
+                </button>
+              )}
+            </div>
 
-            {/* Category Navigation - Desktop */}
+            {/* Center: Category Navigation - Desktop */}
             <div className="hidden lg:flex items-center gap-1">
               {categories.slice(0, 6).map((category) => (
                 <Link
@@ -74,44 +76,24 @@ export function Header() {
               ))}
             </div>
 
-            <div className="hidden md:flex items-center gap-4">
-              <div
-                className={`flex items-center gap-2 text-sm transition-colors duration-300 ${
-                  isScrolled ? 'text-foreground/60' : 'text-foreground/50'
-                }`}
+            {/* Right: Home button */}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
               >
-                {isAuthenticated ? (
-                  <>
-                    <Unlock className="w-4 h-4 text-green-600" />
-                    <span>已授权</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>受保护</span>
-                  </>
-                )}
-              </div>
-              {isAuthenticated && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  className="text-xs"
-                >
-                  退出
-                </Button>
-              )}
+                <Home className="w-4 h-4" />
+                <span className="hidden md:inline">首页</span>
+              </Link>
+              
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2"
+                aria-label="打开菜单"
+              >
+                <Grid3X3 className="w-5 h-5" />
+              </button>
             </div>
-
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 -mr-2 flex items-center gap-2"
-              aria-label="打开菜单"
-            >
-              <Grid3X3 className="w-5 h-5" />
-              <span className="text-sm">分类</span>
-            </button>
           </div>
         </div>
       </header>
@@ -147,7 +129,7 @@ export function Header() {
                 key={category.id}
                 href={`/category/${category.id}`}
                 className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent transition-colors"
-                onClick={() => handleCategoryClick(category.id)}
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center text-lg">
                   {category.icon}
@@ -163,30 +145,21 @@ export function Header() {
           </div>
 
           <div className="mt-8 pt-6 border-t">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground px-3">
-              {isAuthenticated ? (
-                <>
-                  <Unlock className="w-4 h-4 text-green-600" />
-                  <span>已授权访问</span>
-                </>
-              ) : (
-                <>
-                  <Lock className="w-4 h-4" />
-                  <span>受保护内容</span>
-                </>
-              )}
-            </div>
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <Button
                 variant="outline"
                 onClick={() => {
                   logout();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full mt-4"
+                className="w-full"
               >
                 退出登录
               </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center">
+                点击右上角「登录」输入密码解锁内容
+              </p>
             )}
           </div>
         </SheetContent>

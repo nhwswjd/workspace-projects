@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils';
 
 interface UnlockPromptProps {
   className?: string;
+  onSuccess?: () => void;
 }
 
-export function UnlockPrompt({ className }: UnlockPromptProps) {
+export function UnlockPrompt({ className, onSuccess }: UnlockPromptProps) {
   const { checkPassword } = useAuth();
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +24,8 @@ export function UnlockPrompt({ className }: UnlockPromptProps) {
       const success = await checkPassword(password);
       if (!success) {
         setError('密码错误，请重试');
+      } else {
+        onSuccess?.();
       }
       return success;
     } catch {
@@ -36,30 +39,28 @@ export function UnlockPrompt({ className }: UnlockPromptProps) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center p-8 md:p-12',
+        'flex flex-col items-center justify-center p-6 md:p-8',
         className
       )}
     >
-      <div className="w-20 h-20 rounded-full bg-[#1A1A1A]/5 flex items-center justify-center mb-8 animate-fade-in">
-        <Lock className="w-10 h-10 text-[#1A1A1A]/40" />
+      <div className="w-16 h-16 rounded-full bg-[#1A1A1A]/5 flex items-center justify-center mb-6">
+        <Lock className="w-8 h-8 text-[#1A1A1A]/40" />
       </div>
 
-      <h2 className="font-display text-2xl md:text-3xl text-center mb-3 animate-fade-in-up">
-        受保护内容
+      <h2 className="font-display text-xl md:text-2xl text-center mb-2">
+        输入密码解锁
       </h2>
-      <p className="text-muted-foreground text-center mb-8 max-w-sm animate-fade-in-up animation-delay-100">
-        此页面包含专属产品资料，请输入授权密码以继续浏览
+      <p className="text-muted-foreground text-center text-sm mb-6">
+        查看完整产品资料
       </p>
 
-      <div className="animate-fade-in-up animation-delay-200">
-        <PasswordInput
-          onSubmit={handleSubmit}
-          error={error}
-          isLoading={isLoading}
-        />
-      </div>
+      <PasswordInput
+        onSubmit={handleSubmit}
+        error={error}
+        isLoading={isLoading}
+      />
 
-      <div className="mt-8 animate-fade-in animation-delay-300">
+      <div className="mt-6">
         <ArrowUp className="w-4 h-4 text-muted-foreground/50 animate-bounce" />
       </div>
     </div>

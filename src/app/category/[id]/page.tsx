@@ -24,9 +24,7 @@ export default function CategoryPage() {
   const canAccess = hasCategoryAccess(categoryId);
 
   useEffect(() => {
-    // 如果未授权且用户点击了产品，需要显示解锁提示
     if (!isAuthenticated && categoryProducts.length > 0) {
-      // 默认显示解锁提示
       setShowUnlockPrompt(true);
     }
   }, [isAuthenticated, categoryProducts.length]);
@@ -37,9 +35,9 @@ export default function CategoryPage() {
         <Header />
         <main className="flex-1 pt-20 pb-16 px-4">
           <div className="max-w-4xl mx-auto">
-            <Skeleton className="h-8 w-32 mb-8" />
-            <Skeleton className="h-12 w-48 mb-4" />
-            <Skeleton className="h-5 w-64 mb-12" />
+            <Skeleton className="h-8 w-32 mb-6" />
+            <Skeleton className="h-10 w-40 mb-2" />
+            <Skeleton className="h-4 w-64 mb-8" />
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               {[...Array(4)].map((_, i) => (
                 <Skeleton key={i} className="aspect-[3/4] rounded-xl" />
@@ -78,38 +76,24 @@ export default function CategoryPage() {
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>返回全部</span>
+            <span>返回</span>
           </Link>
 
           {/* Category header */}
-          <header className="mb-8 md:mb-10">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-3xl">{category.icon}</span>
-              <h1 className="font-display text-2xl md:text-3xl">
+          <header className="mb-6 md:mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">{category.icon}</span>
+              <h1 className="font-display text-xl md:text-2xl">
                 {category.name}
               </h1>
-              {isAuthenticated ? (
-                <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                  <Unlock className="w-3 h-3" />
-                  <span>已解锁</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground bg-accent px-2 py-1 rounded-full">
-                  <Lock className="w-3 h-3" />
-                  <span>受保护</span>
-                </div>
-              )}
             </div>
-            <p className="text-muted-foreground text-sm md:text-base">
-              {category.description}
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              共 {categoryProducts.length} 件产品
+            <p className="text-muted-foreground text-sm">
+              {categoryProducts.length} 件产品
             </p>
           </header>
 
-          {/* Product Grid - Mobile: 2 columns, Desktop: responsive */}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {/* Product Grid */}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {categoryProducts.map((product, index) => (
               <div
                 key={product.id}
@@ -126,11 +110,11 @@ export default function CategoryPage() {
             ))}
           </div>
 
-          {/* Unlock prompt when not authenticated */}
+          {/* Unlock prompt */}
           {showUnlockPrompt && (
-            <div className="mt-12 max-w-md mx-auto">
-              <div className="bg-accent/50 rounded-2xl p-6 md:p-8">
-                <UnlockPrompt />
+            <div className="mt-10 max-w-sm mx-auto">
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <UnlockPrompt onSuccess={() => setShowUnlockPrompt(false)} />
               </div>
             </div>
           )}
