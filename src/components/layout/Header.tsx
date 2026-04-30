@@ -64,9 +64,9 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-10 md:h-12">
-            {/* Left: Back or Home button */}
-            <div className="flex items-center gap-2">
-              {isNotHomePage ? (
+            {/* Left: Back button (only show when not on home) */}
+            <div className="flex items-center">
+              {isNotHomePage && (
                 <button
                   onClick={() => router.back()}
                   className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
@@ -74,24 +74,26 @@ export function Header() {
                   <ChevronLeft className="w-4 h-4" />
                   <span>返回</span>
                 </button>
-              ) : (
+              )}
+            </div>
+
+            {/* Center: Brand */}
+            <span className="font-display text-lg md:text-xl tracking-widest">
+              {brandInfo.name}
+            </span>
+
+            {/* Right: Home + Login */}
+            <div className="flex items-center gap-2">
+              {/* Always show Home button on non-home pages */}
+              {isNotHomePage && (
                 <Link
                   href="/"
                   className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Home className="w-4 h-4" />
-                  <span>首页</span>
+                  <span className="hidden sm:inline">首页</span>
                 </Link>
               )}
-            </div>
-
-            {/* Center: Brand */}
-            <span className="font-display text-lg md:text-xl tracking-widest absolute left-1/2 -translate-x-1/2">
-              {brandInfo.name}
-            </span>
-
-            {/* Right: Login */}
-            <div className="flex items-center gap-2">
               {!isAuthenticated ? (
                 <button
                   onClick={() => setShowLoginDialog(true)}
