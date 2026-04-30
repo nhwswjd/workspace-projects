@@ -30,8 +30,8 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   
-  // Check if current page is not homepage
-  const isNotHomePage = pathname !== '/';
+  // Check if current page is gallery or other sub-pages (to show header)
+  const isSubPage = pathname === '/gallery' || pathname.startsWith('/category/') || pathname.startsWith('/product/');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,7 +66,7 @@ export function Header() {
           <div className="flex items-center justify-between h-10 md:h-12">
             {/* Left: Back button (only show when not on home) */}
             <div className="flex items-center">
-              {isNotHomePage && (
+              {isSubPage && (
                 <button
                   onClick={() => router.back()}
                   className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
@@ -85,9 +85,9 @@ export function Header() {
             {/* Right: Home + Login */}
             <div className="flex items-center gap-2">
               {/* Always show Home button on non-home pages */}
-              {isNotHomePage && (
+              {isSubPage && (
                 <Link
-                  href="/"
+                  href="/gallery"
                   className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Home className="w-4 h-4" />

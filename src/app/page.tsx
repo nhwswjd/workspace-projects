@@ -1,93 +1,115 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { ProductCard } from '@/components/product/ProductCard';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { products, categories } from '@/lib/products';
 
-export default function HomePage() {
-  const { isAuthenticated, isLoading } = useAuth();
+export default function LandingPage() {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated, isLoading: authLoading, checkPassword } = useAuth();
+  const router = useRouter();
 
-  if (isLoading) {
+  // 如果已认证，直接跳转到画廊页面
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/gallery');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password.trim()) {
+      setError('请输入访问密码');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const success = await checkPassword(password);
+      if (success) {
+        router.push('/gallery');
+      } else {
+        setError('密码错误，请重试');
+        setPassword('');
+      }
+    } catch {
+      setError('验证失败，请重试');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-stone-100">
+        <div className="w-8 h-8 border-2 border-stone-400/20 border-t-stone-400 rounded-full animate-spin" />
       </div>
     );
   }
 
-  // 首页只显示前4个产品
-  const featuredProducts = products.slice(0, 4);
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+      style={{
+        backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* 背景遮罩 */}
+      <div className="absolute inset-0 bg-black/40" />
 
-      <main className="flex-1 pt-20 md:pt-24">
-        {/* Categories Section */}
-        <section className="py-6 px-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-              {categories.map((category, index) => (
-                <Link
-                  key={category.id}
-                  href={`/category/${category.id}`}
-                  className="group animate-fade-in-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <article className="relative overflow-hidden rounded-xl bg-white border border-border/50 hover:border-primary/30 hover:shadow-md transition-all duration-300">
-                    <div className="aspect-square relative flex flex-col items-center justify-center p-3 md:p-4">
-                      <span className="text-2xl md:text-3xl mb-1 group-hover:scale-110 transition-transform duration-300">
-                        {category.icon}
-                      </span>
-                      <h3 className="font-medium text-xs md:text-sm text-center">
-                        {category.name}
-                      </h3>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
+      {/* 内容区域 */}
+      <div className="relative z-10 w-full max-w-sm mx-4">
+        {/* 标题 */}
+        <div className="text-center mb-8">
+          <h1 className="font-display text-3xl text-white mb-2 tracking-wider">
+            私密相册
+          </h1>
+          <p className="text-white/70 text-sm">
+            请输入访问密码
+          </p>
+        </div>
+
+        {/* 密码输入框 */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError('');
+              }}
+              placeholder="输入访问密码"
+              className="w-full px-4 py-3 bg-white/90 backdrop-blur-sm rounded-lg text-stone-800 placeholder:text-stone-400 text-center focus:outline-none focus:ring-2 focus:ring-white/50"
+              disabled={isLoading}
+              autoFocus
+            />
           </div>
-        </section>
 
-        {/* Featured Products - 2x2 Grid */}
-        <section className="py-6 px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-xl">
-                精选产品
-              </h2>
-              <span className="text-sm text-muted-foreground">
-                共 {products.length} 件
-              </span>
-            </div>
+          {error && (
+            <p className="text-red-300 text-sm text-center">{error}</p>
+          )}
 
-            {/* Product Grid - 2 columns, centered */}
-            <div className="grid grid-cols-2 gap-3 md:gap-4 justify-items-center">
-              {featuredProducts.map((product, index) => (
-                <div
-                  key={product.id}
-                  className="animate-fade-in-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <ProductCard
-                    product={product}
-                    isAuthenticated={isAuthenticated}
-                    canAccess={true}
-                    index={index}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </main>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 bg-white text-stone-800 font-medium rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50"
+          >
+            {isLoading ? '验证中...' : '进入'}
+          </button>
+        </form>
+      </div>
 
-      <Footer />
+      {/* 底部装饰 */}
+      <div className="absolute bottom-8 text-white/50 text-xs">
+        © 2024 私密相册
+      </div>
     </div>
   );
 }
