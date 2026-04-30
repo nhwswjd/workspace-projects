@@ -66,8 +66,8 @@ export default function HomePage() {
               </span>
             </div>
 
-            {/* Product Grid - 2 columns */}
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
+            {/* Product Grid - 2 columns, centered */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4 justify-items-center">
               {featuredProducts.map((product, index) => (
                 <div
                   key={product.id}

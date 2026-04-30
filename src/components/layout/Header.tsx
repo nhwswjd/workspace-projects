@@ -12,11 +12,20 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { PasswordInput } from '@/components/auth/PasswordInput';
 
 export function Header() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, checkPassword, isLoading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [loginError, setLoginError] = useState<string>();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +34,18 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLogin = async (password: string): Promise<boolean> => {
+    setLoginError(undefined);
+    const success = await checkPassword(password);
+    if (success) {
+      setShowLoginDialog(false);
+      return true;
+    } else {
+      setLoginError('密码错误，请重试');
+      return false;
+    }
+  };
 
   return (
     <>
@@ -57,7 +78,7 @@ export function Header() {
             <div className="flex items-center gap-2">
               {!isAuthenticated ? (
                 <button
-                  onClick={() => setIsMobileMenuOpen(true)}
+                  onClick={() => setShowLoginDialog(true)}
                   className="px-3 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   登录
@@ -144,13 +165,35 @@ export function Header() {
                 退出登录
               </Button>
             ) : (
-              <p className="text-sm text-muted-foreground text-center">
-                点击「登录」输入密码解锁内容
-              </p>
+              <Button
+                onClick={() => {
+                  setShowLoginDialog(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full"
+              >
+                输入密码
+              </Button>
             )}
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Login Dialog */}
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">输入访问密码</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <PasswordInput
+              onSubmit={handleLogin}
+              error={loginError}
+              isLoading={isLoading}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

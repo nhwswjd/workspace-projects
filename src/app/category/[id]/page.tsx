@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronLeft, Lock, Unlock } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { UnlockPrompt } from '@/components/auth/UnlockPrompt';
 import { ProductCard } from '@/components/product/ProductCard';
 import { useAuth } from '@/hooks/useAuth';
 import { products, categories } from '@/lib/products';
@@ -15,19 +14,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function CategoryPage() {
   const params = useParams();
   const categoryId = params.id as string;
-  const { isAuthenticated, isLoading, hasCategoryAccess } = useAuth();
-  
-  const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
 
   const category = categories.find((c) => c.id === categoryId);
   const categoryProducts = products.filter((p) => p.categoryId === categoryId);
-  const canAccess = hasCategoryAccess(categoryId);
-
-  useEffect(() => {
-    if (!isAuthenticated && categoryProducts.length > 0) {
-      setShowUnlockPrompt(true);
-    }
-  }, [isAuthenticated, categoryProducts.length]);
 
   if (isLoading) {
     return (
@@ -103,21 +93,12 @@ export default function CategoryPage() {
                 <ProductCard
                   product={product}
                   isAuthenticated={isAuthenticated}
-                  canAccess={canAccess}
+                  canAccess={true}
                   index={index}
                 />
               </div>
             ))}
           </div>
-
-          {/* Unlock prompt */}
-          {showUnlockPrompt && (
-            <div className="mt-10 max-w-sm mx-auto">
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <UnlockPrompt onSuccess={() => setShowUnlockPrompt(false)} />
-              </div>
-            </div>
-          )}
 
           {/* Empty state */}
           {categoryProducts.length === 0 && (

@@ -18,12 +18,12 @@ export function GalleryVertical({
   onVideoClick,
 }: GalleryVerticalProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 flex flex-col items-center">
       {/* Images - Vertical single column */}
       {product.images.map((src, idx) => (
         <div
           key={idx}
-          className="relative w-full"
+          className="relative w-full max-w-[320px]"
           style={{ aspectRatio: '3/4' }}
         >
           <Image
@@ -32,16 +32,9 @@ export function GalleryVertical({
             fill
             className="object-cover rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
             onClick={() => isAuthenticated && onImageClick(idx)}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
+            sizes="320px"
             loading="lazy"
           />
-          {!isAuthenticated && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-white/90 px-3 py-1.5 rounded-full text-sm text-muted-foreground">
-                点击解锁查看
-              </div>
-            </div>
-          )}
         </div>
       ))}
 
@@ -49,7 +42,7 @@ export function GalleryVertical({
       {product.videos.map((video) => (
         <div
           key={video.id}
-          className="relative w-full cursor-pointer group"
+          className="relative w-full max-w-[320px] cursor-pointer group"
           style={{ aspectRatio: '3/4' }}
           onClick={() => isAuthenticated && onVideoClick(video)}
         >
@@ -58,7 +51,7 @@ export function GalleryVertical({
             alt="视频封面"
             fill
             className="object-cover rounded-lg"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
+            sizes="320px"
           />
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors rounded-lg flex items-center justify-center">
             <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center">
@@ -68,13 +61,6 @@ export function GalleryVertical({
           {video.duration && (
             <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded">
               {video.duration}
-            </div>
-          )}
-          {!isAuthenticated && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-white/90 px-3 py-1.5 rounded-full text-sm text-muted-foreground">
-                点击解锁查看
-              </div>
             </div>
           )}
         </div>

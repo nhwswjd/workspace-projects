@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { UnlockPrompt } from '@/components/auth/UnlockPrompt';
 import { GalleryVertical } from '@/components/gallery/GalleryVertical';
 import { PhotoViewer } from '@/components/gallery/PhotoViewer';
 import { VideoPlayer } from '@/components/gallery/VideoPlayer';
@@ -18,11 +17,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function ProductPage() {
   const params = useParams();
   const productId = params.id as string;
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
 
   const product = products.find((p) => p.id === productId);
 
@@ -36,12 +34,6 @@ export default function ProductPage() {
       document.body.style.overflow = '';
     };
   }, [selectedImageIndex, selectedVideo]);
-
-  useEffect(() => {
-    if (!isAuthenticated && product) {
-      setShowUnlockPrompt(true);
-    }
-  }, [isAuthenticated, product]);
 
   if (isLoading) {
     return (
@@ -106,29 +98,22 @@ export default function ProductPage() {
             </p>
           </header>
 
-          {/* Gallery - Vertical single column */}
-          <div className="animate-fade-in-up">
-            <GalleryVertical
-              product={product}
-              isAuthenticated={isAuthenticated}
-              onImageClick={setSelectedImageIndex}
-              onVideoClick={setSelectedVideo}
-            />
-          </div>
-
-          {/* Unlock prompt */}
-          {showUnlockPrompt && (
-            <div className="mt-8">
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <UnlockPrompt onSuccess={() => setShowUnlockPrompt(false)} />
-              </div>
+          {/* Gallery - Vertical single column, centered */}
+          <div className="animate-fade-in-up flex justify-center">
+            <div className="w-full max-w-md">
+              <GalleryVertical
+                product={product}
+                isAuthenticated={true}
+                onImageClick={setSelectedImageIndex}
+                onVideoClick={setSelectedVideo}
+              />
             </div>
-          )}
+          </div>
         </div>
       </main>
 
       {/* Photo Viewer Modal */}
-      {selectedImageIndex !== null && isAuthenticated && (
+      {selectedImageIndex !== null && (
         <PhotoViewer
           images={product.images}
           initialIndex={selectedImageIndex}
@@ -142,7 +127,7 @@ export default function ProductPage() {
           <div className="w-full max-w-lg">
             <VideoPlayer
               video={selectedVideo}
-              isAuthenticated={isAuthenticated}
+              isAuthenticated={true}
               onClose={() => setSelectedVideo(null)}
             />
           </div>
