@@ -28,9 +28,9 @@ export default function GalleryPage() {
 
       <main className="flex-1 pt-20 md:pt-24">
         {/* Categories Section */}
-        <section className="py-6 px-4">
+        <section className="py-2 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-1 md:gap-2">
               {categories.map((category, index) => (
                 <Link
                   key={category.id}
@@ -38,11 +38,8 @@ export default function GalleryPage() {
                   className="group animate-fade-in-up"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <article className="relative overflow-hidden rounded-xl bg-white border border-border/50 hover:border-primary/30 hover:shadow-md transition-all duration-300">
-                    <div className="aspect-square relative flex flex-col items-center justify-center p-3 md:p-4">
-                      <span className="text-2xl md:text-3xl mb-1 group-hover:scale-110 transition-transform duration-300">
-                        {category.icon}
-                      </span>
+                  <article className="overflow-hidden rounded-lg bg-white border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all duration-200">
+                    <div className="relative flex flex-col items-center justify-center py-2 px-2 md:py-2 md:px-3">
                       <h3 className="font-medium text-xs md:text-sm text-center">
                         {category.name}
                       </h3>
@@ -57,15 +54,6 @@ export default function GalleryPage() {
         {/* Featured Products - 2x2 Grid */}
         <section className="py-6 px-4">
           <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-xl">
-                精选产品
-              </h2>
-              <span className="text-sm text-muted-foreground">
-                共 {products.length} 件
-              </span>
-            </div>
-
             {/* Product Grid - 2 columns, centered */}
             <div className="grid grid-cols-2 gap-3 md:gap-4 justify-items-center">
               {featuredProducts.map((product, index) => (

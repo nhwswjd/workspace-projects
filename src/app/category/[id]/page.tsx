@@ -60,15 +60,9 @@ export default function CategoryPage() {
         <div className="max-w-4xl mx-auto px-4">
           {/* Category header */}
           <header className="mb-6 md:mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-2xl">{category.icon}</span>
-              <h1 className="font-display text-xl md:text-2xl">
-                {category.name}
-              </h1>
-            </div>
-            <p className="text-muted-foreground text-sm">
-              {categoryProducts.length} 件产品
-            </p>
+            <h1 className="font-display text-xl md:text-2xl">
+              {category.name}
+            </h1>
           </header>
 
           {/* Product Grid */}
