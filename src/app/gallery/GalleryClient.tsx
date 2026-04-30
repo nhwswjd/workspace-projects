@@ -79,9 +79,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         ))}
       </div>
 
-      {/* 精选产品 */}
-      <div className="px-4 py-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">精选产品</h2>
+      {/* 产品网格 */}
+      <div className="px-4 py-4">
         <div className="grid grid-cols-2 gap-4">
           {filteredProducts.slice(0, 4).map((product) => (
             <Link
