@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-
-const ACCESS_PASSWORD = process.env.ACCESS_PASSWORD || 'atelier2024';
+import { validPasswords, getCategoryForPassword } from '@/lib/products';
 
 export async function POST(request: Request) {
   try {
@@ -13,8 +12,13 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password === ACCESS_PASSWORD) {
-      return NextResponse.json({ success: true });
+    if (validPasswords.includes(password)) {
+      // 获取该密码对应的分类权限
+      const categoryPermission = getCategoryForPassword(password);
+      return NextResponse.json({ 
+        success: true,
+        categoryPermission 
+      });
     }
 
     return NextResponse.json(

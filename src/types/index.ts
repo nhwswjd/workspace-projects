@@ -10,14 +10,15 @@ export interface Product {
   name: string;
   description: string;
   category: string;
+  categoryId: string;
   coverImage: string;
   images: string[];
   videos: Video[];
 }
 
-export interface AuthState {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  checkPassword: (password: string) => Promise<boolean>;
-  logout: () => void;
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
 }
