@@ -77,14 +77,14 @@ export function Header() {
                 </button>
               )}
               {/* Search box in header */}
-              <div className="relative hidden sm:flex items-center">
-                <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
+              <div className="relative hidden sm:flex items-center gap-1">
+                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="搜索产品..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-48 md:w-64 pl-9 pr-3 py-1.5 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
+                  className="w-32 lg:w-48 pl-1 pr-2 py-1.5 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
                 />
               </div>
             </div>

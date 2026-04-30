@@ -39,7 +39,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   return (
     <div className="min-h-screen bg-stone-50">
       {/* 分类导航 - 横向滚动 */}
-      <div className="bg-white border-b border-stone-200 sticky top-10 md:top-12 z-10">
+      <div className="bg-white border-b border-stone-200">
         <div className="max-w-6xl mx-auto px-4 py-2.5">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
