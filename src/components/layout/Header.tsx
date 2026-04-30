@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Menu, X, Grid3X3, Home, ChevronLeft } from 'lucide-react';
+import { Menu, X, Home, ChevronLeft, Search } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSearch } from '@/contexts/SearchContext';
 import { brandInfo, categories } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +23,8 @@ import {
 import { PasswordInput } from '@/components/auth/PasswordInput';
 
 export function Header() {
-  const { isAuthenticated, logout, checkPassword, isLoading } = useAuth();
+  const { isAuthenticated, logout, checkPassword } = useAuth();
+  const { searchQuery, setSearchQuery } = useSearch();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
@@ -30,7 +32,6 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   
-  // Check if current page is gallery or other sub-pages (to show header)
   const isSubPage = pathname === '/gallery' || pathname.startsWith('/category/') || pathname.startsWith('/product/');
 
   useEffect(() => {
@@ -64,8 +65,8 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-10 md:h-12">
-            {/* Left: Back button (only show when not on home) */}
-            <div className="flex items-center">
+            {/* Left: Back button + Search */}
+            <div className="flex items-center gap-2 flex-1">
               {isSubPage && (
                 <button
                   onClick={() => router.back()}
@@ -75,6 +76,17 @@ export function Header() {
                   <span>返回</span>
                 </button>
               )}
+              {/* Search box in header */}
+              <div className="relative hidden sm:flex items-center">
+                <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="搜索产品..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-48 md:w-64 pl-9 pr-3 py-1.5 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
+                />
+              </div>
             </div>
 
             {/* Center: Brand */}
@@ -83,8 +95,16 @@ export function Header() {
             </span>
 
             {/* Right: Home + Login */}
-            <div className="flex items-center gap-2">
-              {/* Always show Home button on non-home pages */}
+            <div className="flex items-center gap-2 flex-1 justify-end">
+              {/* Mobile search icon */}
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="sm:hidden p-2"
+                aria-label="搜索"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              
               {isSubPage && (
                 <Link
                   href="/gallery"
@@ -130,9 +150,18 @@ export function Header() {
             <SheetTitle className="font-display tracking-widest text-left">
               {brandInfo.name}
             </SheetTitle>
-            <p className="text-sm text-muted-foreground font-normal">
-              产品分类
-            </p>
+            
+            {/* Mobile search */}
+            <div className="relative mt-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="搜索产品..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
+              />
+            </div>
           </SheetHeader>
           
           <div className="mt-6 space-y-1">
@@ -183,19 +212,17 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      {/* Login Dialog */}
       <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center">输入访问密码</DialogTitle>
+            <DialogTitle className="font-display tracking-wider">
+              输入访问密码
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <PasswordInput
-              onSubmit={handleLogin}
-              error={loginError}
-              isLoading={isLoading}
-            />
-          </div>
+          <PasswordInput
+            onSubmit={handleLogin}
+            error={loginError}
+          />
         </DialogContent>
       </Dialog>
     </>

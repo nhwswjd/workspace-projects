@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Input } from '@/components/ui/input';
+import { useSearch } from '@/contexts/SearchContext';
 
 interface GalleryClientProps {
   initialCategories: Category[];
@@ -12,7 +12,7 @@ interface GalleryClientProps {
 }
 
 export default function GalleryClient({ initialCategories, initialProducts }: GalleryClientProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const { searchQuery } = useSearch();
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -29,7 +29,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         p.name.toLowerCase().includes(query) ||
         p.sku.toLowerCase().includes(query) ||
         p.category.toLowerCase().includes(query) ||
-        p.tags.some(tag => tag.toLowerCase().includes(query))
+        (p.tags && p.tags.some((tag: string) => tag.toLowerCase().includes(query)))
       );
     }
 
@@ -38,21 +38,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 搜索栏 */}
-      <div className="bg-white border-b border-stone-200 sticky top-10 md:top-12 z-20">
-        <div className="max-w-6xl mx-auto px-4 py-3 md:py-4">
-          <Input
-            type="text"
-            placeholder="搜索产品名称、标签或编号..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-stone-100 border-none rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50 transition-all"
-          />
-        </div>
-      </div>
-
       {/* 分类导航 - 横向滚动 */}
-      <div className="bg-white border-b border-stone-200 sticky top-[88px] md:top-[108px] z-10">
+      <div className="bg-white border-b border-stone-200 sticky top-10 md:top-12 z-10">
         <div className="max-w-6xl mx-auto px-4 py-2.5">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
@@ -131,7 +118,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
                 {/* 标签 */}
                 <div className="flex flex-wrap gap-1.5">
-                  {product.tags.slice(0, 3).map((tag) => (
+                  {product.tags && product.tags.slice(0, 3).map((tag: string) => (
                     <span
                       key={tag}
                       className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full"
@@ -147,12 +134,18 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           /* 空状态 */
           <div className="text-center py-16">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-stone-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-stone-700 mb-1">未找到产品</h3>
-            <p className="text-sm text-stone-500">尝试其他关键词或筛选条件</p>
+            <p className="text-stone-500 text-base">未找到相关产品</p>
+            <p className="text-stone-400 text-sm mt-1">尝试其他关键词或浏览全部分类</p>
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="mt-4 text-sm text-amber-600 hover:text-amber-700"
+            >
+              查看全部产品
+            </button>
           </div>
         )}
       </main>
