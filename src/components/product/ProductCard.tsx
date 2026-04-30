@@ -59,15 +59,29 @@ export function ProductCard({
         </div>
 
         <div className="p-3 md:p-4">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider">
-            {product.category}
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              {product.sku}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {product.category}
+            </span>
+          </div>
           <h3 className="font-display text-base md:text-lg mt-1 group-hover:text-[#1A1A1A]/70 transition-colors">
             {product.name}
           </h3>
-          <p className="text-xs md:text-sm text-muted-foreground mt-1 line-clamp-2">
-            {product.description}
-          </p>
+          {product.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {product.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </article>
     </Link>

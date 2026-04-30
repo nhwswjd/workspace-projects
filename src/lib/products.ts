@@ -43,7 +43,9 @@ export const products: Product[] = [
   // 家居生活
   {
     id: 'serene-sofa',
+    sku: 'LIVING-001',
     name: 'Zen 禅意沙发',
+    tags: ['沙发', '客厅', '布艺', '简约', '舒适'],
     description: '以东方禅意美学为灵感，甄选天然材质打造的家居精品。',
     category: '家居生活',
     categoryId: 'living',
@@ -67,7 +69,9 @@ export const products: Product[] = [
   },
   {
     id: 'wooden-table',
+    sku: 'LIVING-002',
     name: '实木餐桌系列',
+    tags: ['餐桌', '实木', '黑胡桃木', '餐厅', '原木'],
     description: '选用北美黑胡桃木，保留天然纹理与温润触感。',
     category: '家居生活',
     categoryId: 'living',
@@ -83,7 +87,9 @@ export const products: Product[] = [
   },
   {
     id: 'lamp-series',
+    sku: 'LIVING-003',
     name: '光影落地灯',
+    tags: ['灯具', '落地灯', '黄铜', '卧室', '氛围'],
     description: '手工黄铜灯罩，柔和光线营造温馨氛围。',
     category: '家居生活',
     categoryId: 'living',
@@ -100,7 +106,9 @@ export const products: Product[] = [
   // 现代设计
   {
     id: 'nordic-chair',
+    sku: 'DESIGN-001',
     name: 'Nordic 北欧椅',
+    tags: ['椅子', '北欧', '简约', '设计师款', '木椅'],
     description: '源自斯堪的纳维亚半岛的设计哲学，简洁线条与自然色调。',
     category: '现代设计',
     categoryId: 'design',
@@ -124,7 +132,9 @@ export const products: Product[] = [
   },
   {
     id: 'minimal-shelf',
+    sku: 'DESIGN-002',
     name: '极简书架',
+    tags: ['书架', '收纳', '模块化', '白色', '书房'],
     description: '模块化设计，灵活组合，诠释少即是多的美学。',
     category: '现代设计',
     categoryId: 'design',
@@ -139,7 +149,9 @@ export const products: Product[] = [
   },
   {
     id: 'modern-clock',
+    sku: 'DESIGN-003',
     name: '艺术挂钟',
+    tags: ['挂钟', '装饰', '艺术', '极简', '静音'],
     description: '极简表盘设计，时间即艺术。',
     category: '现代设计',
     categoryId: 'design',
@@ -155,7 +167,9 @@ export const products: Product[] = [
   // 手工艺术
   {
     id: 'artisan-pottery',
+    sku: 'CRAFT-001',
     name: '手作陶艺系列',
+    tags: ['陶艺', '装饰', '手工', '限量', '日式'],
     description: '由资深工匠手工打造的限量作品，传承百年工艺精髓。',
     category: '手工艺术',
     categoryId: 'craft',
@@ -179,7 +193,9 @@ export const products: Product[] = [
   },
   {
     id: 'leather-goods',
+    sku: 'CRAFT-002',
     name: '手工皮具',
+    tags: ['皮具', '钱包', '真皮', '手工', '意大利'],
     description: '意大利头层牛皮，老工匠精心缝制。',
     category: '手工艺术',
     categoryId: 'craft',
@@ -194,7 +210,9 @@ export const products: Product[] = [
   },
   {
     id: 'woven-basket',
+    sku: 'CRAFT-003',
     name: '编织收纳篮',
+    tags: ['收纳', '藤编', '天然', '环保', '家居'],
     description: '天然藤条手工编织，环保与艺术的结合。',
     category: '手工艺术',
     categoryId: 'craft',
@@ -210,7 +228,9 @@ export const products: Product[] = [
   // 时尚配饰
   {
     id: 'designer-bag',
+    sku: 'FASHION-001',
     name: '设计师手袋',
+    tags: ['手袋', '皮包', '设计师款', '时尚', '限量'],
     description: '融合传统工艺与现代审美的精致配饰系列。',
     category: '时尚配饰',
     categoryId: 'fashion',
@@ -226,7 +246,9 @@ export const products: Product[] = [
   },
   {
     id: 'silk-scarf',
+    sku: 'FASHION-002',
     name: '真丝丝巾',
+    tags: ['丝巾', '真丝', '配饰', '优雅', '送礼'],
     description: '100%桑蚕丝，手工卷边，Art Deco风格图案。',
     category: '时尚配饰',
     categoryId: 'fashion',
@@ -241,7 +263,9 @@ export const products: Product[] = [
   },
   {
     id: 'gold-jewelry',
+    sku: 'FASHION-003',
     name: '极简金饰',
+    tags: ['首饰', '金饰', '简约', '耳环', '项链'],
     description: '18K黄金打造，简约而不简单的永恒之美。',
     category: '时尚配饰',
     categoryId: 'fashion',
@@ -257,7 +281,9 @@ export const products: Product[] = [
   // 户外休闲
   {
     id: 'camping-gear',
+    sku: 'OUTDOOR-001',
     name: '露营装备套装',
+    tags: ['露营', '帐篷', '户外', '套装', '探险'],
     description: '探索自然，享受户外生活的品质装备。',
     category: '户外休闲',
     categoryId: 'outdoor',
@@ -273,7 +299,9 @@ export const products: Product[] = [
   },
   {
     id: 'hiking-backpack',
+    sku: 'OUTDOOR-002',
     name: '徒步背包',
+    tags: ['背包', '徒步', '登山', '防水', '轻便'],
     description: '人体工学设计，轻量化材质，长途跋涉的最佳伴侣。',
     category: '户外休闲',
     categoryId: 'outdoor',
@@ -288,7 +316,9 @@ export const products: Product[] = [
   },
   {
     id: 'outdoor-lamp',
+    sku: 'OUTDOOR-003',
     name: '户外便携灯',
+    tags: ['灯具', '户外', '防水', '便携', '露营灯'],
     description: 'IP67防水，USB充电，温暖光芒伴随每一个夜晚。',
     category: '户外休闲',
     categoryId: 'outdoor',
@@ -304,7 +334,9 @@ export const products: Product[] = [
   // 数码科技
   {
     id: 'wireless-earphones',
+    sku: 'DIGITAL-001',
     name: '无线蓝牙耳机',
+    tags: ['耳机', '蓝牙', '无线', '降噪', '音乐'],
     description: '科技与美学的融合，为生活注入智能体验。',
     category: '数码科技',
     categoryId: 'digital',
@@ -320,7 +352,9 @@ export const products: Product[] = [
   },
   {
     id: 'smart-speaker',
+    sku: 'DIGITAL-002',
     name: '智能音响',
+    tags: ['音响', '智能', '蓝牙音箱', '语音控制', '家居'],
     description: '360度环绕音效，语音控制的智能家居中枢。',
     category: '数码科技',
     categoryId: 'digital',
@@ -335,7 +369,9 @@ export const products: Product[] = [
   },
   {
     id: 'tablet-stand',
+    sku: 'DIGITAL-003',
     name: '平板支架',
+    tags: ['支架', '平板', '铝合金', '桌面', '数码配件'],
     description: '航空级铝合金，多角度调节，桌面美学新选择。',
     category: '数码科技',
     categoryId: 'digital',

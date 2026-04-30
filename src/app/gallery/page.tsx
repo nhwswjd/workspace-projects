@@ -1,15 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard } from '@/components/product/ProductCard';
+import { SearchBar } from '@/components/product/SearchBar';
 import { useAuth } from '@/hooks/useAuth';
 import { products, categories } from '@/lib/products';
+import { Product } from '@/types';
 
-export default function GalleryPage() {
+function GalleryContent() {
   const { isAuthenticated, isLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q')?.toLowerCase() || '';
+  
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+
+  useEffect(() => {
+    if (!query) {
+      setFilteredProducts(products);
+    } else {
+      const filtered = products.filter((product) => {
+        const nameMatch = product.name.toLowerCase().includes(query);
+        const tagMatch = product.tags.some((tag) => tag.toLowerCase().includes(query));
+        const categoryMatch = product.category.toLowerCase().includes(query);
+        const skuMatch = product.sku.toLowerCase().includes(query);
+        return nameMatch || tagMatch || categoryMatch || skuMatch;
+      });
+      setFilteredProducts(filtered);
+    }
+  }, [query]);
 
   if (isLoading) {
     return (
@@ -19,14 +41,18 @@ export default function GalleryPage() {
     );
   }
 
-  // 首页只显示前4个产品
-  const featuredProducts = products.slice(0, 4);
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
       <main className="flex-1 pt-20 md:pt-24">
+        {/* Search Section */}
+        <section className="py-3 px-4">
+          <div className="max-w-4xl mx-auto">
+            <SearchBar />
+          </div>
+        </section>
+
         {/* Categories Section */}
         <section className="py-2 px-4">
           <div className="max-w-6xl mx-auto">
@@ -51,12 +77,21 @@ export default function GalleryPage() {
           </div>
         </section>
 
-        {/* Featured Products - 2x2 Grid */}
+        {/* Products Grid */}
         <section className="py-6 px-4">
           <div className="max-w-4xl mx-auto">
-            {/* Product Grid - 2 columns, centered */}
+            {query && filteredProducts.length > 0 && (
+              <p className="text-sm text-muted-foreground mb-4 text-center">
+                找到 {filteredProducts.length} 个相关产品
+              </p>
+            )}
+            {query && filteredProducts.length === 0 && (
+              <p className="text-sm text-muted-foreground mb-4 text-center">
+                未找到相关产品，请尝试其他关键词
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-3 md:gap-4 justify-items-center">
-              {featuredProducts.map((product, index) => (
+              {filteredProducts.map((product, index) => (
                 <div
                   key={product.id}
                   className="animate-fade-in-up"
@@ -77,5 +112,17 @@ export default function GalleryPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+      </div>
+    }>
+      <GalleryContent />
+    </Suspense>
   );
 }
