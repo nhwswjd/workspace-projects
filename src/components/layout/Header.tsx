@@ -137,35 +137,21 @@ export function Header() {
           
           <div className="mt-6 space-y-1">
             <Link
-              href="/"
-              className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent transition-colors"
+              href="/gallery"
+              className="flex items-center gap-3 px-4 py-3 text-base font-medium text-foreground hover:bg-stone-100 rounded-lg transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Grid3X3 className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">全部产品</p>
-                <p className="text-xs text-muted-foreground">浏览所有系列</p>
-              </div>
+              全部产品
             </Link>
 
             {categories.map((category) => (
               <Link
                 key={category.id}
                 href={`/category/${category.id}`}
-                className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-accent transition-colors"
+                className="flex items-center gap-3 px-4 py-3 text-base font-medium text-foreground hover:bg-stone-100 rounded-lg transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center text-lg">
-                  {category.icon}
-                </div>
-                <div>
-                  <p className="font-medium">{category.name}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-1">
-                    {category.description}
-                  </p>
-                </div>
+                {category.name}
               </Link>
             ))}
           </div>

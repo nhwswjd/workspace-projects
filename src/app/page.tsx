@@ -11,7 +11,6 @@ export default function LandingPage() {
   const { isAuthenticated, isLoading: authLoading, checkPassword } = useAuth();
   const router = useRouter();
 
-  // 如果已认证，直接跳转到画廊页面
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       router.push('/gallery');
@@ -45,70 +44,92 @@ export default function LandingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-100">
-        <div className="w-8 h-8 border-2 border-stone-400/20 border-t-stone-400 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900">
+        <div className="w-10 h-10 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div 
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{
         backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
-      {/* 背景遮罩 */}
-      <div className="absolute inset-0 bg-black/40" />
+      {/* 渐变遮罩 */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70" />
+
+      {/* 装饰性元素 */}
+      <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-amber-500/10 blur-3xl" />
+      <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-amber-500/5 blur-3xl" />
 
       {/* 内容区域 */}
-      <div className="relative z-10 w-full max-w-sm mx-4">
-        {/* 标题 */}
-        <div className="text-center mb-8">
-          <h1 className="font-display text-3xl text-white mb-2 tracking-wider">
+      <div className="relative z-10 w-full max-w-md mx-4 md:mx-8">
+        {/* 品牌标识 */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 mb-6 shadow-lg shadow-amber-500/30">
+            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h1 className="font-sans text-4xl md:text-5xl text-white mb-3 tracking-tight font-medium">
             私密相册
           </h1>
-          <p className="text-white/70 text-sm">
-            请输入访问密码
+          <p className="text-white/60 text-base md:text-lg">
+            输入密码访问产品资料
           </p>
         </div>
 
-        {/* 密码输入框 */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError('');
-              }}
-              placeholder="输入访问密码"
-              className="w-full px-4 py-3 bg-white/90 backdrop-blur-sm rounded-lg text-stone-800 placeholder:text-stone-400 text-center focus:outline-none focus:ring-2 focus:ring-white/50"
+        {/* 密码输入卡片 */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-white/70 mb-2">
+                访问密码
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="请输入密码"
+                disabled={isLoading}
+                className="w-full px-5 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all duration-200 disabled:opacity-50"
+              />
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 text-red-400 text-sm">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
               disabled={isLoading}
-              autoFocus
-            />
-          </div>
+              className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  验证中...
+                </span>
+              ) : (
+                '进入相册'
+              )}
+            </button>
+          </form>
+        </div>
 
-          {error && (
-            <p className="text-red-300 text-sm text-center">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 bg-white text-stone-800 font-medium rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50"
-          >
-            {isLoading ? '验证中...' : '进入'}
-          </button>
-        </form>
-      </div>
-
-      {/* 底部装饰 */}
-      <div className="absolute bottom-8 text-white/50 text-xs">
-        © 2024 私密相册
+        {/* 底部提示 */}
+        <p className="text-center text-white/40 text-xs mt-6">
+          输入正确密码即可查看产品资料
+        </p>
       </div>
     </div>
   );
