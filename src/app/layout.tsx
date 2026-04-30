@@ -1,5 +1,17 @@
 import type { Metadata } from 'next';
+import { Inter, Noto_Sans_SC } from 'next/font/google';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
+
+const notoSansSC = Noto_Sans_SC({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-noto-sans-sc',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -31,8 +43,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
-      <body className="antialiased min-h-screen pt-[60px] md:pt-[72px]">
+    <html lang="zh-CN" className={`${inter.variable} ${notoSansSC.variable}`}>
+      <body className="antialiased min-h-screen pt-[60px] md:pt-[72px] font-sans">
         {children}
       </body>
     </html>
