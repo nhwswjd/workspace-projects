@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -13,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CategoryPage() {
   const params = useParams();
+  const router = useRouter();
   const categoryId = params.id as string;
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -44,12 +44,12 @@ export default function CategoryPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <h1 className="font-display text-2xl mb-4">分类未找到</h1>
-        <Link
-          href="/"
+        <button
+          onClick={() => router.push('/')}
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
           返回首页
-        </Link>
+        </button>
       </div>
     );
   }
@@ -60,14 +60,14 @@ export default function CategoryPage() {
 
       <main className="flex-1 pt-20 md:pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4">
-          {/* Back link */}
-          <Link
-            href="/"
+          {/* Back button */}
+          <button
+            onClick={() => router.back()}
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span>返回</span>
-          </Link>
+          </button>
 
           {/* Category header */}
           <header className="mb-6 md:mb-8">
