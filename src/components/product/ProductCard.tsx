@@ -9,18 +9,18 @@ interface ProductCardProps {
   showCategory?: boolean;
 }
 
-// 随机为产品分配优选或精选标签
-const getProductTag = (id: string): { text: string; color: string } => {
-  const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const isPremium = hash % 3 === 0;
-  return {
-    text: isPremium ? '优选产品' : '精选产品',
-    color: isPremium ? 'bg-amber-500' : 'bg-emerald-500'
-  };
-};
-
 export default function ProductCard({ product, showCategory = true }: ProductCardProps) {
-  const productTag = getProductTag(product.id);
+  // 使用产品自带的 featured 字段，没有则不显示标签
+  const getTagStyle = () => {
+    if (product.featured === '优选产品') {
+      return { text: '优选产品', color: 'bg-amber-500' };
+    } else if (product.featured === '精选产品') {
+      return { text: '精选产品', color: 'bg-emerald-500' };
+    }
+    return null;
+  };
+
+  const tagInfo = getTagStyle();
 
   return (
     <Link href={`/product/${product.id}`}>
@@ -35,12 +35,14 @@ export default function ProductCard({ product, showCategory = true }: ProductCar
             sizes="(max-width: 768px) 50vw, 25vw"
           />
           
-          {/* 优选/精选标签 - 右上角 */}
-          <div className="absolute top-2 right-2 z-10">
-            <span className={`${productTag.color} text-white text-xs px-2 py-1 rounded-full shadow-sm`}>
-              {productTag.text}
-            </span>
-          </div>
+          {/* Featured标签 - 右上角 */}
+          {tagInfo && (
+            <div className="absolute top-2 right-2 z-10">
+              <span className={`${tagInfo.color} text-white text-xs px-2 py-1 rounded-full shadow-sm`}>
+                {tagInfo.text}
+              </span>
+            </div>
+          )}
           
           {/* SKU编号 - 左上角 */}
           <div className="absolute top-2 left-2 z-10">
@@ -66,6 +68,11 @@ export default function ProductCard({ product, showCategory = true }: ProductCar
             <p className="text-xs text-gray-500 mb-1">{product.category}</p>
           )}
           <h3 className="font-medium text-gray-900 text-sm truncate">{product.name}</h3>
+          
+          {/* 地址信息 */}
+          {product.location && (
+            <p className="text-xs text-gray-400 mt-1 truncate">{product.location}</p>
+          )}
         </div>
       </div>
     </Link>

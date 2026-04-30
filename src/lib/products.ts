@@ -66,6 +66,8 @@ export const products: Product[] = [
         duration: '0:45',
       },
     ],
+    featured: '优选产品',
+    location: 'A区-001',
   },
   {
     id: 'wooden-table',
@@ -84,6 +86,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?w=800&q=80',
     ],
     videos: [],
+    featured: null,
+    location: 'A区-002',
   },
   {
     id: 'lamp-series',
@@ -101,6 +105,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
     ],
     videos: [],
+    featured: '精选产品',
+    location: 'A区-003',
   },
 
   // 现代设计
@@ -129,6 +135,8 @@ export const products: Product[] = [
         duration: '1:12',
       },
     ],
+    featured: '优选产品',
+    location: 'B区-001',
   },
   {
     id: 'minimal-shelf',
@@ -146,6 +154,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800&q=80',
     ],
     videos: [],
+    featured: null,
+    location: 'B区-002',
   },
   {
     id: 'modern-clock',
@@ -162,6 +172,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&q=80',
     ],
     videos: [],
+    featured: '精选产品',
+    location: 'B区-003',
   },
 
   // 手工艺术
@@ -190,6 +202,8 @@ export const products: Product[] = [
         duration: '2:30',
       },
     ],
+    featured: '优选产品',
+    location: 'C区-001',
   },
   {
     id: 'leather-goods',
@@ -207,6 +221,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
     ],
     videos: [],
+    featured: null,
+    location: 'C区-002',
   },
   {
     id: 'woven-basket',
@@ -223,6 +239,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=800&q=80',
     ],
     videos: [],
+    featured: '精选产品',
+    location: 'C区-003',
   },
 
   // 时尚配饰
@@ -243,6 +261,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=800&q=80',
     ],
     videos: [],
+    featured: '优选产品',
+    location: 'D区-001',
   },
   {
     id: 'silk-scarf',
@@ -260,6 +280,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=800&q=80',
     ],
     videos: [],
+    featured: null,
+    location: 'D区-002',
   },
   {
     id: 'gold-jewelry',
@@ -276,6 +298,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80',
     ],
     videos: [],
+    featured: '精选产品',
+    location: 'D区-003',
   },
 
   // 户外休闲
@@ -296,6 +320,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=80',
     ],
     videos: [],
+    featured: '优选产品',
+    location: 'E区-001',
   },
   {
     id: 'hiking-backpack',
@@ -313,6 +339,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1537905569824-f89f14cceb68?w=800&q=80',
     ],
     videos: [],
+    featured: null,
+    location: 'E区-002',
   },
   {
     id: 'outdoor-lamp',
@@ -329,6 +357,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1478827536114-da961b7f86d2?w=800&q=80',
     ],
     videos: [],
+    featured: '精选产品',
+    location: 'E区-003',
   },
 
   // 数码科技
@@ -349,6 +379,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
     ],
     videos: [],
+    featured: '优选产品',
+    location: 'F区-001',
   },
   {
     id: 'smart-speaker',
@@ -366,6 +398,8 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&q=80',
     ],
     videos: [],
+    featured: null,
+    location: 'F区-002',
   },
   {
     id: 'tablet-stand',
@@ -382,25 +416,21 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
     ],
     videos: [],
+    featured: '精选产品',
+    location: 'F区-003',
   },
 ];
 
+// 有效密码列表
+export const validPasswords = ['atelier2024'];
+
+// 品牌信息
 export const brandInfo = {
   name: 'ATELIER',
   tagline: 'Crafting Moments, Curating Life',
   description: 'ATELIER 是一个致力于发现与呈现美好生活方式的品牌。',
   contact: {
-    email: 'hello@atelier-design.com',
-    address: '上海市静安区余姚路 123 号',
+    email: 'contact@atelier.com',
+    address: '上海市静安区某某路123号',
   },
 };
-
-// 统一为全权限密码
-export const validPasswords = [
-  'atelier2024',
-];
-
-// 获取密码对应的分类权限（全权限返回null）
-export function getCategoryForPassword(password: string): string | null {
-  return null; // 所有密码都是全权限
-}

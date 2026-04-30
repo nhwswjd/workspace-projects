@@ -19,19 +19,6 @@ export default function ProductClient({ product, categories }: ProductClientProp
 
   return (
     <div className="min-h-screen bg-white pb-8">
-      {/* 分类导航 */}
-      <div className="px-4 py-3 flex gap-2 overflow-x-auto whitespace-nowrap border-b border-gray-100">
-        {categories.map((cat) => (
-          <a
-            key={cat.id}
-            href={`/category/${cat.id}`}
-            className="px-3 py-1.5 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 whitespace-nowrap"
-          >
-            {cat.name}
-          </a>
-        ))}
-      </div>
-
       {/* 产品名称 */}
       <div className="px-4 py-4 border-b border-gray-100">
         <h1 className="text-xl font-semibold text-gray-900">

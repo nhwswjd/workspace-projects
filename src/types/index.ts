@@ -16,6 +16,8 @@ export interface Product {
   coverImage: string;
   images: string[];
   videos: Video[];
+  featured?: '优选产品' | '精选产品' | null;
+  location?: string;
 }
 
 export interface Category {
