@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard } from '@/components/product/ProductCard';
@@ -58,17 +56,8 @@ export default function CategoryPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pt-20 md:pt-24 pb-16">
+      <main className="flex-1 pt-16 md:pt-20 pb-16">
         <div className="max-w-4xl mx-auto px-4">
-          {/* Back button */}
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
-          >
-            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>返回</span>
-          </button>
-
           {/* Category header */}
           <header className="mb-6 md:mb-8">
             <div className="flex items-center gap-3 mb-2">

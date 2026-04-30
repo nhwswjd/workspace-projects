@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Grid3X3, Home } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { Menu, X, Grid3X3, Home, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { brandInfo, categories } from '@/lib/products';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,11 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [loginError, setLoginError] = useState<string>();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  // Check if current page is not homepage
+  const isNotHomePage = pathname !== '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -58,15 +64,25 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-10 md:h-12">
-            {/* Left: Home button */}
+            {/* Left: Back or Home button */}
             <div className="flex items-center gap-2">
-              <Link
-                href="/"
-                className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                <span>首页</span>
-              </Link>
+              {isNotHomePage ? (
+                <button
+                  onClick={() => router.back()}
+                  className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>返回</span>
+                </button>
+              ) : (
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
+                >
+                  <Home className="w-4 h-4" />
+                  <span>首页</span>
+                </Link>
+              )}
             </div>
 
             {/* Center: Brand */}

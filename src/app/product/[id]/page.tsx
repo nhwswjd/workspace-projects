@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { GalleryVertical } from '@/components/gallery/GalleryVertical';
@@ -74,17 +73,8 @@ export default function ProductPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pt-20 md:pt-24 pb-16">
+      <main className="flex-1 pt-16 md:pt-20 pb-16">
         <div className="max-w-lg mx-auto px-4">
-          {/* Back button */}
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
-          >
-            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>返回</span>
-          </button>
-
           {/* Product header */}
           <header className="mb-6">
             <span className="text-xs text-muted-foreground uppercase tracking-wider">
