@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Product, Category } from '@/types';
-import Link from 'next/link';
 import Image from 'next/image';
+import { Product, Category } from '@/types';
 
 interface ProductClientProps {
   product: Product;
@@ -12,7 +10,6 @@ interface ProductClientProps {
 }
 
 export default function ProductClient({ product, categories }: ProductClientProps) {
-  const router = useRouter();
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   const allImages = [
@@ -22,66 +19,28 @@ export default function ProductClient({ product, categories }: ProductClientProp
 
   return (
     <div className="min-h-screen bg-white pb-8">
-      {/* 返回和标题 */}
-      <div className="sticky top-0 bg-white z-10 px-4 py-3 flex items-center gap-3 border-b border-gray-100">
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-gray-600 hover:text-black"
-        >
-          ← 返回
-        </button>
-        <h1 className="flex-1 text-center font-medium text-gray-900 pr-12 truncate">
-          {product.name}
-        </h1>
-      </div>
-
       {/* 分类导航 */}
-      <div className="px-4 py-2 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide border-b border-gray-100">
-        <Link
-          href="/gallery"
-          className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
-        >
-          全部
-        </Link>
+      <div className="px-4 py-3 flex gap-2 overflow-x-auto whitespace-nowrap border-b border-gray-100">
         {categories.map((cat) => (
-          <Link
+          <a
             key={cat.id}
-            href={`/category/${cat.name}`}
-            className="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
+            href={`/category/${cat.id}`}
+            className="px-3 py-1.5 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 whitespace-nowrap"
           >
             {cat.name}
-          </Link>
+          </a>
         ))}
       </div>
 
-      {/* 产品信息 */}
-      <div className="px-4 py-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="bg-black text-white text-xs px-2 py-0.5 rounded">
-            {product.sku}
-          </span>
-          <span className="text-sm text-gray-500">{product.category}</span>
-        </div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">
+      {/* 产品名称 */}
+      <div className="px-4 py-4 border-b border-gray-100">
+        <h1 className="text-xl font-semibold text-gray-900">
           {product.name}
         </h1>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {product.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-        {product.description && (
-          <p className="text-gray-600 text-sm">{product.description}</p>
-        )}
       </div>
 
       {/* 产品图片 - 竖向单列 */}
-      <div className="px-4 space-y-4">
+      <div className="px-4 space-y-4 mt-4">
         {allImages.map((image, index) => (
           <div 
             key={index} 
@@ -119,47 +78,54 @@ export default function ProductClient({ product, categories }: ProductClientProp
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center"
           onClick={() => setSelectedImageIndex(null)}
         >
-          <button
-            className="absolute top-4 right-4 text-white text-2xl p-2"
-            onClick={() => setSelectedImageIndex(null)}
-          >
-            ✕
-          </button>
-          <button
-            className="absolute left-4 text-white text-2xl p-2"
+          <button 
+            className="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-50"
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedImageIndex((prev) => 
-                prev !== null ? (prev > 0 ? prev - 1 : allImages.length - 1) : null
-              );
+              setSelectedImageIndex(null);
             }}
           >
-            ←
+            ×
           </button>
-          <button
-            className="absolute right-4 text-white text-2xl p-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedImageIndex((prev) => 
-                prev !== null ? (prev < allImages.length - 1 ? prev + 1 : 0) : null
-              );
-            }}
-          >
-            →
-          </button>
+          
+          {selectedImageIndex > 0 && (
+            <button 
+              className="absolute left-4 text-white text-3xl hover:text-gray-300 z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImageIndex(selectedImageIndex - 1);
+              }}
+            >
+              ‹
+            </button>
+          )}
+          
+          {selectedImageIndex < allImages.length - 1 && (
+            <button 
+              className="absolute right-4 text-white text-3xl hover:text-gray-300 z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedImageIndex(selectedImageIndex + 1);
+              }}
+            >
+              ›
+            </button>
+          )}
+          
           <div 
-            className="relative w-full h-full max-w-lg max-h-[90vh]"
+            className="relative w-full h-full max-w-3xl max-h-full p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
               src={allImages[selectedImageIndex]}
-              alt="查看大图"
+              alt={`${product.name} - 图片 ${selectedImageIndex + 1}`}
               fill
               className="object-contain"
               sizes="100vw"
             />
           </div>
-          <div className="absolute bottom-4 text-white text-sm">
+          
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm">
             {selectedImageIndex + 1} / {allImages.length}
           </div>
         </div>
