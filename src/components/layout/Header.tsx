@@ -37,17 +37,28 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Left: Brand + Login */}
-            <div className="flex items-center gap-3">
-              <span className="font-display text-lg md:text-xl tracking-widest">
-                {brandInfo.name}
-              </span>
-              
-              {/* Login button */}
+            {/* Left: Home button */}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
+              >
+                <Home className="w-4 h-4" />
+                <span>首页</span>
+              </Link>
+            </div>
+
+            {/* Center: Brand */}
+            <span className="font-display text-lg md:text-xl tracking-widest absolute left-1/2 -translate-x-1/2">
+              {brandInfo.name}
+            </span>
+
+            {/* Right: Login */}
+            <div className="flex items-center gap-2">
               {!isAuthenticated ? (
                 <button
                   onClick={() => setIsMobileMenuOpen(true)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="px-3 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   登录
                 </button>
@@ -56,42 +67,18 @@ export function Header() {
                   onClick={() => {
                     logout();
                   }}
-                  className="text-sm text-green-600 hover:text-green-700 transition-colors"
+                  className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                 >
                   已登录
                 </button>
               )}
-            </div>
-
-            {/* Center: Category Navigation - Desktop */}
-            <div className="hidden lg:flex items-center gap-1">
-              {categories.slice(0, 6).map((category) => (
-                <Link
-                  key={category.id}
-                  href={`/category/${category.id}`}
-                  className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
-                >
-                  {category.name}
-                </Link>
-              ))}
-            </div>
-
-            {/* Right: Home button */}
-            <div className="flex items-center gap-2">
-              <Link
-                href="/"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                <span className="hidden md:inline">首页</span>
-              </Link>
               
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2"
+                className="md:hidden p-2"
                 aria-label="打开菜单"
               >
-                <Grid3X3 className="w-5 h-5" />
+                <Menu className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -158,7 +145,7 @@ export function Header() {
               </Button>
             ) : (
               <p className="text-sm text-muted-foreground text-center">
-                点击右上角「登录」输入密码解锁内容
+                点击「登录」输入密码解锁内容
               </p>
             )}
           </div>

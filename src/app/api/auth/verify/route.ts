@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { validPasswords, getCategoryForPassword } from '@/lib/products';
+import { validPasswords } from '@/lib/products';
 
 export async function POST(request: Request) {
   try {
@@ -13,11 +13,10 @@ export async function POST(request: Request) {
     }
 
     if (validPasswords.includes(password)) {
-      // 获取该密码对应的分类权限
-      const categoryPermission = getCategoryForPassword(password);
+      // 所有密码都是全权限
       return NextResponse.json({ 
         success: true,
-        categoryPermission 
+        categoryPermission: null // 全权限
       });
     }
 

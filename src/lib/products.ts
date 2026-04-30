@@ -352,33 +352,19 @@ export const products: Product[] = [
 export const brandInfo = {
   name: 'ATELIER',
   tagline: 'Crafting Moments, Curating Life',
-  description: 'ATELIER 是一个致力于发现与呈现美好生活方式的品牌。我们相信，真正的品质不在于奢华，而在于对细节的极致追求与对生活的深刻理解。每一件产品都是我们与全球优秀设计师、工匠合作的结晶，旨在为您的生活空间带来独特的美学体验与情感共鸣。',
+  description: 'ATELIER 是一个致力于发现与呈现美好生活方式的品牌。',
   contact: {
     email: 'hello@atelier-design.com',
     address: '上海市静安区余姚路 123 号',
   },
 };
 
-// 密码映射表（支持多密码）
+// 统一为全权限密码
 export const validPasswords = [
-  'atelier2024',    // 通用密码
-  'living2024',      // 家居生活分类密码
-  'design2024',      // 现代设计分类密码
-  'craft2024',       // 手工艺术分类密码
-  'fashion2024',     // 时尚配饰分类密码
-  'outdoor2024',     // 户外休闲分类密码
-  'digital2024',     // 数码科技分类密码
+  'atelier2024',
 ];
 
-// 获取密码对应的分类权限
+// 获取密码对应的分类权限（全权限返回null）
 export function getCategoryForPassword(password: string): string | null {
-  const passwordMap: Record<string, string> = {
-    'living2024': 'living',
-    'design2024': 'design',
-    'craft2024': 'craft',
-    'fashion2024': 'fashion',
-    'outdoor2024': 'outdoor',
-    'digital2024': 'digital',
-  };
-  return passwordMap[password] || null;
+  return null; // 所有密码都是全权限
 }

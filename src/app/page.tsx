@@ -19,14 +19,16 @@ export default function HomePage() {
     );
   }
 
+  // 首页只显示前4个产品
+  const featuredProducts = products.slice(0, 4);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      {/* Main Content */}
       <main className="flex-1 pt-20 md:pt-24">
         {/* Categories Section */}
-        <section className="py-8 md:py-12 px-4">
+        <section className="py-6 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
               {categories.map((category, index) => (
@@ -36,7 +38,7 @@ export default function HomePage() {
                   className="group animate-fade-in-up"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <article className="relative overflow-hidden rounded-xl bg-white border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                  <article className="relative overflow-hidden rounded-xl bg-white border border-border/50 hover:border-primary/30 hover:shadow-md transition-all duration-300">
                     <div className="aspect-square relative flex flex-col items-center justify-center p-3 md:p-4">
                       <span className="text-2xl md:text-3xl mb-1 group-hover:scale-110 transition-transform duration-300">
                         {category.icon}
@@ -52,11 +54,11 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* All Products Section */}
-        <section className="py-8 md:py-12 px-4 bg-accent/20">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-6 md:mb-8">
-              <h2 className="font-display text-xl md:text-2xl">
+        {/* Featured Products - 2x2 Grid */}
+        <section className="py-6 px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-display text-xl">
                 精选产品
               </h2>
               <span className="text-sm text-muted-foreground">
@@ -64,13 +66,13 @@ export default function HomePage() {
               </span>
             </div>
 
-            {/* Product Grid - Mobile: 2 columns */}
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-              {products.map((product, index) => (
+            {/* Product Grid - 2 columns */}
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
+              {featuredProducts.map((product, index) => (
                 <div
                   key={product.id}
                   className="animate-fade-in-up"
-                  style={{ animationDelay: `${index * 30}ms` }}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <ProductCard
                     product={product}

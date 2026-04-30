@@ -7,7 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { UnlockPrompt } from '@/components/auth/UnlockPrompt';
-import { GalleryGrid } from '@/components/gallery/GalleryGrid';
+import { GalleryVertical } from '@/components/gallery/GalleryVertical';
 import { PhotoViewer } from '@/components/gallery/PhotoViewer';
 import { VideoPlayer } from '@/components/gallery/VideoPlayer';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +22,7 @@ export default function ProductPage() {
   
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
+  const [showUnlockPrompt, setShowUnlockPrompt] = useState(false);
 
   const product = products.find((p) => p.id === productId);
 
@@ -37,18 +37,24 @@ export default function ProductPage() {
     };
   }, [selectedImageIndex, selectedVideo]);
 
+  useEffect(() => {
+    if (!isAuthenticated && product) {
+      setShowUnlockPrompt(true);
+    }
+  }, [isAuthenticated, product]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 pt-20 pb-16 px-4">
-          <div className="max-w-5xl mx-auto">
-            <Skeleton className="h-8 w-32 mb-8" />
-            <Skeleton className="h-12 w-64 mb-4" />
-            <Skeleton className="h-5 w-full max-w-xl mb-12" />
-            <div className="grid grid-cols-3 gap-2 md:gap-3">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="aspect-[3/4] rounded-lg" />
+          <div className="max-w-lg mx-auto">
+            <Skeleton className="h-6 w-20 mb-6" />
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-full mb-10" />
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="w-full aspect-[3/4] rounded-lg" />
               ))}
             </div>
           </div>
@@ -77,32 +83,32 @@ export default function ProductPage() {
       <Header />
 
       <main className="flex-1 pt-20 md:pt-24 pb-16">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="max-w-lg mx-auto px-4">
           {/* Back link */}
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 group"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>返回列表</span>
+            <span>返回</span>
           </Link>
 
           {/* Product header */}
-          <header className="mb-10 md:mb-14 animate-fade-in-up">
-            <span className="text-xs text-muted-foreground uppercase tracking-widest">
+          <header className="mb-6">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
               {product.category}
             </span>
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl mt-2 mb-4">
+            <h1 className="font-display text-2xl md:text-3xl mt-1 mb-2">
               {product.name}
             </h1>
-            <p className="text-muted-foreground leading-relaxed max-w-2xl animate-fade-in-up animation-delay-100">
+            <p className="text-sm text-muted-foreground">
               {product.description}
             </p>
           </header>
 
-          {/* Gallery */}
-          <div className="animate-fade-in-up animation-delay-200">
-            <GalleryGrid
+          {/* Gallery - Vertical single column */}
+          <div className="animate-fade-in-up">
+            <GalleryVertical
               product={product}
               isAuthenticated={isAuthenticated}
               onImageClick={setSelectedImageIndex}
@@ -110,21 +116,12 @@ export default function ProductPage() {
             />
           </div>
 
-          {/* Media count */}
-          <div className="mt-6 text-sm text-muted-foreground animate-fade-in-up animation-delay-300">
-            <span>{product.images.length} 张图片</span>
-            {product.videos.length > 0 && (
-              <span className="mx-2">·</span>
-            )}
-            {product.videos.length > 0 && (
-              <span>{product.videos.length} 个视频</span>
-            )}
-          </div>
-
-          {/* Unlock prompt for unauthenticated */}
-          {!isAuthenticated && (
-            <div className="mt-16 max-w-md mx-auto animate-fade-in-up animation-delay-300">
-              <UnlockPrompt />
+          {/* Unlock prompt */}
+          {showUnlockPrompt && (
+            <div className="mt-8">
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <UnlockPrompt onSuccess={() => setShowUnlockPrompt(false)} />
+              </div>
             </div>
           )}
         </div>
@@ -142,12 +139,10 @@ export default function ProductPage() {
       {/* Video Player Modal */}
       {selectedVideo !== null && (
         <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 md:p-8">
-          <div className="w-full max-w-3xl">
+          <div className="w-full max-w-lg">
             <VideoPlayer
               video={selectedVideo}
               isAuthenticated={isAuthenticated}
-              isFullscreen={isVideoFullscreen}
-              onFullscreenChange={setIsVideoFullscreen}
               onClose={() => setSelectedVideo(null)}
             />
           </div>
