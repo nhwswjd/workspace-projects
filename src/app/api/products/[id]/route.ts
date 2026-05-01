@@ -31,7 +31,9 @@ export async function PUT(
     const body = await request.json();
     const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, location, hidden, sortOrder } = body;
 
-    const productData: Record<string, unknown> = {};
+    const productData: Record<string, unknown> = {
+      id, // 确保ID被设置，用于 upsert
+    };
     if (sku !== undefined) productData.sku = sku;
     if (name !== undefined) productData.name = name;
     if (tags !== undefined) productData.tags = tags;
@@ -46,10 +48,10 @@ export async function PUT(
     if (hidden !== undefined) productData.hidden = hidden;
     if (sortOrder !== undefined) productData.sort_order = sortOrder;
 
+    // 使用 upsert 确保无论产品是否已存在都能成功更新
     const { error } = await supabaseAdmin
       .from('products')
-      .update(productData)
-      .eq('id', id);
+      .upsert(productData, { onConflict: 'id' });
 
     if (error) throw error;
 

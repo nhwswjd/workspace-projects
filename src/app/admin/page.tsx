@@ -568,6 +568,18 @@ export default function AdminPage() {
                         <td className="px-3 py-3 text-sm text-gray-600">{product.category || '-'}</td>
                         <td className="px-3 py-3 text-sm text-gray-600 text-center">{product.sortOrder ?? '-'}</td>
                         <td className="px-3 py-3 text-sm">
+                          {product.tags && product.tags.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {product.tags.slice(0, 3).map((tag, i) => (
+                                <span key={i} className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-600">{tag}</span>
+                              ))}
+                              {product.tags.length > 3 && (
+                                <span className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-500">+{product.tags.length - 3}</span>
+                              )}
+                            </div>
+                          ) : '-'}
+                        </td>
+                        <td className="px-3 py-3 text-sm">
                           {product.featured ? (
                             <span className="px-2 py-1 text-xs rounded bg-amber-100 text-amber-700">{product.featured}</span>
                           ) : '-'}
