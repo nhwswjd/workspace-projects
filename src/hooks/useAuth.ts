@@ -4,23 +4,27 @@ import { useState, useEffect, useCallback } from 'react';
 
 const AUTH_KEY = 'atelier_authenticated';
 const CATEGORY_KEY = 'atelier_category_permission';
+const ADMIN_KEY = 'atelier_is_admin';
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [categoryPermission, setCategoryPermission] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(AUTH_KEY);
     const storedCategory = localStorage.getItem(CATEGORY_KEY);
+    const storedAdmin = localStorage.getItem(ADMIN_KEY);
     if (stored === 'true') {
       setIsAuthenticated(true);
       setCategoryPermission(storedCategory);
+      setIsAdmin(storedAdmin === 'true');
     }
     setIsLoading(false);
   }, []);
 
-  const checkPassword = useCallback(async (password: string): Promise<boolean> => {
+  const checkPassword = useCallback(async (password: string): Promise<{ success: boolean; isAdmin?: boolean }> => {
     try {
       const response = await fetch('/api/auth/verify', {
         method: 'POST',
@@ -32,6 +36,14 @@ export function useAuth() {
       
       if (data.success) {
         localStorage.setItem(AUTH_KEY, 'true');
+        // 存储管理员标识
+        if (data.isAdmin) {
+          localStorage.setItem(ADMIN_KEY, 'true');
+          setIsAdmin(true);
+        } else {
+          localStorage.removeItem(ADMIN_KEY);
+          setIsAdmin(false);
+        }
         // 存储分类权限
         if (data.categoryPermission) {
           localStorage.setItem(CATEGORY_KEY, data.categoryPermission);
@@ -41,18 +53,20 @@ export function useAuth() {
           setCategoryPermission(null);
         }
         setIsAuthenticated(true);
-        return true;
+        return { success: true, isAdmin: data.isAdmin };
       }
-      return false;
+      return { success: false };
     } catch {
-      return false;
+      return { success: false };
     }
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(CATEGORY_KEY);
+    localStorage.removeItem(ADMIN_KEY);
     setIsAuthenticated(false);
+    setIsAdmin(false);
     setCategoryPermission(null);
   }, []);
 
@@ -63,5 +77,5 @@ export function useAuth() {
     return false;
   }, [isAuthenticated, categoryPermission]);
 
-  return { isAuthenticated, isLoading, checkPassword, logout, categoryPermission, hasCategoryAccess };
+  return { isAuthenticated, isLoading, isAdmin, checkPassword, logout, categoryPermission, hasCategoryAccess };
 }

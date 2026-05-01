@@ -421,8 +421,11 @@ export const products: Product[] = [
   },
 ];
 
-// 有效密码列表
+// 访客密码
 export const validPasswords = ['atelier2024'];
+
+// 管理员密码
+export const adminPassword = 'admin2024';
 
 // 品牌信息
 export const brandInfo = {
@@ -434,3 +437,8 @@ export const brandInfo = {
     address: '上海市静安区某某路123号',
   },
 };
+
+// 获取所有分类的函数
+export function getAllCategories(): Category[] {
+  return categories;
+}

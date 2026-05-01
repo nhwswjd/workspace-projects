@@ -23,7 +23,7 @@ import {
 import { PasswordInput } from '@/components/auth/PasswordInput';
 
 export function Header() {
-  const { isAuthenticated, logout, checkPassword } = useAuth();
+  const { isAuthenticated, isAdmin, logout, checkPassword } = useAuth();
   const { searchQuery, setSearchQuery } = useSearch();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -77,15 +77,24 @@ export function Header() {
                 </button>
               )}
               {/* Search box in header */}
-              <div className="relative hidden sm:flex items-center gap-1">
-                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <div className="hidden sm:flex items-center gap-1 flex-1 max-w-[180px] lg:max-w-[220px]">
                 <input
                   type="text"
                   placeholder="搜索产品..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-32 lg:w-48 pl-1 pr-2 py-1.5 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full pl-3 pr-8 py-1.5 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
                 />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Trigger search
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
               </div>
             </div>
 
@@ -98,7 +107,10 @@ export function Header() {
             <div className="flex items-center gap-2 flex-1 justify-end">
               {/* Mobile search icon */}
               <button
-                onClick={() => setIsMobileMenuOpen(true)}
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsMobileMenuOpen(true);
+                }}
                 className="sm:hidden p-2"
                 aria-label="搜索"
               >
@@ -108,6 +120,7 @@ export function Header() {
               {isSubPage && (
                 <Link
                   href="/gallery"
+                  onClick={() => setSearchQuery('')}
                   className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   <Home className="w-4 h-4" />
@@ -116,7 +129,10 @@ export function Header() {
               )}
               {!isAuthenticated ? (
                 <button
-                  onClick={() => setShowLoginDialog(true)}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setShowLoginDialog(true);
+                  }}
                   className="px-3 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
                 >
                   登录
@@ -124,6 +140,7 @@ export function Header() {
               ) : (
                 <button
                   onClick={() => {
+                    setSearchQuery('');
                     logout();
                   }}
                   className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
@@ -186,17 +203,31 @@ export function Header() {
           </div>
 
           <div className="mt-8 pt-6 border-t">
+            {isAdmin && (
+              <>
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-3 px-4 py-3 text-base font-medium text-primary hover:bg-stone-100 rounded-lg transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  管理产品
+                </Link>
+                <div className="h-px bg-border my-2" />
+              </>
+            )}
             {isAuthenticated ? (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  logout();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full"
-              >
-                退出登录
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    logout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full"
+                >
+                  退出登录
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={() => {

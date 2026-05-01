@@ -21,13 +21,13 @@ export function UnlockPrompt({ className, onSuccess }: UnlockPromptProps) {
     setIsLoading(true);
 
     try {
-      const success = await checkPassword(password);
-      if (!success) {
+      const result = await checkPassword(password);
+      if (!result.success) {
         setError('密码错误，请重试');
       } else {
         onSuccess?.();
       }
-      return success;
+      return result.success;
     } catch {
       setError('验证失败，请稍后重试');
       return false;

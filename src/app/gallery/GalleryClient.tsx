@@ -88,7 +88,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
         {/* 产品网格 - 响应式布局 */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 justify-items-center">
             {filteredProducts.map((product) => (
               <Link
                 key={product.id}

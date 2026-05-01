@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { validPasswords } from '@/lib/products';
+import { validPasswords, adminPassword } from '@/lib/products';
 
 export async function POST(request: Request) {
   try {
@@ -12,11 +12,21 @@ export async function POST(request: Request) {
       );
     }
 
-    if (validPasswords.includes(password)) {
-      // 所有密码都是全权限
+    if (password === adminPassword) {
+      // 管理员密码 - 全权限 + 管理员标识
       return NextResponse.json({ 
         success: true,
-        categoryPermission: null // 全权限
+        isAdmin: true,
+        categoryPermission: null
+      });
+    }
+
+    if (validPasswords.includes(password)) {
+      // 访客密码 - 全权限
+      return NextResponse.json({ 
+        success: true,
+        isAdmin: false,
+        categoryPermission: null
       });
     }
 
