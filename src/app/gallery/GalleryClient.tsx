@@ -52,33 +52,33 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 搜索框 - 置顶栏下方 */}
+      {/* 搜索框 - 置顶，无间距 */}
       <div className="bg-white border-b border-stone-200 pt-12 md:pt-14">
-        <div className="max-w-[90%] mx-auto px-2 py-2">
+        <div className="max-w-full mx-auto px-2 py-2">
           <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="搜索产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 pl-4 pr-4 py-3 text-base bg-stone-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
+              className="flex-1 pl-4 pr-4 py-5 text-base bg-stone-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
             />
-            <button className="px-5 py-3 bg-stone-900 text-white text-base font-medium rounded-xl hover:bg-stone-800 transition-colors">
+            <button className="px-5 py-5 bg-stone-900 text-white text-base font-medium rounded-xl hover:bg-stone-800 transition-colors">
               搜索
             </button>
           </div>
         </div>
       </div>
 
-      {/* 分类导航 - 横向滚动，字号加大 */}
+      {/* 分类导航 - 横向滚动，字号加大，高度增加，颜色优化，倒角减小 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-[90%] mx-auto px-2 py-3">
-          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+        <div className="max-w-full mx-auto px-2 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 ${
+              className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-lg transition-all duration-200 ${
                 selectedCategory === null
-                  ? 'bg-stone-900 text-white shadow-md'
+                  ? 'bg-amber-500 text-white shadow-sm'
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
@@ -88,9 +88,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 ${
+                className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-lg transition-all duration-200 ${
                   selectedCategory === cat.id
-                    ? 'bg-stone-900 text-white shadow-md'
+                    ? 'bg-amber-500 text-white shadow-sm'
                     : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                 }`}
               >
@@ -102,7 +102,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
       </div>
 
       {/* 主内容区 */}
-      <main className="max-w-[90%] mx-auto px-2 py-6 md:py-8">
+      <main className="max-w-full mx-auto px-2 py-6 md:py-8">
         {/* 筛选按钮 */}
         {selectedCategory && (
           <div className="flex items-center justify-end mb-5">
@@ -115,7 +115,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           </div>
         )}
 
-        {/* 产品网格 - 响应式布局 */}
+        {/* 产品网格 - 响应式布局，充分利用宽度 */}
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {filteredProducts.map((product) => (
@@ -124,8 +124,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 href={`/product/${product.id}`}
                 className="group block"
               >
-                {/* 图片容器 */}
-                <div className="relative aspect-[3/4] bg-stone-200 rounded-xl overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                {/* 图片容器 - 充分利用右边空白 */}
+                <div className="relative bg-stone-200 rounded-xl overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300"
+                  style={{ aspectRatio: '3/4' }}
+                >
                   <Image
                     src={product.coverImage}
                     alt={product.name}
@@ -143,7 +145,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 </div>
 
                 {/* 产品信息 */}
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-2">
                   {/* 编号 - 红色 */}
                   <span className="text-xs text-red-600 font-medium whitespace-nowrap">
                     {product.sku}
@@ -153,12 +155,12 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   </h3>
                 </div>
 
-                {/* 标签 */}
+                {/* 标签 - 方框样式 */}
                 <div className="flex flex-wrap gap-1.5">
                   {product.tags && product.tags.slice(0, 3).map((tag: string) => (
                     <span
                       key={tag}
-                      className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full"
+                      className="text-xs text-stone-600 bg-white border border-stone-300 px-2 py-0.5 rounded-sm"
                     >
                       {tag}
                     </span>

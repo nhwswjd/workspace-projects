@@ -83,62 +83,8 @@ export function Header() {
               {brandInfo.name}
             </span>
 
-            {/* Right: Home + Login */}
+            {/* Right: Menu button only */}
             <div className="flex items-center gap-2 flex-1 justify-end">
-              {/* Mobile search icon */}
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setIsMobileMenuOpen(true);
-                }}
-                className="sm:hidden p-2"
-                aria-label="搜索"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-              
-              {isSubPage && (
-                <Link
-                  href="/gallery"
-                  onClick={() => setSearchQuery('')}
-                  className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
-                >
-                  <Home className="w-4 h-4" />
-                  <span className="hidden sm:inline">首页</span>
-                </Link>
-              )}
-              {!isAuthenticated ? (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setShowLoginDialog(true);
-                  }}
-                  className="px-3 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
-                >
-                  登录
-                </button>
-              ) : (
-                <>
-                  {isAdmin && (
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                    >
-                      <span className="hidden sm:inline">管理</span>
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      logout();
-                    }}
-                    className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                  >
-                    已登录
-                  </button>
-                </>
-              )}
-              
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="md:hidden p-2"
@@ -151,83 +97,57 @@ export function Header() {
         </div>
       </header>
 
+      {/* Mobile menu Sheet */}
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetContent side="left" className="w-[300px]">
+        <SheetContent side="left" className="w-[280px]">
           <SheetHeader>
             <SheetTitle className="font-display tracking-widest text-left">
               {brandInfo.name}
             </SheetTitle>
-            
-            {/* Mobile search */}
-            <div className="relative mt-3">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="搜索"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
-              />
-            </div>
           </SheetHeader>
           
           <div className="mt-6 space-y-1">
-            <Link
-              href="/gallery"
-              className="flex items-center gap-3 px-4 py-3 text-base font-medium text-foreground hover:bg-stone-100 rounded-lg transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              全部产品
-            </Link>
-
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/category/${category.id}`}
-                className="flex items-center gap-3 px-4 py-3 text-base font-medium text-foreground hover:bg-stone-100 rounded-lg transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {category.name}
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-8 pt-6 border-t">
-            {isAdmin && (
-              <>
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-3 px-4 py-3 text-base font-medium text-primary hover:bg-stone-100 rounded-lg transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  管理产品
-                </Link>
-                <div className="h-px bg-border my-2" />
-              </>
-            )}
             {isAuthenticated ? (
               <>
-                <Button
-                  variant="outline"
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-3 px-4 py-3 text-base font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    管理产品
+                  </Link>
+                )}
+                <button
                   onClick={() => {
                     logout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full"
+                  className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                   退出登录
-                </Button>
+                </button>
               </>
             ) : (
-              <Button
+              <button
                 onClick={() => {
                   setShowLoginDialog(true);
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full"
+                className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium text-foreground hover:bg-stone-100 rounded-lg transition-colors"
               >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
                 输入密码
-              </Button>
+              </button>
             )}
           </div>
         </SheetContent>
