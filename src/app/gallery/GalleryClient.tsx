@@ -52,19 +52,19 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 搜搜框 - 紧贴顶部 */}
-      <div className="bg-white border-b border-stone-200">
-        <div className="w-full px-4 py-12">
+      {/* 搜索框 - 紧贴顶部 */}
+      <div className="bg-white border-b border-stone-200 -mt-24">
+        <div className="w-1/2 mx-auto px-4 py-12">
           <div className="flex items-center bg-stone-100 rounded-full overflow-hidden">
             <input
               type="text"
-              placeholder="搜搜产品名称、编号或标签"
+              placeholder="搜索产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 px-5 py-10 text-2xl bg-transparent focus:outline-none placeholder:text-stone-400"
             />
             <button className="px-8 py-10 text-stone-900 text-xl font-bold hover:text-stone-700 transition-colors mr-2 flex-shrink-0">
-              搜搜
+              搜索
             </button>
           </div>
         </div>
@@ -72,11 +72,11 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
       {/* 分类导航 - 横向滚动，蓝色选中样式 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-full px-4 py-4">
+        <div className="max-w-full px-4 py-10">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+              className={`flex-shrink-0 px-4 py-8 text-xl font-medium rounded-full transition-all duration-200 ${
                 selectedCategory === null
                   ? 'bg-blue-500 text-white shadow-sm'
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
@@ -88,7 +88,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                className={`flex-shrink-0 px-4 py-8 text-xl font-medium rounded-full transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? 'bg-blue-500 text-white shadow-sm'
                     : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
