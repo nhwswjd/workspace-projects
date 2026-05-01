@@ -53,12 +53,15 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
     // 数据库产品会覆盖静态产品（基于ID去重）
     const dbProductIds = new Set(dbProducts.map(p => p.id));
     const staticProductsToAdd = staticProducts.filter(p => !dbProductIds.has(p.id));
-    const mergedProducts = [...dbProducts, ...staticProductsToAdd];
+    let mergedProducts = [...dbProducts, ...staticProductsToAdd];
     
     // 访客请求时过滤掉隐藏的产品
     if (!includeHidden) {
-      return mergedProducts.filter(p => !p.hidden);
+      mergedProducts = mergedProducts.filter(p => !p.hidden);
     }
+    
+    // 按 sortOrder 排序（数字越小越靠前）
+    mergedProducts.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     
     return mergedProducts;
   } catch {
@@ -101,11 +104,11 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
       query = query.eq('hidden', false).or('hidden.is.null');
     }
     
-    const { data, error } = await query;
+    let { data, error } = await query;
     
     if (error) throw error;
     
-    return data.map((p: Record<string, unknown>) => ({
+    const dbProducts = (data || []).map((p: Record<string, unknown>) => ({
       id: p.id as string,
       sku: p.sku as string,
       name: p.name as string,
@@ -121,8 +124,27 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
       hidden: (p.hidden as boolean) || false,
       sortOrder: (p.sort_order as number) || 0,
     })) as unknown as Product[];
+    
+    // 合并静态分类数据
+    const staticFiltered = staticProducts.filter(p => p.categoryId === categoryId);
+    const dbProductIds = new Set(dbProducts.map(p => p.id));
+    const staticToAdd = staticFiltered.filter(p => !dbProductIds.has(p.id));
+    let mergedProducts = [...dbProducts, ...staticToAdd];
+    
+    // 访客请求时过滤隐藏产品
+    if (!includeHidden) {
+      mergedProducts = mergedProducts.filter(p => !p.hidden);
+    }
+    
+    // 按 sortOrder 排序
+    mergedProducts.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    
+    return mergedProducts;
   } catch {
-    return (staticProducts.filter(p => p.categoryId === categoryId)) as Product[];
+    // 如果数据库失败，返回静态数据并排序
+    const filtered = (staticProducts.filter(p => p.categoryId === categoryId) as Product[]);
+    filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    return filtered;
   }
 }
 

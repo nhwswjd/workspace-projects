@@ -53,6 +53,12 @@ export default function AdminPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  // 筛选和排序状态
+  const [filterText, setFilterText] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [sortBy, setSortBy] = useState<'sku' | 'name' | 'category' | 'sortOrder'>('sortOrder');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     // 只有加载完成后才判断，未加载时保持当前页面
