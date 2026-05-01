@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -55,6 +55,7 @@ export default function AdminPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   // 筛选和排序状态
+  const [searchTerm, setSearchTerm] = useState('');
   const [filterSku, setFilterSku] = useState('');
   const [filterName, setFilterName] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -65,8 +66,89 @@ export default function AdminPage() {
   const [sortBy, setSortBy] = useState<'sku' | 'name' | 'category' | 'sortOrder' | 'featured'>('sortOrder');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // 获取所有唯一标签用于筛选
+  // 获取所有唯一标签用于筛选（基于原始产品列表）
   const allTags = Array.from(new Set(products.flatMap(p => p.tags || []))).sort();
+
+  // 筛选和排序后的产品列表
+  const filteredProducts = useMemo(() => {
+    let result = [...products];
+
+    // 搜索过滤
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(p =>
+        p.name?.toLowerCase().includes(term) ||
+        p.sku?.toLowerCase().includes(term) ||
+        p.description?.toLowerCase().includes(term)
+      );
+    }
+
+    // 编号筛选
+    if (filterSku) {
+      result = result.filter(p => p.sku === filterSku);
+    }
+
+    // 名称筛选
+    if (filterName) {
+      const term = filterName.toLowerCase();
+      result = result.filter(p => p.name?.toLowerCase().includes(term));
+    }
+
+    // 分类筛选
+    if (filterCategory) {
+      result = result.filter(p => p.categoryId === filterCategory);
+    }
+
+    // 标签筛选
+    if (filterFeatured) {
+      result = result.filter(p => p.featured === filterFeatured);
+    }
+
+    // 状态筛选
+    if (filterStatus === 'visible') {
+      result = result.filter(p => !p.hidden);
+    } else if (filterStatus === 'hidden') {
+      result = result.filter(p => p.hidden);
+    }
+
+    // 排序
+    result.sort((a, b) => {
+      let aVal: string | number = '';
+      let bVal: string | number = '';
+
+      switch (sortBy) {
+        case 'sku':
+          aVal = a.sku || '';
+          bVal = b.sku || '';
+          break;
+        case 'name':
+          aVal = a.name || '';
+          bVal = b.name || '';
+          break;
+        case 'category':
+          aVal = a.category || '';
+          bVal = b.category || '';
+          break;
+        case 'sortOrder':
+          aVal = a.sortOrder ?? 0;
+          bVal = b.sortOrder ?? 0;
+          break;
+        case 'featured':
+          aVal = a.featured || '';
+          bVal = b.featured || '';
+          break;
+      }
+
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      return sortDirection === 'asc'
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
+    });
+
+    return result;
+  }, [products, searchTerm, filterSku, filterName, filterCategory, filterFeatured, filterStatus, sortBy, sortDirection]);
 
   useEffect(() => {
     // 只有加载完成后才判断，未加载时保持当前页面
@@ -215,6 +297,33 @@ export default function AdminPage() {
           {message.text}
         </div>
       )}
+
+      {/* 搜索栏 */}
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            placeholder="搜索产品名称、编号或描述..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
+          />
+          {(searchTerm || filterSku || filterCategory || filterFeatured || filterStatus) && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setFilterSku('');
+                setFilterCategory('');
+                setFilterFeatured('');
+                setFilterStatus('');
+              }}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+            >
+              清除筛选
+            </button>
+          )}
+        </div>
+      </div>
 
       {loading ? (
         <div className="text-center py-10 text-gray-500">加载中...</div>
@@ -375,7 +484,7 @@ export default function AdminPage() {
                         className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
                       >
                         <option value="">全部</option>
-                        {Array.from(new Set(products.map(p => p.sku).filter(Boolean))).sort().map(sku => (
+                        {Array.from(new Set(filteredProducts.map(p => p.sku).filter(Boolean))).sort().map(sku => (
                           <option key={sku} value={sku}>{sku}</option>
                         ))}
                       </select>
@@ -446,17 +555,23 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {products.length === 0 ? (
+                  {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-3 py-8 text-center text-gray-500">暂无产品</td>
+                      <td colSpan={8} className="px-3 py-8 text-center text-gray-500">暂无产品</td>
                     </tr>
                   ) : (
-                    products.map((product, index) => (
+                    filteredProducts.map((product, index) => (
                       <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
                         <td className="px-3 py-3 text-sm text-gray-600 text-center">{index + 1}</td>
                         <td className="px-3 py-3 text-sm text-gray-600">{product.sku || '-'}</td>
                         <td className="px-3 py-3 text-sm text-gray-800 font-medium max-w-[150px] truncate">{product.name}</td>
                         <td className="px-3 py-3 text-sm text-gray-600">{product.category || '-'}</td>
+                        <td className="px-3 py-3 text-sm text-gray-600 text-center">{product.sortOrder ?? '-'}</td>
+                        <td className="px-3 py-3 text-sm">
+                          {product.featured ? (
+                            <span className="px-2 py-1 text-xs rounded bg-amber-100 text-amber-700">{product.featured}</span>
+                          ) : '-'}
+                        </td>
                         <td className="px-3 py-3 text-sm text-gray-600">
                           <span className={`px-2 py-1 text-xs rounded ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                             {product.hidden ? '已隐藏' : '可见'}
