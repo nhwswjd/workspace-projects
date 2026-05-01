@@ -79,9 +79,10 @@ export default function ProductClient({ product, categories }: ProductClientProp
           <video
             ref={videoRef}
             controls
+            preload="metadata"
             className={isPortrait 
-              ? 'w-full h-auto max-h-[85vh] bg-black'  // 竖向视频：全宽，高度自适应
-              : 'w-full h-auto max-h-[70vh] bg-black'  // 横向视频：全宽，高度自适应
+              ? 'w-full h-auto max-h-[unset] bg-black'  // 竖向视频：全宽，无高度限制
+              : 'w-full h-auto max-h-[70vh] bg-black'   // 横向视频：全宽，最大70vh
             }
             playsInline
             onLoadedMetadata={handleVideoLoadedMetadata}
