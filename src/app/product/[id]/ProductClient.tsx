@@ -144,7 +144,12 @@ export default function ProductClient({ product, categories }: ProductClientProp
   const videoUrl = getVideoUrl(videoData);
   
   // 调试：显示当前视频信息
-  console.log('currentVideoIndex:', currentVideoIndex, 'videoData:', JSON.stringify(videoData), 'videoUrl:', videoUrl);
+  console.log('=== VIDEO DEBUG ===');
+  console.log('currentVideoIndex:', currentVideoIndex);
+  console.log('product.videos:', product.videos);
+  console.log('videoData:', videoData);
+  console.log('videoUrl:', videoUrl);
+  console.log('===================');
 
   // 根据视频方向确定播放器的aspect-ratio
   const videoAspectRatio = isVideoVertical ? '9/16' : '16/9';
