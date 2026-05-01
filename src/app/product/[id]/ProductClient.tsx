@@ -80,8 +80,8 @@ export default function ProductClient({ product, categories }: ProductClientProp
             ref={videoRef}
             controls
             className={isPortrait 
-              ? 'w-full max-h-[80vh] bg-black'  // 竖向视频：全宽
-              : 'w-full max-h-[70vh] bg-black'  // 横向视频：全宽，保持比例
+              ? 'w-full h-auto max-h-[85vh] bg-black'  // 竖向视频：全宽，高度自适应
+              : 'w-full h-auto max-h-[70vh] bg-black'  // 横向视频：全宽，高度自适应
             }
             playsInline
             onLoadedMetadata={handleVideoLoadedMetadata}
