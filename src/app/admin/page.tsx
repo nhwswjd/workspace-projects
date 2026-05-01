@@ -35,11 +35,19 @@ interface UploadResult {
   message?: string;
 }
 
+interface VisitorPassword {
+  id: string;
+  password: string;
+  description: string;
+  created_at: string;
+}
+
 export default function AdminPage() {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [passwords, setPasswords] = useState<VisitorPassword[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -62,12 +70,14 @@ export default function AdminPage() {
 
   const loadData = async () => {
     try {
-      const [productsRes, categoriesRes] = await Promise.all([
+      const [productsRes, categoriesRes, passwordsRes] = await Promise.all([
         fetch('/api/products?includeHidden=true').then(r => r.json()),
-        fetch('/api/categories').then(r => r.json())
+        fetch('/api/categories').then(r => r.json()),
+        fetch('/api/passwords').then(r => r.json())
       ]);
       if (productsRes.success) setProducts(productsRes.products || []);
       if (categoriesRes.success) setCategories(categoriesRes.categories || []);
+      if (passwordsRes.success) setPasswords(passwordsRes.passwords || []);
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {
@@ -253,6 +263,71 @@ export default function AdminPage() {
             </div>
           </div>
 
+          {/* 访客密码管理 */}
+          <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-800">访客密码管理</h2>
+              <button
+                onClick={() => {
+                  const password = prompt('请输入新访客密码：');
+                  if (password?.trim()) {
+                    const description = prompt('请输入密码描述（可选）：') || '';
+                    fetch('/api/passwords', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ password: password.trim(), description })
+                    }).then(r => r.json()).then(data => {
+                      if (data.success) {
+                        loadData();
+                        setMessage({ type: 'success', text: '密码已添加' });
+                      } else {
+                        setMessage({ type: 'error', text: data.message || '添加失败' });
+                      }
+                    });
+                  }
+                }}
+                className="px-3 py-1.5 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                添加密码
+              </button>
+            </div>
+            <div className="space-y-2">
+              {passwords.map(pwd => (
+                <div key={pwd.id} className="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2">
+                  <div>
+                    <span className="text-sm font-medium text-gray-800">{pwd.password}</span>
+                    {pwd.description && (
+                      <span className="ml-2 text-xs text-gray-500">({pwd.description})</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (passwords.length <= 1) {
+                        setMessage({ type: 'error', text: '至少需要保留一个访客密码' });
+                        return;
+                      }
+                      if (confirm('确定要删除这个密码吗？')) {
+                        fetch(`/api/passwords?id=${pwd.id}`, { method: 'DELETE' })
+                          .then(r => r.json())
+                          .then(data => {
+                            if (data.success) {
+                              setPasswords(prev => prev.filter(p => p.id !== pwd.id));
+                              setMessage({ type: 'success', text: '密码已删除' });
+                            } else {
+                              setMessage({ type: 'error', text: '删除失败' });
+                            }
+                          });
+                      }
+                    }}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    删除
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -355,20 +430,39 @@ interface ProductModalProps {
 
 function ProductModal({ product, categories, onSave, onClose }: ProductModalProps) {
   const [form, setForm] = useState({
-    id: product?.id || '',
-    sku: product?.sku || '',
-    name: product?.name || '',
-    tags: product?.tags?.join(', ') || '',
-    description: product?.description || '',
-    category: product?.category || '',
-    categoryId: product?.categoryId || '',
-    coverImage: product?.coverImage || '',
-    images: product?.images?.join('\n') || '',
-    videos: product?.videos?.map(v => v.url).join('\n') || '',
-    featured: product?.featured || '',
-    location: product?.location || '',
-    hidden: product?.hidden || false,
+    id: '',
+    sku: '',
+    name: '',
+    tags: '',
+    description: '',
+    category: '',
+    categoryId: '',
+    coverImage: '',
+    images: '',
+    videos: '',
+    featured: '',
+    location: '',
+    hidden: false,
   });
+
+  // 当 product prop 更新时，重置表单
+  useEffect(() => {
+    setForm({
+      id: product?.id || '',
+      sku: product?.sku || '',
+      name: product?.name || '',
+      tags: product?.tags?.join(', ') || '',
+      description: product?.description || '',
+      category: product?.category || '',
+      categoryId: product?.categoryId || '',
+      coverImage: product?.coverImage || '',
+      images: product?.images?.join('\n') || '',
+      videos: product?.videos?.map(v => v.url).join('\n') || '',
+      featured: product?.featured || '',
+      location: product?.location || '',
+      hidden: product?.hidden || false,
+    });
+  }, [product]);
 
   const [uploadingImages, setUploadingImages] = useState<{ [key: string]: 'uploading' | 'success' | 'error' }>({});
   const [uploadingVideos, setUploadingVideos] = useState<{ [key: string]: 'uploading' | 'success' | 'error' }>({});

@@ -46,15 +46,19 @@ export default function LandingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+      <div className="fixed inset-0 flex items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
+        }}
+      >
+        <div className="w-8 h-8 border-4 border-white/50 border-t-white rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+      className="fixed inset-0 flex items-center justify-center bg-cover bg-center bg-no-repeat"
       style={{
         backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
       }}
@@ -65,10 +69,6 @@ export default function LandingPage() {
       {/* 居中内容 */}
       <div className="relative z-10 w-full max-w-sm px-6">
         <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
-          <h1 className="text-3xl font-bold text-white text-center mb-6">
-            产品相册
-          </h1>
-          
           <input
             type="password"
             value={password}
