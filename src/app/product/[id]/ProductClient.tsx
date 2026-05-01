@@ -12,6 +12,18 @@ interface ProductClientProps {
 export default function ProductClient({ product, categories }: ProductClientProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
+  // 提取视频URL，处理两种格式
+  const getVideoUrl = (video: any): string => {
+    if (!video) return '';
+    if (typeof video.url === 'string') {
+      return video.url;
+    }
+    if (typeof video.url === 'object' && video.url?.url) {
+      return video.url.url;
+    }
+    return '';
+  };
+
   const allImages = [
     product.coverImage,
     ...product.images,
@@ -26,38 +38,45 @@ export default function ProductClient({ product, categories }: ProductClientProp
         </h1>
       </div>
 
-      {/* 产品图片 - 竖向单列，无圆角，左右1mm空间 */}
+      {/* 产品图片 - 自适应图片比例，宽度不超过屏幕 */}
       <div className="max-w-full mx-auto px-1 space-y-2 mt-2">
         {allImages.map((image, index) => (
           <div 
             key={index} 
-            className="relative bg-gray-100 overflow-hidden cursor-pointer mx-auto"
-            style={{ aspectRatio: '3/4', width: 'calc(100% - 2px)' }}
+            className="relative bg-gray-100 overflow-hidden cursor-pointer mx-auto max-w-full"
+            style={{ maxHeight: '70vh', width: 'auto' }}
             onClick={() => setSelectedImageIndex(index)}
           >
             <Image
               src={image}
               alt={`${product.name} - 图片 ${index + 1}`}
-              fill
-              className="object-cover"
+              width={800}
+              height={600}
+              className="object-contain max-w-full max-h-[70vh] mx-auto"
               sizes="(max-width: 768px) 100vw, 50vw"
+              style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '70vh' }}
+              unoptimized
             />
           </div>
         ))}
       </div>
 
       {/* 产品视频 */}
-      {product.videos && product.videos.length > 0 && (
-        <div className="max-w-[90%] mx-auto px-2 py-4">
-          <video
-            controls
-            className="w-full max-w-md mx-auto rounded-lg bg-black"
-            style={{ aspectRatio: '3/4' }}
-          >
-            <source src={product.videos[0].url} type="video/mp4" />
-          </video>
-        </div>
-      )}
+      {(() => {
+        const firstVideoUrl = product.videos?.[0] ? getVideoUrl(product.videos[0]) : '';
+        return firstVideoUrl ? (
+          <div className="max-w-[95%] mx-auto px-2 py-4">
+            <video
+              controls
+              className="w-full max-h-[60vh] mx-auto rounded-lg bg-black object-contain"
+              playsInline
+            >
+              <source src={firstVideoUrl} type="video/mp4" />
+              您的浏览器不支持视频播放
+            </video>
+          </div>
+        ) : null;
+      })()}
 
       {/* 图片查看器 */}
       {selectedImageIndex !== null && (
