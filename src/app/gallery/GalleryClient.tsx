@@ -73,7 +73,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
       {/* 分类导航 - 矩形无倒角，上下高度增大 */}
       <div className="bg-white border-b border-stone-200">
         <div className="w-full px-4 py-8">
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
               className={`flex-shrink-0 px-5 py-3 text-base font-medium border-2 transition-all duration-200 ${
