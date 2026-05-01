@@ -210,6 +210,31 @@ export default function ProductClient({ product, categories }: ProductClientProp
         })}
       </div>
 
+      {/* 产品视频选择器 */}
+      {product.videos && product.videos.length > 0 && (
+        <div className="w-full px-4 py-2">
+          <div className="flex gap-2 overflow-x-auto">
+            {product.videos.map((video: any, index: number) => {
+              const url = getVideoUrl(video);
+              return (
+                <button
+                  key={index}
+                  onClick={() => setCurrentVideoIndex(index)}
+                  className={`flex-shrink-0 px-3 py-1.5 text-sm rounded ${
+                    currentVideoIndex === index
+                      ? 'bg-stone-800 text-white'
+                      : url ? 'bg-stone-200 text-stone-700' : 'bg-stone-100 text-stone-400'
+                  }`}
+                >
+                  视频 {index + 1}
+                  {!url && ' (无效)'}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 产品视频 - 自适应视频方向 */}
       {videoUrl && (
         <div className="w-full py-4 flex justify-center">
