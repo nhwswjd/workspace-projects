@@ -16,6 +16,7 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
     let query = supabase
       .from('products')
       .select('*')
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
     
     if (!includeHidden) {
@@ -37,9 +38,10 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       coverImage: p.cover_image as string,
       images: (p.images as string[]) || [],
       videos: (p.videos as { url: string; thumbnail: string }[]) || [],
-      featured: (p.featured as '精选产品' | '优选产品' | null) || null,
+      featured: (p.featured as '精选产品' | '精选产品' | null) || null,
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
+      sortOrder: (p.sort_order as number) || 0,
     })) as unknown as Product[];
   } catch {
     // 如果数据库查询失败，返回静态数据
@@ -74,6 +76,7 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
       .from('products')
       .select('*')
       .eq('category_id', categoryId)
+      .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
     
     if (!includeHidden) {
@@ -95,9 +98,10 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
       coverImage: p.cover_image as string,
       images: (p.images as string[]) || [],
       videos: (p.videos as { url: string; thumbnail: string }[]) || [],
-      featured: (p.featured as '精选产品' | '优选产品' | null) || null,
+      featured: (p.featured as '精选产品' | '精选产品' | null) || null,
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
+      sortOrder: (p.sort_order as number) || 0,
     })) as unknown as Product[];
   } catch {
     return (staticProducts.filter(p => p.categoryId === categoryId)) as Product[];

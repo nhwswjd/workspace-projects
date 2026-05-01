@@ -19,6 +19,7 @@ export interface Product {
   featured?: '优选产品' | '精选产品' | null;
   location?: string;
   hidden?: boolean;
+  sortOrder?: number;
 }
 
 export interface Category {

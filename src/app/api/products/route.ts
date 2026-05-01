@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       id, sku, name, tags, description, category, categoryId, 
-      coverImage, images, videos, featured, location, hidden 
+      coverImage, images, videos, featured, location, hidden, sortOrder 
     } = body;
 
     const productData = {
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       featured: featured || null,
       location: location || '',
       hidden: hidden || false,
+      sort_order: sortOrder || 0,
     };
 
     const { error } = await supabaseAdmin

@@ -12,17 +12,31 @@ interface GalleryClientProps {
 }
 
 export default function GalleryClient({ initialCategories, initialProducts }: GalleryClientProps) {
-  const { searchQuery } = useSearch();
+  const { searchQuery, setSearchQuery } = useSearch();
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // 点击"全部"按钮 - 清空搜索并显示所有产品
+  const handleShowAll = () => {
+    setSearchQuery('');
+    setSelectedCategory(null);
+  };
+
+  // 点击分类按钮 - 清空搜索并只显示该分类
+  const handleSelectCategory = (categoryId: string) => {
+    setSearchQuery('');
+    setSelectedCategory(categoryId);
+  };
 
   useEffect(() => {
     let filtered = initialProducts;
 
+    // 先按分类筛选
     if (selectedCategory) {
       filtered = filtered.filter(p => p.categoryId === selectedCategory);
     }
 
+    // 再按搜索关键词筛选
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(p =>
@@ -43,7 +57,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         <div className="max-w-[90%] mx-auto px-2 py-2.5">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
-              onClick={() => setSelectedCategory(null)}
+              onClick={handleShowAll}
               className={`flex-shrink-0 px-4 py-1.5 text-sm rounded-full transition-all duration-200 ${
                 selectedCategory === null
                   ? 'bg-stone-900 text-white shadow-md'
@@ -55,7 +69,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
             {initialCategories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
+                onClick={() => handleSelectCategory(cat.id)}
                 className={`flex-shrink-0 px-4 py-1.5 text-sm rounded-full transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? 'bg-stone-900 text-white shadow-md'
@@ -75,7 +89,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         {selectedCategory && (
           <div className="flex items-center justify-end mb-5">
             <button
-              onClick={() => setSelectedCategory(null)}
+              onClick={handleShowAll}
               className="text-sm text-amber-600 hover:text-amber-700"
             >
               清除筛选

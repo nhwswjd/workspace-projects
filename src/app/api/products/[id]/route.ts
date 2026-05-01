@@ -29,7 +29,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, location, hidden } = body;
+    const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, location, hidden, sortOrder } = body;
 
     const productData: Record<string, unknown> = {};
     if (sku !== undefined) productData.sku = sku;
@@ -44,6 +44,7 @@ export async function PUT(
     if (featured !== undefined) productData.featured = featured;
     if (location !== undefined) productData.location = location;
     if (hidden !== undefined) productData.hidden = hidden;
+    if (sortOrder !== undefined) productData.sort_order = sortOrder;
 
     const { error } = await supabaseAdmin
       .from('products')

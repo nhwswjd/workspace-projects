@@ -20,6 +20,7 @@ interface Product {
   featured: string | null;
   location: string;
   hidden?: boolean;
+  sortOrder?: number;
 }
 
 interface Category {
@@ -443,6 +444,7 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
     featured: '',
     location: '',
     hidden: false,
+    sortOrder: 0,
   });
 
   // 当 product prop 更新时，重置表单
@@ -461,6 +463,7 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
       featured: product?.featured || '',
       location: product?.location || '',
       hidden: product?.hidden || false,
+      sortOrder: product?.sortOrder || 0,
     });
   }, [product]);
 
@@ -672,6 +675,16 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
                 onChange={e => setForm({ ...form, location: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
                 placeholder="如: A区-001"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">排序（数字越小越靠前）</label>
+              <input
+                type="number"
+                value={form.sortOrder}
+                onChange={e => setForm({ ...form, sortOrder: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
+                placeholder="0"
               />
             </div>
           </div>
