@@ -22,9 +22,14 @@ export default function ProductClient({ product, categories }: ProductClientProp
   const getVideoUrl = (video: any): string => {
     if (!video) return '';
     
-    // 如果是字符串且包含 http，返回它
+    // 如果是字符串，直接返回（即使是 [object Object] 也尝试使用）
     if (typeof video === 'string') {
-      return video.includes('http') ? video : '';
+      // 如果包含 http 或 supabase，返回它
+      if (video.includes('http') || video.includes('supabase')) {
+        return video;
+      }
+      // 如果是 [object Object] 这种，也返回它（可能是存储的URL格式）
+      return video;
     }
     
     // 如果是数组，取第一个元素
@@ -42,10 +47,6 @@ export default function ProductClient({ product, categories }: ProductClientProp
           if (result) return result;
         }
       }
-      // 尝试获取第一个包含http的值
-      const str = JSON.stringify(video);
-      const match = str.match(/"(https?:\/\/[^"]+)"/);
-      if (match) return match[1];
     }
     
     return '';
