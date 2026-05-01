@@ -18,21 +18,21 @@ export default function ProductClient({ product, categories }: ProductClientProp
   ].filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-white pb-8">
+    <div className="min-h-screen bg-white pb-8 pt-10">
       {/* 产品名称 */}
-      <div className="max-w-full mx-auto px-4 py-4 border-b border-gray-100">
+      <div className="max-w-full mx-auto px-1 py-4 border-b border-gray-100">
         <h1 className="text-xl font-semibold text-gray-900 text-center">
           {product.name}
         </h1>
       </div>
 
-      {/* 产品图片 - 竖向单列，充分利用宽度 */}
-      <div className="max-w-full mx-auto px-2 space-y-4 mt-4">
+      {/* 产品图片 - 竖向单列，无圆角，左右1mm空间 */}
+      <div className="max-w-full mx-auto px-1 space-y-2 mt-2">
         {allImages.map((image, index) => (
           <div 
             key={index} 
-            className="relative bg-gray-100 rounded-lg overflow-hidden cursor-pointer mx-auto"
-            style={{ aspectRatio: '3/4', width: '100%', maxWidth: '600px' }}
+            className="relative bg-gray-100 overflow-hidden cursor-pointer mx-auto"
+            style={{ aspectRatio: '3/4', width: 'calc(100% - 2px)' }}
             onClick={() => setSelectedImageIndex(index)}
           >
             <Image

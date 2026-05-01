@@ -52,31 +52,31 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 搜索框 - 置顶，无间距 */}
-      <div className="bg-white border-b border-stone-200 pt-12 md:pt-14">
-        <div className="max-w-full mx-auto px-2 py-2">
+      {/* 搜索框 - 置顶，无间距，高度更大 */}
+      <div className="bg-white border-b border-stone-200 pt-10 md:pt-14">
+        <div className="max-w-full mx-auto px-1 py-2">
           <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="搜索产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 pl-4 pr-4 py-5 text-base bg-stone-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
+              className="flex-1 pl-4 pr-4 py-7 text-base bg-stone-100 border-0 rounded-none focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
             />
-            <button className="px-5 py-5 bg-stone-900 text-white text-base font-medium rounded-xl hover:bg-stone-800 transition-colors">
+            <button className="px-6 py-7 bg-stone-900 text-white text-base font-medium rounded-none hover:bg-stone-800 transition-colors">
               搜索
             </button>
           </div>
         </div>
       </div>
 
-      {/* 分类导航 - 横向滚动，字号加大，高度增加，颜色优化，倒角减小 */}
+      {/* 分类导航 - 横向滚动，字号加大，高度增加，颜色优化，无圆角 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-full mx-auto px-2 py-3">
+        <div className="max-w-full mx-auto px-1 py-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-lg transition-all duration-200 ${
+              className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-none transition-all duration-200 ${
                 selectedCategory === null
                   ? 'bg-amber-500 text-white shadow-sm'
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
@@ -88,7 +88,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-lg transition-all duration-200 ${
+                className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-none transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? 'bg-amber-500 text-white shadow-sm'
                     : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
@@ -101,8 +101,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </div>
       </div>
 
-      {/* 主内容区 */}
-      <main className="max-w-full mx-auto px-2 py-6 md:py-8">
+      {/* 主内容区 - 左右1mm空间 */}
+      <main className="max-w-full mx-auto px-1 py-4 md:py-8">
         {/* 筛选按钮 */}
         {selectedCategory && (
           <div className="flex items-center justify-end mb-5">
@@ -124,8 +124,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 href={`/product/${product.id}`}
                 className="group block"
               >
-                {/* 图片容器 - 充分利用右边空白 */}
-                <div className="relative bg-stone-200 rounded-xl overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300"
+                {/* 图片容器 - 无圆角，左右1mm空间 */}
+                <div className="relative bg-stone-200 overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300"
                   style={{ aspectRatio: '3/4' }}
                 >
                   <Image
@@ -136,9 +136,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     loading="lazy"
                   />
-                  {/* 精选标签 - 右上角紧贴 */}
+                  {/* 精选标签 - 右上角紧贴，无圆角 */}
                   {product.featured && (
-                    <span className="absolute top-0 right-0 bg-amber-500/95 text-white text-xs font-medium px-2.5 py-1.5 rounded-tr-xl rounded-bl-md shadow-sm">
+                    <span className="absolute top-0 right-0 bg-amber-500/95 text-white text-xs font-medium px-2.5 py-1.5">
                       {product.featured}
                     </span>
                   )}
