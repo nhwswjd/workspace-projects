@@ -81,9 +81,10 @@ export default function ProductClient({ product, categories }: ProductClientProp
             controls
             preload="metadata"
             className={isPortrait 
-              ? 'w-full h-auto max-h-[unset] bg-black'  // 竖向视频：全宽，无高度限制
+              ? 'w-full h-auto bg-black'  // 竖向视频：全宽，无任何高度限制
               : 'w-full h-auto max-h-[70vh] bg-black'   // 横向视频：全宽，最大70vh
             }
+            style={isPortrait ? { maxHeight: 'none' } : {}}
             playsInline
             onLoadedMetadata={handleVideoLoadedMetadata}
           >
