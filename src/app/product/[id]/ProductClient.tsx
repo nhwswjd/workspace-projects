@@ -15,6 +15,7 @@ export default function ProductClient({ product, categories }: ProductClientProp
   const [videoPoster, setVideoPoster] = useState<string>('');
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isVideoVertical, setIsVideoVertical] = useState(true);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
