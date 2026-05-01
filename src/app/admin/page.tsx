@@ -291,11 +291,25 @@ export default function AdminPage() {
       case 'hidden':
         updateData = { hidden: editValue === 'true' };
         break;
+      case 'category':
+        updateData = { categoryId: editValue, category: categories.find(c => c.id === editValue)?.name || '' };
+        break;
+      case 'tags':
+        updateData = { tags: editValue.split(',').map(t => t.trim()).filter(Boolean) };
+        break;
       default:
         break;
     }
 
     try {
+      // 立即更新本地状态，避免其他行数据变空白
+      setProducts(prev => prev.map(p => {
+        if (p.id === productId) {
+          return { ...p, ...updateData };
+        }
+        return p;
+      }));
+
       const res = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -305,11 +319,16 @@ export default function AdminPage() {
       
       if (data.success) {
         setMessage({ type: 'success', text: '已保存' });
-        loadData();
+        // 延迟刷新确保数据一致性
+        setTimeout(() => loadData(), 500);
       } else {
+        // 失败时回滚
+        setProducts(prev => prev.map(p => p.id === productId ? product : p));
         setMessage({ type: 'error', text: '保存失败' });
       }
     } catch {
+      // 失败时回滚
+      setProducts(prev => prev.map(p => p.id === productId ? product : p));
       setMessage({ type: 'error', text: '保存失败' });
     }
     
@@ -686,21 +705,62 @@ export default function AdminPage() {
                           )}
                         </td>
                         
-                        {/* 分类 - 只读 */}
-                        <td className="px-3 py-3 text-sm text-gray-600">{product.category || '-'}</td>
-                        
-                        {/* 普通标签 - 只读 */}
+                        {/* 分类 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {product.tags && product.tags.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {product.tags.slice(0, 3).map((tag, i) => (
-                                <span key={i} className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-600">{tag}</span>
+                          {editingCell === `${product.id}-category` ? (
+                            <select
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveCellEdit(product.id, 'category')}
+                              onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'category')}
+                              autoFocus
+                              className="w-full px-2 py-1 text-sm border border-blue-400 rounded"
+                            >
+                              <option value="">无分类</option>
+                              {categories.map(cat => (
+                                <option key={cat.id} value={cat.id}>{cat.name}</option>
                               ))}
-                              {product.tags.length > 3 && (
-                                <span className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-500">+{product.tags.length - 3}</span>
-                              )}
+                            </select>
+                          ) : (
+                            <div
+                              onClick={() => startCellEdit(product.id, 'category', product.categoryId || '')}
+                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                            >
+                              {product.category || '-'}
                             </div>
-                          ) : '-'}
+                          )}
+                        </td>
+                        
+                        {/* 普通标签 - 可编辑 */}
+                        <td className="px-3 py-3 text-sm">
+                          {editingCell === `${product.id}-tags` ? (
+                            <input
+                              type="text"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveCellEdit(product.id, 'tags')}
+                              onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'tags')}
+                              autoFocus
+                              placeholder="标签1, 标签2, 标签3"
+                              className="w-full px-2 py-1 text-sm border border-blue-400 rounded"
+                            />
+                          ) : (
+                            <div
+                              onClick={() => startCellEdit(product.id, 'tags', (product.tags || []).join(', '))}
+                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                            >
+                              {product.tags && product.tags.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {product.tags.slice(0, 3).map((tag, i) => (
+                                    <span key={i} className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-600">{tag}</span>
+                                  ))}
+                                  {product.tags.length > 3 && (
+                                    <span className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-500">+{product.tags.length - 3}</span>
+                                  )}
+                                </div>
+                              ) : '-'}
+                            </div>
+                          )}
                         </td>
                         
                         {/* 精选 - 可编辑 */}
