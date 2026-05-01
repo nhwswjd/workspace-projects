@@ -52,27 +52,27 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 搜索框 - 置顶，高度放大，贴近顶部 */}
-      <div className="bg-white border-b border-stone-200 pt-12 md:pt-14">
-        <div className="max-w-full mx-auto px-1 py-1">
+      {/* 搜索框 - 紧贴顶部，高度放大1.5倍 */}
+      <div className="bg-white border-b border-stone-200">
+        <div className="max-w-full mx-auto px-1">
           <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="搜索产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 pl-4 pr-4 py-5 text-base bg-stone-100 border-0 rounded-none focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
+              className="flex-1 pl-4 pr-4 py-6 text-base bg-stone-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
             />
-            <button className="px-5 py-5 bg-stone-900 text-white text-base font-medium rounded-none hover:bg-stone-800 transition-colors">
+            <button className="px-6 py-6 bg-stone-900 text-white text-base font-medium rounded-lg hover:bg-stone-800 transition-colors">
               搜索
             </button>
           </div>
         </div>
       </div>
 
-      {/* 分类导航 - 横向滚动，字号加大，高度增加，颜色优化，无圆角 */}
+      {/* 分类导航 - 横向滚动，字号加大 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-full mx-auto px-1 py-3">
+        <div className="max-w-full px-1 py-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             <button
               onClick={handleShowAll}
