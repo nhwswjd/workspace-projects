@@ -73,15 +73,16 @@ export default function ProductClient({ product, categories }: ProductClientProp
         ))}
       </div>
 
-      {/* 产品视频 - 默认竖向样式，占80%宽度，居中显示 */}
+      {/* 产品视频 - 占80%宽度，居中显示封面 */}
       {product.videos?.[0] && (
-        <div className={`w-full px-1 py-4 ${!isPortrait ? 'max-w-[80vw] mx-auto' : ''}`}>
+        <div className="w-full py-4 flex justify-center">
           <video
             ref={videoRef}
             controls
             preload="metadata"
             onLoadedMetadata={handleVideoLoadedMetadata}
-            className={`w-full h-auto bg-black ${!isPortrait ? 'max-h-[80vh]' : ''}`}
+            poster={product.images?.[0] ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url) : undefined}
+            className="w-[80vw] max-w-[80vw] h-auto bg-black"
             playsInline
           >
             <source src={getVideoUrl(product.videos[0])} type="video/mp4" />
