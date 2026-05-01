@@ -27,6 +27,11 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
     
     if (error) throw error;
     
+    // 如果数据库为空，返回静态数据
+    if (!data || data.length === 0) {
+      return staticProducts as Product[];
+    }
+    
     return data.map((p: Record<string, unknown>) => ({
       id: p.id as string,
       sku: p.sku as string,

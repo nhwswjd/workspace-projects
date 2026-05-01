@@ -30,8 +30,7 @@ export async function POST(request: Request) {
     // 从数据库获取访客密码列表
     const { data: visitorPasswords, error } = await supabase
       .from('visitor_passwords')
-      .select('password')
-      .eq('id', 'default');
+      .select('password');
     
     if (!error && visitorPasswords && visitorPasswords.length > 0) {
       const validPasswords = visitorPasswords.map(p => p.password);
