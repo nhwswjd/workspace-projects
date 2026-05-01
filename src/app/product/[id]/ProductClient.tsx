@@ -23,14 +23,12 @@ export default function ProductClient({ product, categories }: ProductClientProp
   const getVideoUrl = (video: any): string => {
     if (!video) return '';
     
-    // 如果是字符串，直接返回（即使是 [object Object] 也尝试使用）
+    // 如果是字符串，检查是否是有效的URL
     if (typeof video === 'string') {
-      // 如果包含 http 或 supabase，返回它
       if (video.includes('http') || video.includes('supabase')) {
         return video;
       }
-      // 如果是 [object Object] 这种，也返回它（可能是存储的URL格式）
-      return video;
+      return '';
     }
     
     // 如果是数组，取第一个元素
@@ -43,8 +41,16 @@ export default function ProductClient({ product, categories }: ProductClientProp
       // 常见URL字段名
       const urlFields = ['url', 'src', 'link', 'path', 'video_url', 'videoUrl', 'href'];
       for (const field of urlFields) {
-        if (video[field]) {
+        if (video[field] !== undefined) {
           const result = getVideoUrl(video[field]);
+          if (result) return result;
+        }
+      }
+      // 如果没找到，尝试获取第一个有值的属性
+      for (const key of Object.keys(video)) {
+        const value = video[key];
+        if (value && typeof value === 'object') {
+          const result = getVideoUrl(value);
           if (result) return result;
         }
       }
