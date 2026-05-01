@@ -53,17 +53,17 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   return (
     <div className="min-h-screen bg-stone-50">
       {/* 搜索框 - 紧贴顶部，参考网站样式：大尺寸、宽占比、胶囊形 */}
-      <div className="bg-white border-b border-stone-200 pt-0">
-        <div className="w-full px-4 py-2">
+      <div className="bg-white border-b border-stone-200 -mt-5">
+        <div className="w-full px-4 py-3">
           <div className="flex items-center bg-stone-100 rounded-full overflow-hidden">
             <input
               type="text"
               placeholder="搜索产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-5 py-2 text-base bg-transparent focus:outline-none placeholder:text-stone-400"
+              className="flex-1 px-5 py-3 text-base bg-transparent focus:outline-none placeholder:text-stone-400"
             />
-            <button className="px-5 py-2 text-stone-900 font-medium hover:text-stone-700 transition-colors mr-2 flex-shrink-0">
+            <button className="px-5 py-3 text-stone-900 font-medium hover:text-stone-700 transition-colors mr-2 flex-shrink-0">
               搜索
             </button>
           </div>
@@ -72,7 +72,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
       {/* 分类导航 - 横向滚动，蓝色选中样式 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-full px-4 py-2">
+        <div className="max-w-full px-4 py-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
