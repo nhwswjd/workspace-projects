@@ -72,11 +72,11 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
       {/* 分类导航 - 横向滚动 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="w-4/5 mx-auto px-2 py-5">
-          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="w-full px-4 py-5">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 ${
+              className={`flex-shrink-0 px-5 py-3 text-base font-medium rounded-lg transition-all duration-200 ${
                 selectedCategory === null
                   ? 'bg-stone-800 text-white shadow-md'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
@@ -88,7 +88,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 ${
+                className={`flex-shrink-0 px-5 py-3 text-base font-medium rounded-lg transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? 'bg-stone-800 text-white shadow-md'
                     : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
