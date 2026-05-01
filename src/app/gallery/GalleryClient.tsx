@@ -16,13 +16,13 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // 点击"全部"按钮 - 清空搜索并显示所有产品
+  // 点击"全部"按钮 - 清空搜搜并显示所有产品
   const handleShowAll = () => {
     setSearchQuery('');
     setSelectedCategory(null);
   };
 
-  // 点击分类按钮 - 清空搜索并只显示该分类
+  // 点击分类按钮 - 清空搜搜并只显示该分类
   const handleSelectCategory = (categoryId: string) => {
     setSearchQuery('');
     setSelectedCategory(categoryId);
@@ -36,7 +36,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
       filtered = filtered.filter(p => p.categoryId === selectedCategory);
     }
 
-    // 再按搜索关键词筛选
+    // 再按搜搜关键词筛选
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(p =>
@@ -52,19 +52,19 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 搜索框 - 紧贴顶部 */}
+      {/* 搜搜框 - 紧贴顶部 */}
       <div className="bg-white border-b border-stone-200">
         <div className="w-full px-4 py-4">
           <div className="flex items-center bg-stone-100 rounded-full overflow-hidden">
             <input
               type="text"
-              placeholder="搜索产品名称、编号或标签"
+              placeholder="搜搜产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 px-5 py-4 text-base bg-transparent focus:outline-none placeholder:text-stone-400"
             />
             <button className="px-5 py-4 text-stone-900 font-medium hover:text-stone-700 transition-colors mr-2 flex-shrink-0">
-              搜索
+              搜搜
             </button>
           </div>
         </div>
