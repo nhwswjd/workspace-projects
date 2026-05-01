@@ -5,37 +5,37 @@ export const categories: Category[] = [
     id: 'living',
     name: '家居生活',
     description: '以东方禅意美学为灵感，甄选天然材质打造的家居精品',
-    icon: '🏠',
+    icon: '',
   },
   {
-    id: 'design',
+    id: 'modern',
     name: '现代设计',
     description: '源自斯堪的纳维亚半岛的设计哲学，功能与美感的完美平衡',
-    icon: '🪑',
-  },
-  {
-    id: 'craft',
-    name: '手工艺术',
-    description: '由资深工匠手工打造的限量作品，传承百年工艺精髓',
-    icon: '🎨',
-  },
-  {
-    id: 'fashion',
-    name: '时尚配饰',
-    description: '融合传统工艺与现代审美的精致配饰系列',
-    icon: '👜',
+    icon: '',
   },
   {
     id: 'outdoor',
-    name: '户外休闲',
+    name: '户外用品',
     description: '探索自然，享受户外生活的品质装备',
-    icon: '⛺',
+    icon: '',
   },
   {
-    id: 'digital',
-    name: '数码科技',
+    id: 'kitchen',
+    name: '厨房用具',
+    description: '精选优质厨具，让烹饪成为一种享受',
+    icon: '',
+  },
+  {
+    id: 'tech',
+    name: '科技数码',
     description: '科技与美学的融合，为生活注入智能体验',
-    icon: '📱',
+    icon: '',
+  },
+  {
+    id: 'decor',
+    name: '装饰摆件',
+    description: '装饰品和摆件，点亮生活空间',
+    icon: '',
   },
 ];
 
@@ -117,7 +117,7 @@ export const products: Product[] = [
     tags: ['椅子', '北欧', '简约', '设计师款', '木椅'],
     description: '源自斯堪的纳维亚半岛的设计哲学，简洁线条与自然色调。',
     category: '现代设计',
-    categoryId: 'design',
+    categoryId: 'modern',
     coverImage: 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800&q=80',
@@ -145,7 +145,7 @@ export const products: Product[] = [
     tags: ['书架', '收纳', '模块化', '白色', '书房'],
     description: '模块化设计，灵活组合，诠释少即是多的美学。',
     category: '现代设计',
-    categoryId: 'design',
+    categoryId: 'modern',
     coverImage: 'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1594620302200-9a762244a156?w=800&q=80',
@@ -164,7 +164,7 @@ export const products: Product[] = [
     tags: ['挂钟', '装饰', '艺术', '极简', '静音'],
     description: '极简表盘设计，时间即艺术。',
     category: '现代设计',
-    categoryId: 'design',
+    categoryId: 'modern',
     coverImage: 'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=800&q=80',
@@ -176,15 +176,15 @@ export const products: Product[] = [
     location: 'B区-003',
   },
 
-  // 手工艺术
+  // 装饰摆件
   {
     id: 'artisan-pottery',
     sku: 'CRAFT-001',
     name: '手作陶艺系列',
     tags: ['陶艺', '装饰', '手工', '限量', '日式'],
     description: '由资深工匠手工打造的限量作品，传承百年工艺精髓。',
-    category: '手工艺术',
-    categoryId: 'craft',
+    category: '装饰摆件',
+    categoryId: 'decor',
     coverImage: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&q=80',
@@ -211,8 +211,8 @@ export const products: Product[] = [
     name: '手工皮具',
     tags: ['皮具', '钱包', '真皮', '手工', '意大利'],
     description: '意大利头层牛皮，老工匠精心缝制。',
-    category: '手工艺术',
-    categoryId: 'craft',
+    category: '装饰摆件',
+    categoryId: 'decor',
     coverImage: 'https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=800&q=80',
@@ -230,8 +230,8 @@ export const products: Product[] = [
     name: '编织收纳篮',
     tags: ['收纳', '藤编', '天然', '环保', '家居'],
     description: '天然藤条手工编织，环保与艺术的结合。',
-    category: '手工艺术',
-    categoryId: 'craft',
+    category: '装饰摆件',
+    categoryId: 'decor',
     coverImage: 'https://images.unsplash.com/photo-1591197172062-c3f976c7c9b5?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1591197172062-c3f976c7c9b5?w=800&q=80',
@@ -243,15 +243,15 @@ export const products: Product[] = [
     location: 'C区-003',
   },
 
-  // 时尚配饰
+  // 厨房用具
   {
     id: 'designer-bag',
     sku: 'FASHION-001',
     name: '设计师手袋',
     tags: ['手袋', '皮包', '设计师款', '时尚', '限量'],
     description: '融合传统工艺与现代审美的精致配饰系列。',
-    category: '时尚配饰',
-    categoryId: 'fashion',
+    category: '厨房用具',
+    categoryId: 'kitchen',
     coverImage: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80',
@@ -271,7 +271,7 @@ export const products: Product[] = [
     tags: ['丝巾', '真丝', '配饰', '优雅', '送礼'],
     description: '100%桑蚕丝，手工卷边，Art Deco风格图案。',
     category: '时尚配饰',
-    categoryId: 'fashion',
+    categoryId: 'kitchen',
     coverImage: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80',
@@ -289,8 +289,8 @@ export const products: Product[] = [
     name: '极简金饰',
     tags: ['首饰', '金饰', '简约', '耳环', '项链'],
     description: '18K黄金打造，简约而不简单的永恒之美。',
-    category: '时尚配饰',
-    categoryId: 'fashion',
+    category: '厨房用具',
+    categoryId: 'kitchen',
     coverImage: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80',
@@ -302,14 +302,14 @@ export const products: Product[] = [
     location: 'D区-003',
   },
 
-  // 户外休闲
+  // 户外用品
   {
     id: 'camping-gear',
     sku: 'OUTDOOR-001',
     name: '露营装备套装',
     tags: ['露营', '帐篷', '户外', '套装', '探险'],
     description: '探索自然，享受户外生活的品质装备。',
-    category: '户外休闲',
+    category: '户外用品',
     categoryId: 'outdoor',
     coverImage: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=80',
     images: [
@@ -348,7 +348,7 @@ export const products: Product[] = [
     name: '户外便携灯',
     tags: ['灯具', '户外', '防水', '便携', '露营灯'],
     description: 'IP67防水，USB充电，温暖光芒伴随每一个夜晚。',
-    category: '户外休闲',
+    category: '户外用品',
     categoryId: 'outdoor',
     coverImage: 'https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=800&q=80',
     images: [
@@ -361,15 +361,15 @@ export const products: Product[] = [
     location: 'E区-003',
   },
 
-  // 数码科技
+  // 科技数码
   {
     id: 'wireless-earphones',
     sku: 'DIGITAL-001',
     name: '无线蓝牙耳机',
     tags: ['耳机', '蓝牙', '无线', '降噪', '音乐'],
     description: '科技与美学的融合，为生活注入智能体验。',
-    category: '数码科技',
-    categoryId: 'digital',
+    category: '科技数码',
+    categoryId: 'tech',
     coverImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
@@ -388,8 +388,8 @@ export const products: Product[] = [
     name: '智能音响',
     tags: ['音响', '智能', '蓝牙音箱', '语音控制', '家居'],
     description: '360度环绕音效，语音控制的智能家居中枢。',
-    category: '数码科技',
-    categoryId: 'digital',
+    category: '科技数码',
+    categoryId: 'tech',
     coverImage: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1543512214-318c7553f230?w=800&q=80',
@@ -407,8 +407,8 @@ export const products: Product[] = [
     name: '平板支架',
     tags: ['支架', '平板', '铝合金', '桌面', '数码配件'],
     description: '航空级铝合金，多角度调节，桌面美学新选择。',
-    category: '数码科技',
-    categoryId: 'digital',
+    category: '科技数码',
+    categoryId: 'tech',
     coverImage: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&q=80',
     images: [
       'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&q=80',
