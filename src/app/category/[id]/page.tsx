@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
-import { products, categories } from '@/lib/db';
+import { getCategories, getProductsByCategory } from '@/lib/db';
 import CategoryClient from './CategoryClient';
-import { Category, Product } from '@/types';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -10,21 +9,24 @@ interface PageProps {
 export default async function CategoryPage({ params }: PageProps) {
   const { id } = await params;
   
-  // 查找分类（通过名称匹配，因为URL用的是分类名称）
-  const category = categories.find(c => c.name === id);
+  // 获取所有分类
+  const allCategories = await getCategories();
+  
+  // 查找分类（通过ID匹配）
+  const category = allCategories.find(c => c.id === id);
   
   if (!category) {
     notFound();
   }
   
-  // 获取该分类下的产品
-  const categoryProducts = products.filter(p => p.category === category.name);
+  // 获取该分类下的公开产品
+  const categoryProducts = await getProductsByCategory(id, false);
   
   return (
     <CategoryClient 
       category={category}
       products={categoryProducts}
-      allCategories={categories}
+      allCategories={allCategories}
     />
   );
 }

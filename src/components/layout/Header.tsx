@@ -77,7 +77,7 @@ export function Header() {
                 </button>
               )}
               {/* Search box in header */}
-              <div className="relative hidden sm:flex items-center gap-1 flex-[4]">
+              <div className="relative hidden sm:flex items-center gap-1 flex-[1] max-w-[120px]">
                 <div className="relative w-full">
                   <input
                     type="text"
@@ -90,7 +90,6 @@ export function Header() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Trigger search
                     }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
                   >

@@ -88,12 +88,12 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
         {/* 产品网格 - 响应式布局 */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 justify-items-center">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 justify-items-center">
             {filteredProducts.map((product) => (
               <Link
                 key={product.id}
                 href={`/product/${product.id}`}
-                className="group block"
+                className="group block w-full max-w-[180px] md:max-w-none"
               >
                 {/* 图片容器 */}
                 <div className="relative aspect-[3/4] bg-stone-200 rounded-xl overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300">

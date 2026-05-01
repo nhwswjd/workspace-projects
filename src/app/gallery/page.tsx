@@ -1,12 +1,11 @@
 import { Suspense } from 'react';
-import { products, categories } from '@/lib/db';
+import { getAllProducts, getCategories } from '@/lib/db';
 import GalleryClient from './GalleryClient';
-import { Product, Category } from '@/types';
 
 export default async function GalleryPage() {
-  // 使用静态数据
-  const allCategories: Category[] = categories;
-  const allProducts: Product[] = products;
+  // 获取公开产品（不包括隐藏的）
+  const allCategories = await getCategories();
+  const allProducts = await getAllProducts(false);
 
   return (
     <Suspense fallback={<div className="p-8 text-center">加载中...</div>}>

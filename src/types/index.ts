@@ -18,6 +18,7 @@ export interface Product {
   videos: Video[];
   featured?: '优选产品' | '精选产品' | null;
   location?: string;
+  hidden?: boolean;
 }
 
 export interface Category {

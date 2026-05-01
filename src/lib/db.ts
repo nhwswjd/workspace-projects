@@ -10,13 +10,19 @@ export const products = staticProducts as Product[];
 export const categories = staticCategories as Category[];
 
 // 数据库查询函数
-export async function getAllProducts(): Promise<Product[]> {
+export async function getAllProducts(includeHidden = false): Promise<Product[]> {
   try {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    if (!includeHidden) {
+      query = query.eq('hidden', false).or('hidden.is.null');
+    }
+    
+    const { data, error } = await query;
     
     if (error) throw error;
     
@@ -33,6 +39,7 @@ export async function getAllProducts(): Promise<Product[]> {
       videos: (p.videos as { url: string; thumbnail: string }[]) || [],
       featured: (p.featured as '精选产品' | '优选产品' | null) || null,
       location: (p.location as string) || '',
+      hidden: (p.hidden as boolean) || false,
     })) as unknown as Product[];
   } catch {
     // 如果数据库查询失败，返回静态数据
@@ -60,14 +67,20 @@ export async function getCategories(): Promise<Category[]> {
   }
 }
 
-export async function getProductsByCategory(categoryId: string): Promise<Product[]> {
+export async function getProductsByCategory(categoryId: string, includeHidden = false): Promise<Product[]> {
   try {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from('products')
       .select('*')
       .eq('category_id', categoryId)
       .order('created_at', { ascending: false });
+    
+    if (!includeHidden) {
+      query = query.eq('hidden', false).or('hidden.is.null');
+    }
+    
+    const { data, error } = await query;
     
     if (error) throw error;
     
@@ -84,6 +97,7 @@ export async function getProductsByCategory(categoryId: string): Promise<Product
       videos: (p.videos as { url: string; thumbnail: string }[]) || [],
       featured: (p.featured as '精选产品' | '优选产品' | null) || null,
       location: (p.location as string) || '',
+      hidden: (p.hidden as boolean) || false,
     })) as unknown as Product[];
   } catch {
     return (staticProducts.filter(p => p.categoryId === categoryId)) as Product[];
@@ -114,10 +128,82 @@ export async function getProductById(id: string): Promise<Product | null> {
       videos: (data.videos as { url: string; thumbnail: string }[]) || [],
       featured: (data.featured as '精选产品' | '优选产品' | null) || null,
       location: (data.location as string) || '',
+      hidden: (data.hidden as boolean) || false,
     } as unknown as Product;
   } catch {
     return (staticProducts.find(p => p.id === id) as Product) || null;
   }
 }
 
+// 产品 CRUD 操作
+export async function createProduct(product: Partial<Product>): Promise<Product> {
+  const supabase = getSupabaseClient();
+  
+  const productData = {
+    id: product.id || `product-${Date.now()}`,
+    sku: product.sku || '',
+    name: product.name || '',
+    tags: product.tags || [],
+    description: product.description || '',
+    category: product.category || '',
+    category_id: product.categoryId || '',
+    cover_image: product.coverImage || '',
+    images: product.images || [],
+    videos: product.videos || [],
+    featured: product.featured || null,
+    location: product.location || '',
+    hidden: product.hidden || false,
+  };
+
+  const { data, error } = await supabase
+    .from('products')
+    .insert(productData)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as unknown as Product;
+}
+
+export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
+  const supabase = getSupabaseClient();
+  
+  const updateData: Record<string, unknown> = {};
+  if (updates.sku !== undefined) updateData.sku = updates.sku;
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.tags !== undefined) updateData.tags = updates.tags;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.category !== undefined) updateData.category = updates.category;
+  if (updates.categoryId !== undefined) updateData.category_id = updates.categoryId;
+  if (updates.coverImage !== undefined) updateData.cover_image = updates.coverImage;
+  if (updates.images !== undefined) updateData.images = updates.images;
+  if (updates.videos !== undefined) updateData.videos = updates.videos;
+  if (updates.featured !== undefined) updateData.featured = updates.featured;
+  if (updates.location !== undefined) updateData.location = updates.location;
+  if (updates.hidden !== undefined) updateData.hidden = updates.hidden;
+
+  const { data, error } = await supabase
+    .from('products')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as unknown as Product;
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
 export { getAllCategories } from './products';
+
+// 导出 getProduct 别名
+export const getProduct = getProductById;

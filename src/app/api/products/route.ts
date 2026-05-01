@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllProducts, supabaseAdmin } from '@/lib/db';
 import { products as fallbackProducts } from '@/lib/products';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const products = await getAllProducts();
+    // 检查是否为管理员请求（通过 query 参数）
+    const { searchParams } = new URL(request.url);
+    const includeHidden = searchParams.get('includeHidden') === 'true';
+    
+    const products = await getAllProducts(includeHidden);
     
     return NextResponse.json({
       success: true,
@@ -23,20 +27,25 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, sku, name, tags, description, category, categoryId, coverImage, images, featured, location } = body;
+    const { 
+      id, sku, name, tags, description, category, categoryId, 
+      coverImage, images, videos, featured, location, hidden 
+    } = body;
 
     const productData = {
-      id,
-      sku,
-      name,
-      tags,
-      description,
-      category,
-      category_id: categoryId,
-      cover_image: coverImage,
-      images,
-      featured,
-      location
+      id: id || `product-${Date.now()}`,
+      sku: sku || '',
+      name: name || '',
+      tags: tags || [],
+      description: description || '',
+      category: category || '',
+      category_id: categoryId || '',
+      cover_image: coverImage || '',
+      images: images || [],
+      videos: videos || [],
+      featured: featured || null,
+      location: location || '',
+      hidden: hidden || false,
     };
 
     const { error } = await supabaseAdmin

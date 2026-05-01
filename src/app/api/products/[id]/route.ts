@@ -29,20 +29,21 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { sku, name, tags, description, category, categoryId, coverImage, images, featured, location } = body;
+    const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, location, hidden } = body;
 
-    const productData = {
-      sku,
-      name,
-      tags,
-      description,
-      category,
-      category_id: categoryId,
-      cover_image: coverImage,
-      images,
-      featured,
-      location
-    };
+    const productData: Record<string, unknown> = {};
+    if (sku !== undefined) productData.sku = sku;
+    if (name !== undefined) productData.name = name;
+    if (tags !== undefined) productData.tags = tags;
+    if (description !== undefined) productData.description = description;
+    if (category !== undefined) productData.category = category;
+    if (categoryId !== undefined) productData.category_id = categoryId;
+    if (coverImage !== undefined) productData.cover_image = coverImage;
+    if (images !== undefined) productData.images = images;
+    if (videos !== undefined) productData.videos = videos;
+    if (featured !== undefined) productData.featured = featured;
+    if (location !== undefined) productData.location = location;
+    if (hidden !== undefined) productData.hidden = hidden;
 
     const { error } = await supabaseAdmin
       .from('products')
