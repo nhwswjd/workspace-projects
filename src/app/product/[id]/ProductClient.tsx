@@ -13,6 +13,8 @@ export default function ProductClient({ product, categories }: ProductClientProp
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoPoster, setVideoPoster] = useState<string>('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isVideoVertical, setIsVideoVertical] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -26,6 +28,13 @@ export default function ProductClient({ product, categories }: ProductClientProp
       return video.url.url;
     }
     return '';
+  };
+
+  // 检测视频方向
+  const detectVideoOrientation = (video: HTMLVideoElement) => {
+    if (video.videoWidth && video.videoHeight) {
+      setIsVideoVertical(video.videoHeight > video.videoWidth);
+    }
   };
 
   // 从视频中截取第一帧作为封面
@@ -48,13 +57,30 @@ export default function ProductClient({ product, categories }: ProductClientProp
     };
 
     video.addEventListener('loadeddata', captureFrame);
+    video.addEventListener('loadedmetadata', () => detectVideoOrientation(video));
     video.addEventListener('seeked', captureFrame);
     
     return () => {
       video.removeEventListener('loadeddata', captureFrame);
+      video.removeEventListener('loadedmetadata', () => detectVideoOrientation(video));
       video.removeEventListener('seeked', captureFrame);
     };
   }, []);
+
+  // 监听滚动显示/隐藏Top按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 滚动到顶部
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -79,8 +105,23 @@ export default function ProductClient({ product, categories }: ProductClientProp
 
   const videoUrl = getVideoUrl(product.videos?.[0]);
 
+  // 根据视频方向确定播放器的aspect-ratio
+  const videoAspectRatio = isVideoVertical ? '9/16' : '16/9';
+  const videoMaxWidth = isVideoVertical ? '430px' : '800px';
+
   return (
-    <div className="min-h-screen bg-white pb-8">
+    <div className="min-h-screen bg-white pb-8 relative">
+      {/* Top按钮 - 始终在页面上方 */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 w-12 h-12 bg-stone-800 text-white rounded-lg shadow-lg hover:bg-stone-700 transition-all z-40 flex items-center justify-center text-xl font-bold"
+          style={{ position: 'fixed', bottom: '24px', right: '24px' }}
+        >
+          TOP
+        </button>
+      )}
+
       {/* 产品名称 */}
       <div className="max-w-full mx-auto px-1 py-4 border-b border-gray-100">
         <h1 className="text-xl font-semibold text-gray-900 text-center">
@@ -123,7 +164,7 @@ export default function ProductClient({ product, categories }: ProductClientProp
         })}
       </div>
 
-      {/* 产品视频 - 竖向视频播放器，宽度95%，封面使用视频第一帧 */}
+      {/* 产品视频 - 自适应视频方向 */}
       {videoUrl && (
         <div className="w-full py-4 flex justify-center">
           {/* 隐藏的canvas用于截取视频帧 */}
@@ -133,8 +174,8 @@ export default function ProductClient({ product, categories }: ProductClientProp
             className="relative bg-black flex justify-center items-center"
             style={{ 
               width: '95vw',
-              maxWidth: '430px',
-              aspectRatio: '9/16'
+              maxWidth: videoMaxWidth,
+              aspectRatio: videoAspectRatio
             }}
           >
             {/* 视频容器 */}
@@ -161,6 +202,11 @@ export default function ProductClient({ product, categories }: ProductClientProp
                 onPlay={() => handlePlayStateChange(true)}
                 onPause={() => handlePlayStateChange(false)}
                 onEnded={() => handlePlayStateChange(false)}
+                onLoadedMetadata={() => {
+                  if (videoRef.current) {
+                    detectVideoOrientation(videoRef.current);
+                  }
+                }}
               />
               
               {/* 播放按钮遮罩 - 未播放时显示 */}
