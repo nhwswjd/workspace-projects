@@ -30,7 +30,6 @@ export default function LandingPage() {
     try {
       const result = await checkPassword(password);
       if (result.success) {
-        // 等待状态更新后跳转
         setTimeout(() => {
           router.push('/gallery');
         }, 100);
@@ -47,78 +46,50 @@ export default function LandingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900">
-        <div className="w-10 h-10 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
     <div 
-      className="min-h-screen relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
       style={{
         backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center top',
-        backgroundAttachment: 'fixed',
       }}
     >
-      {/* 渐变遮罩 */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70" />
-
-      {/* 内容区域 - 绝对居中 */}
-      <div className="relative z-10 w-full max-w-md mx-auto px-4 absolute inset-0 flex flex-col items-center justify-center">
-        {/* 品牌标识 */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 mb-6 shadow-lg shadow-amber-500/30">
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h1 className="font-sans text-4xl md:text-5xl text-white mb-3 tracking-tight font-medium">
+      {/* 深色遮罩 */}
+      <div className="absolute inset-0 bg-black/50" />
+      
+      {/* 居中内容 */}
+      <div className="relative z-10 w-full max-w-sm px-6">
+        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20">
+          <h1 className="text-3xl font-bold text-white text-center mb-6">
             产品相册
           </h1>
-        </div>
-
-        {/* 密码输入卡片 */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="请输入密码"
-                disabled={isLoading}
-                className="w-full px-5 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all duration-200 disabled:opacity-50"
-              />
-            </div>
-
-            {error && (
-              <div className="flex items-center gap-2 text-red-400 text-sm">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  验证中...
-                </span>
-              ) : (
-                '进入相册'
-              )}
-            </button>
-          </form>
-        </div>
+          
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="输入访问密码"
+            disabled={isLoading}
+            className="w-full px-5 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all mb-4"
+          />
+          
+          {error && (
+            <p className="text-red-400 text-sm text-center mb-4">{error}</p>
+          )}
+          
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-all disabled:opacity-50"
+          >
+            {isLoading ? '验证中...' : '进入相册'}
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ export async function PUT(
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, message: '分类更新成功' });
+    return NextResponse.json({ success: true, message: '分类已更新' });
   } catch (error) {
     console.error('更新分类失败:', error);
     return NextResponse.json({ success: false, message: '更新分类失败' }, { status: 500 });
@@ -30,6 +30,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
     const { error } = await supabaseAdmin
       .from('categories')
       .delete()
@@ -37,7 +38,7 @@ export async function DELETE(
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, message: '分类删除成功' });
+    return NextResponse.json({ success: true, message: '分类已删除' });
   } catch (error) {
     console.error('删除分类失败:', error);
     return NextResponse.json({ success: false, message: '删除分类失败' }, { status: 500 });

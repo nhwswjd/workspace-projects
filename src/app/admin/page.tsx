@@ -194,84 +194,144 @@ export default function AdminPage() {
       {loading ? (
         <div className="text-center py-10 text-gray-500">加载中...</div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-20">图片</th>
-                  <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">编号</th>
-                  <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">名称</th>
-                  <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">分类</th>
-                  <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">位置</th>
-                  <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">标签</th>
-                  <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-20">状态</th>
-                  <th className="px-3 py-3 text-right text-sm font-medium text-gray-600 w-48">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {products.map((product) => (
-                  <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
-                    <td className="px-3 py-3">
-                      <div className="relative w-12 h-16 bg-gray-200 rounded overflow-hidden">
-                        <Image
-                          src={product.coverImage}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-sm text-gray-600">{product.sku}</td>
-                    <td className="px-3 py-3 text-sm text-gray-800 font-medium max-w-[150px] truncate">{product.name}</td>
-                    <td className="px-3 py-3 text-sm text-gray-600">{product.category}</td>
-                    <td className="px-3 py-3 text-sm text-gray-600">{product.location || '-'}</td>
-                    <td className="px-3 py-3">
-                      <div className="flex flex-wrap gap-1 max-w-[200px]">
-                        {product.featured && (
-                          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded whitespace-nowrap">
-                            {product.featured}
-                          </span>
-                        )}
-                        {product.tags?.slice(0, 2).map((tag, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded whitespace-nowrap">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className={`px-2 py-1 text-xs rounded ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                        {product.hidden ? '已隐藏' : '可见'}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <button
-                        onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
-                        className="text-blue-600 hover:text-blue-800 mr-2 text-sm"
-                      >
-                        编辑
-                      </button>
-                      <button
-                        onClick={() => handleToggleHidden(product)}
-                        className={`text-sm mr-2 ${product.hidden ? 'text-green-600 hover:text-green-800' : 'text-orange-600 hover:text-orange-800'}`}
-                      >
-                        {product.hidden ? '显示' : '隐藏'}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                      >
-                        删除
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* 分类管理 */}
+          <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-800">分类管理</h2>
+              <button
+                onClick={() => {
+                  const name = prompt('请输入新分类名称：');
+                  if (name?.trim()) {
+                    const id = name.trim().toLowerCase().replace(/\s+/g, '-');
+                    fetch('/api/categories', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ id, name: name.trim(), description: '' })
+                    }).then(r => r.json()).then(data => {
+                      if (data.success) {
+                        setCategories(prev => [...prev, { id, name: name.trim(), description: '' }]);
+                        setMessage({ type: 'success', text: '分类已添加' });
+                      } else {
+                        setMessage({ type: 'error', text: '添加失败' });
+                      }
+                    });
+                  }
+                }}
+                className="px-3 py-1.5 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                添加分类
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <div key={cat.id} className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+                  <span className="text-sm font-medium">{cat.name}</span>
+                  <button
+                    onClick={() => {
+                      const newName = prompt('请输入新的分类名称：', cat.name);
+                      if (newName?.trim() && newName !== cat.name) {
+                        fetch(`/api/categories/${cat.id}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ name: newName.trim() })
+                        }).then(r => r.json()).then(data => {
+                          if (data.success) {
+                            setCategories(prev => prev.map(c => c.id === cat.id ? { ...c, name: newName.trim() } : c));
+                            setMessage({ type: 'success', text: '分类已更新' });
+                          }
+                        });
+                      }
+                    }}
+                    className="text-gray-500 hover:text-blue-600"
+                    title="编辑分类"
+                  >
+                    <span className="text-xs">编辑</span>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-20">图片</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">编号</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">名称</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">分类</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">位置</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">标签</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-20">状态</th>
+                    <th className="px-3 py-3 text-right text-sm font-medium text-gray-600 w-48">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {products.map((product) => (
+                    <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
+                      <td className="px-3 py-3">
+                        <div className="relative w-12 h-16 bg-gray-200 rounded overflow-hidden">
+                          <Image
+                            src={product.coverImage}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            sizes="48px"
+                          />
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-600">{product.sku}</td>
+                      <td className="px-3 py-3 text-sm text-gray-800 font-medium max-w-[150px] truncate">{product.name}</td>
+                      <td className="px-3 py-3 text-sm text-gray-600">{product.category}</td>
+                      <td className="px-3 py-3 text-sm text-gray-600">{product.location || '-'}</td>
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap gap-1 max-w-[200px]">
+                          {product.featured && (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded whitespace-nowrap">
+                              {product.featured}
+                            </span>
+                          )}
+                          {product.tags?.slice(0, 2).map((tag, i) => (
+                            <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded whitespace-nowrap">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className={`px-2 py-1 text-xs rounded ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                          {product.hidden ? '已隐藏' : '可见'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-right">
+                        <button
+                          onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
+                          className="text-blue-600 hover:text-blue-800 mr-2 text-sm"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          onClick={() => handleToggleHidden(product)}
+                          className={`text-sm mr-2 ${product.hidden ? 'text-green-600 hover:text-green-800' : 'text-orange-600 hover:text-orange-800'}`}
+                        >
+                          {product.hidden ? '显示' : '隐藏'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          删除
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {isModalOpen && (
