@@ -53,20 +53,18 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   return (
     <div className="min-h-screen bg-stone-50">
       {/* 搜索框 - 紧贴顶部，参考网站样式：大尺寸、宽占比、胶囊形 */}
-      <div className="bg-white border-b border-stone-200 pt-10">
-        <div className="w-full px-4 py-3">
+      <div className="bg-white border-b border-stone-200 pt-0">
+        <div className="w-full px-4 py-2">
           <div className="flex items-center bg-stone-100 rounded-full overflow-hidden">
             <input
               type="text"
               placeholder="搜索产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-5 py-4 text-lg bg-transparent focus:outline-none placeholder:text-stone-400"
+              className="flex-1 px-5 py-2 text-base bg-transparent focus:outline-none placeholder:text-stone-400"
             />
-            <button className="w-14 h-14 bg-stone-900 text-white rounded-full flex items-center justify-center hover:bg-stone-800 transition-colors mr-1 flex-shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+            <button className="px-5 py-2 text-stone-900 font-medium hover:text-stone-700 transition-colors mr-2 flex-shrink-0">
+              搜索
             </button>
           </div>
         </div>
@@ -74,7 +72,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
       {/* 分类导航 - 横向滚动，蓝色选中样式 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-full px-3 py-3">
+        <div className="max-w-full px-4 py-2">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
