@@ -135,35 +135,35 @@ export default function ProductClient({ product, categories }: ProductClientProp
               aspectRatio: '9/16'
             }}
           >
-            {/* 视频元素 */}
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              preload="metadata"
-              poster={videoPoster}
-              className="w-full h-full object-cover"
-              playsInline
-              disablePictureInPicture
-              controlsList="nofullscreen"
-              onPlay={() => handlePlayStateChange(true)}
-              onPause={() => handlePlayStateChange(false)}
-              onEnded={() => handlePlayStateChange(false)}
+            {/* 视频容器 */}
+            <div 
+              className="relative w-full h-full"
               onClick={handleVideoClick}
-            />
-            
-            {/* 播放按钮遮罩 - 未播放时显示 */}
-            {!isPlaying && (
-              <div 
-                className="absolute inset-0 bg-black/30 flex items-center justify-center cursor-pointer"
-                onClick={handleVideoClick}
-              >
-                <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                  <svg className="w-10 h-10 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
+            >
+              <video
+                ref={videoRef}
+                src={videoUrl}
+                preload="metadata"
+                poster={videoPoster}
+                className="w-full h-full object-cover"
+                playsInline
+                disablePictureInPicture
+                onPlay={() => handlePlayStateChange(true)}
+                onPause={() => handlePlayStateChange(false)}
+                onEnded={() => handlePlayStateChange(false)}
+              />
+              
+              {/* 播放按钮遮罩 - 未播放时显示 */}
+              {!isPlaying && (
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                  <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                    <svg className="w-10 h-10 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
