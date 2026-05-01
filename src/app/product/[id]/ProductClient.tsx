@@ -134,11 +134,6 @@ export default function ProductClient({ product, categories }: ProductClientProp
 
   // 根据当前视频索引获取视频数据
   const videoData = product.videos?.[currentVideoIndex];
-  // 显示完整视频数据结构
-  if (typeof window !== 'undefined') {
-    setTimeout(() => { alert('视频数据: ' + JSON.stringify(videoData)); }, 1000);
-  }
-  
   const videoUrl = getVideoUrl(videoData);
 
   // 根据视频方向确定播放器的aspect-ratio
