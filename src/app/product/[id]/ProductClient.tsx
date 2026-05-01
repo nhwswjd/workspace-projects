@@ -210,88 +210,93 @@ export default function ProductClient({ product, categories }: ProductClientProp
         })}
       </div>
 
-      {/* 产品视频选择器 */}
+      {/* 产品视频 - 所有视频排列显示 */}
       {product.videos && product.videos.length > 0 && (
-        <div className="w-full px-4 py-2">
-          <div className="flex gap-2 overflow-x-auto">
-            {product.videos.map((video: any, index: number) => {
-              const url = getVideoUrl(video);
-              return (
-                <button
-                  key={index}
-                  onClick={() => setCurrentVideoIndex(index)}
-                  className={`flex-shrink-0 px-3 py-1.5 text-sm rounded ${
-                    currentVideoIndex === index
-                      ? 'bg-stone-800 text-white'
-                      : url ? 'bg-stone-200 text-stone-700' : 'bg-stone-100 text-stone-400'
-                  }`}
-                >
-                  视频 {index + 1}
-                  {!url && ' (无效)'}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 产品视频 - 自适应视频方向 */}
-      {videoUrl && (
-        <div className="w-full py-4 flex justify-center">
-          {/* 隐藏的canvas用于截取视频帧 */}
-          <canvas ref={canvasRef} className="hidden" />
-          
-          <div 
-            className="relative bg-black flex justify-center items-center"
-            style={{ 
-              width: '95vw',
-              maxWidth: videoMaxWidth,
-              aspectRatio: videoAspectRatio
-            }}
-          >
-            {/* 视频容器 */}
-            <div 
-              className="relative w-full h-full"
-              onClick={handleVideoClick}
-            >
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                preload="metadata"
-                poster={videoPoster}
-                className="w-full h-full object-cover cursor-pointer"
-                playsInline
-                disablePictureInPicture
-                controls={false}
-                onClick={handleVideoClick}
-                onTouchStart={(e) => e.preventDefault()}
-                onTouchMove={(e) => e.preventDefault()}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  handleVideoClick(e);
-                }}
-                onPlay={() => handlePlayStateChange(true)}
-                onPause={() => handlePlayStateChange(false)}
-                onEnded={() => handlePlayStateChange(false)}
-                onLoadedMetadata={() => {
-                  if (videoRef.current) {
-                    detectVideoOrientation(videoRef.current);
-                  }
-                }}
-              />
-              
-              {/* 播放按钮遮罩 - 未播放时显示 */}
-              {!isPlaying && (
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                    <svg className="w-10 h-10 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
+        <div className="w-full space-y-4">
+          {product.videos.map((video: any, index: number) => {
+            const videoUrlSingle = getVideoUrl(video);
+            return (
+              <div key={index} className="w-full py-2 flex justify-center">
+                {/* 隐藏的canvas用于截取视频帧 */}
+                <canvas ref={(el) => {
+                  if (el) canvasRefs.current[index] = el;
+                }} className="hidden" />
+                
+                {videoUrlSingle ? (
+                  <div 
+                    className="relative bg-black flex justify-center items-center"
+                    style={{ 
+                      width: '95vw',
+                      maxWidth: '430px',
+                      aspectRatio: '9/16'
+                    }}
+                  >
+                    <video
+                      ref={(el) => {
+                        if (el) videoRefs.current[index] = el;
+                      }}
+                      src={videoUrlSingle}
+                      preload="metadata"
+                      poster={getVideoThumbnail(video)}
+                      className="w-full h-full object-cover cursor-pointer"
+                      playsInline
+                      disablePictureInPicture
+                      controls={false}
+                      onClick={(e) => {
+                        const video = e.currentTarget;
+                        if (video.paused) {
+                          video.play();
+                        } else {
+                          video.pause();
+                        }
+                      }}
+                      onTouchStart={(e) => e.preventDefault()}
+                      onTouchMove={(e) => e.preventDefault()}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                      }}
+                      onPlay={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                      }}
+                      onPause={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                      }}
+                    />
+                    
+                    {/* 播放按钮遮罩 */}
+                    <div 
+                      className="absolute inset-0 bg-black/30 flex items-center justify-center pointer-events-none"
+                      onClick={(e) => {
+                        const video = e.currentTarget.parentElement?.querySelector('video');
+                        if (video) {
+                          if (video.paused) {
+                            video.play();
+                          } else {
+                            video.pause();
+                          }
+                        }
+                      }}
+                    >
+                      <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg pointer-events-auto">
+                        <svg className="w-10 h-10 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
+                ) : (
+                  <div className="w-full flex justify-center">
+                    <div 
+                      className="bg-red-100 text-red-600 px-4 py-2 rounded text-sm"
+                      style={{ width: '95vw', maxWidth: '430px' }}
+                    >
+                      视频 {index + 1} URL无效
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
