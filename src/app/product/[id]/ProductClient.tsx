@@ -180,6 +180,10 @@ export default function ProductClient({ product, categories }: ProductClientProp
       {/* 产品视频 - 自适应视频方向 */}
       {videoUrl && (
         <div className="w-full py-4 flex justify-center">
+          {/* 调试：显示视频URL */}
+          <div className="text-xs text-red-500 p-2 bg-yellow-100 mb-2 break-all">
+            视频URL: {videoUrl}
+          </div>
           {/* 隐藏的canvas用于截取视频帧 */}
           <canvas ref={canvasRef} className="hidden" />
           
