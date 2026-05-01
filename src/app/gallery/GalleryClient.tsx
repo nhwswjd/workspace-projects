@@ -53,7 +53,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   return (
     <div className="min-h-screen bg-stone-50">
       {/* 搜索框 - 紧贴顶部，高度放大1.5倍 */}
-      <div className="bg-white border-b border-stone-200">
+      <div className="bg-white border-b border-stone-200 pt-[72px]">
         <div className="max-w-full mx-auto px-1">
           <div className="flex items-center gap-2">
             <input
