@@ -40,9 +40,9 @@ export default function CategoryClient({ category, products, allCategories }: Ca
         {allCategories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/category/${cat.name}`}
+            href={`/category/${cat.id}`}
             className={`px-3 py-1 text-sm rounded-full transition-colors ${
-              cat.name === category.name
+              cat.id === category.id
                 ? 'bg-black text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -65,7 +65,7 @@ export default function CategoryClient({ category, products, allCategories }: Ca
           暂无产品
         </div>
       ) : (
-        <div className="px-4">
+        <div className="max-w-[90%] mx-auto px-2">
           <div className="grid grid-cols-2 gap-4">
             {products.map((product) => (
               <Link

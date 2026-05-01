@@ -40,7 +40,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
     <div className="min-h-screen bg-stone-50">
       {/* 分类导航 - 横向滚动 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-6xl mx-auto px-4 py-2.5">
+        <div className="max-w-[90%] mx-auto px-2 py-2.5">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={() => setSelectedCategory(null)}
@@ -70,7 +70,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
       </div>
 
       {/* 主内容区 */}
-      <main className="max-w-6xl mx-auto px-4 py-6 md:py-8">
+      <main className="max-w-[90%] mx-auto px-2 py-6 md:py-8">
         {/* 产品统计 */}
         <div className="flex items-center justify-between mb-5">
           <p className="text-sm text-stone-500">

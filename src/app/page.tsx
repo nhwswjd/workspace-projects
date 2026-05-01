@@ -72,24 +72,18 @@ export default function LandingPage() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 mb-6 shadow-lg shadow-amber-500/30">
             <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
           <h1 className="font-sans text-4xl md:text-5xl text-white mb-3 tracking-tight font-medium">
-            私密相册
+            产品相册
           </h1>
-          <p className="text-white/60 text-base md:text-lg">
-            输入密码访问产品资料
-          </p>
         </div>
 
         {/* 密码输入卡片 */}
         <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
-                访问密码
-              </label>
               <input
                 type="password"
                 value={password}
@@ -125,11 +119,6 @@ export default function LandingPage() {
             </button>
           </form>
         </div>
-
-        {/* 底部提示 */}
-        <p className="text-center text-white/40 text-xs mt-6">
-          输入正确密码即可查看产品资料
-        </p>
       </div>
     </div>
   );

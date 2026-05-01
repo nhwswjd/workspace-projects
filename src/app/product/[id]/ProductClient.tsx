@@ -20,19 +20,19 @@ export default function ProductClient({ product, categories }: ProductClientProp
   return (
     <div className="min-h-screen bg-white pb-8">
       {/* 产品名称 */}
-      <div className="px-4 py-4 border-b border-gray-100">
-        <h1 className="text-xl font-semibold text-gray-900">
+      <div className="max-w-[90%] mx-auto px-2 py-4 border-b border-gray-100">
+        <h1 className="text-xl font-semibold text-gray-900 text-center">
           {product.name}
         </h1>
       </div>
 
       {/* 产品图片 - 竖向单列 */}
-      <div className="px-4 space-y-4 mt-4">
+      <div className="max-w-[90%] mx-auto px-2 space-y-4 mt-4">
         {allImages.map((image, index) => (
           <div 
             key={index} 
-            className="relative bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
-            style={{ aspectRatio: '3/4', maxHeight: '500px' }}
+            className="relative bg-gray-100 rounded-lg overflow-hidden cursor-pointer mx-auto"
+            style={{ aspectRatio: '3/4', maxWidth: '500px', width: '100%' }}
             onClick={() => setSelectedImageIndex(index)}
           >
             <Image
@@ -48,7 +48,7 @@ export default function ProductClient({ product, categories }: ProductClientProp
 
       {/* 产品视频 */}
       {product.videos && product.videos.length > 0 && (
-        <div className="px-4 py-4">
+        <div className="max-w-[90%] mx-auto px-2 py-4">
           <video
             controls
             className="w-full max-w-md mx-auto rounded-lg bg-black"
