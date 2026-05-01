@@ -63,7 +63,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 px-5 py-5 text-lg bg-stone-100 border border-stone-300 focus:outline-none focus:border-stone-500 placeholder:text-stone-400"
             />
-            <button className="px-6 py-5 text-lg font-medium bg-stone-800 text-white hover:bg-stone-700 transition-colors">
+            <button className="px-6 py-5 text-lg font-medium bg-stone-800 text-white hover:bg-stone-700 transition-colors whitespace-nowrap min-w-[80px]">
               搜索
             </button>
           </div>
