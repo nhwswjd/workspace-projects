@@ -54,8 +54,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
     <div className="min-h-screen bg-stone-50" style={{marginTop: '-40px'}}>
       {/* 搜索框 - 矩形无倒角，上下高度增大 */}
       <div className="bg-white">
-        <div className="w-4/5 mx-auto px-2 py-6">
-          <div className="flex items-center gap-3">
+        <div className="w-3/5 mx-auto px-2 py-6">
+          <div className="flex items-center gap-1">
             <input
               type="text"
               placeholder="编号/名称/地址"
