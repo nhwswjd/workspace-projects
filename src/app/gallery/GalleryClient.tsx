@@ -52,33 +52,33 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 搜索框 - 紧贴顶部，高度放大1.5倍 */}
+      {/* 搜索框 - 紧贴顶部，参考网站样式 */}
       <div className="bg-white border-b border-stone-200 pt-[72px]">
-        <div className="max-w-full mx-auto px-1">
-          <div className="flex items-center gap-2">
+        <div className="max-w-full mx-auto px-3 py-3">
+          <div className="flex items-center gap-2 bg-white border border-stone-300 rounded-lg overflow-hidden">
             <input
               type="text"
-              placeholder="搜索产品名称、编号或标签"
+              placeholder="编号/名称/地址"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 pl-4 pr-4 py-6 text-base bg-stone-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
+              className="flex-1 px-4 py-3.5 text-base bg-transparent focus:outline-none placeholder:text-stone-400"
             />
-            <button className="px-6 py-6 bg-stone-900 text-white text-base font-medium rounded-lg hover:bg-stone-800 transition-colors">
+            <button className="px-5 py-3.5 bg-blue-500 text-white text-base font-medium hover:bg-blue-600 transition-colors">
               搜索
             </button>
           </div>
         </div>
       </div>
 
-      {/* 分类导航 - 横向滚动，字号加大 */}
+      {/* 分类导航 - 横向滚动，蓝色选中样式 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-full px-1 py-3">
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+        <div className="max-w-full px-3 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-none transition-all duration-200 ${
+              className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
                 selectedCategory === null
-                  ? 'bg-amber-500 text-white shadow-sm'
+                  ? 'bg-blue-500 text-white shadow-sm'
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
@@ -88,9 +88,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-2.5 text-base font-medium rounded-none transition-all duration-200 ${
+                className={`flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
                   selectedCategory === cat.id
-                    ? 'bg-amber-500 text-white shadow-sm'
+                    ? 'bg-blue-500 text-white shadow-sm'
                     : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                 }`}
               >
