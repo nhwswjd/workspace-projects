@@ -73,20 +73,15 @@ export default function ProductClient({ product, categories }: ProductClientProp
         ))}
       </div>
 
-      {/* 产品视频 - 竖向视频占满屏幕宽度，横向视频保持比例 */}
+      {/* 产品视频 - 移除高度限制，让视频完整显示 */}
       {product.videos?.[0] && (
         <div className="w-full px-1 py-4">
           <video
             ref={videoRef}
             controls
             preload="metadata"
-            className={isPortrait 
-              ? 'w-full h-auto bg-black'  // 竖向视频：全宽，无任何高度限制
-              : 'w-full h-auto max-h-[70vh] bg-black'   // 横向视频：全宽，最大70vh
-            }
-            style={isPortrait ? { maxHeight: 'none' } : {}}
+            className="w-full h-auto bg-black"
             playsInline
-            onLoadedMetadata={handleVideoLoadedMetadata}
           >
             <source src={getVideoUrl(product.videos[0])} type="video/mp4" />
             您的浏览器不支持视频播放
