@@ -534,16 +534,15 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">精选标签</label>
-              <select
+              <label className="block text-sm font-medium text-gray-700 mb-1">精选标签（可自定义）</label>
+              <input
+                type="text"
                 value={form.featured}
                 onChange={e => setForm({ ...form, featured: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
-              >
-                <option value="">无</option>
-                <option value="精选产品">精选产品</option>
-                <option value="优选产品">优选产品</option>
-              </select>
+                placeholder="如: 精选产品、优选产品、新品等"
+              />
+              <p className="text-xs text-gray-500 mt-1">留空则不显示标签</p>
             </div>
           </div>
 

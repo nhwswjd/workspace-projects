@@ -102,16 +102,24 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     loading="lazy"
                   />
-                  {/* SKU 标签 */}
-                  <span className="absolute top-2.5 left-2.5 bg-stone-900/80 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-md">
-                    {product.sku}
-                  </span>
+                  {/* 精选标签 - 右上角 */}
+                  {product.featured && (
+                    <span className="absolute top-2.5 right-2.5 bg-amber-500/90 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-md shadow-sm">
+                      {product.featured}
+                    </span>
+                  )}
                 </div>
 
                 {/* 产品信息 */}
-                <h3 className="font-medium text-stone-900 text-sm md:text-base mb-2 group-hover:text-amber-600 transition-colors truncate">
-                  {product.name}
-                </h3>
+                <div className="flex items-center gap-2 mb-1">
+                  {/* 编号 - 产品名称左边 */}
+                  <span className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                    {product.sku}
+                  </span>
+                  <h3 className="font-medium text-stone-900 text-sm md:text-base group-hover:text-amber-600 transition-colors truncate">
+                    {product.name}
+                  </h3>
+                </div>
 
                 {/* 标签 */}
                 <div className="flex flex-wrap gap-1.5">

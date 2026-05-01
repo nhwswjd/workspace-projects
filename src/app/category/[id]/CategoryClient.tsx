@@ -81,13 +81,22 @@ export default function CategoryClient({ category, products, allCategories }: Ca
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 768px) 50vw, 33vw"
                   />
-                  <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
+                  {/* 精选标签 - 右上角 */}
+                  {product.featured && (
+                    <span className="absolute top-2 right-2 bg-amber-500/90 text-white text-xs px-2 py-0.5 rounded shadow-sm">
+                      {product.featured}
+                    </span>
+                  )}
+                </div>
+                {/* 编号和名称 */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
                     {product.sku}
                   </span>
+                  <h3 className="font-medium text-gray-900 text-sm truncate">
+                    {product.name}
+                  </h3>
                 </div>
-                <h3 className="font-medium text-gray-900 text-sm truncate">
-                  {product.name}
-                </h3>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {product.tags.slice(0, 3).map((tag) => (
                     <span

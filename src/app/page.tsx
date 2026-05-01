@@ -66,12 +66,8 @@ export default function LandingPage() {
       {/* 渐变遮罩 */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/70" />
 
-      {/* 装饰性元素 */}
-      <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-amber-500/10 blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-amber-500/5 blur-3xl" />
-
       {/* 内容区域 - 绝对居中 */}
-      <div className="relative z-10 w-full max-w-md mx-auto px-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div className="relative z-10 w-full max-w-md mx-auto px-4 absolute inset-0 flex flex-col items-center justify-center">
         {/* 品牌标识 */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 mb-6 shadow-lg shadow-amber-500/30">
