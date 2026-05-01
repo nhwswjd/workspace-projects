@@ -59,6 +59,7 @@ export default function AdminPage() {
   const [filterSku, setFilterSku] = useState('');
   const [filterName, setFilterName] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterTag, setFilterTag] = useState('');
   const [filterLocation, setFilterLocation] = useState('');
   const [filterFeatured, setFilterFeatured] = useState('');
   const [filterHidden, setFilterHidden] = useState('');
@@ -99,7 +100,12 @@ export default function AdminPage() {
       result = result.filter(p => p.categoryId === filterCategory);
     }
 
-    // 标签筛选
+    // 普通标签筛选
+    if (filterTag) {
+      result = result.filter(p => p.tags && p.tags.includes(filterTag));
+    }
+
+    // 精选筛选
     if (filterFeatured) {
       result = result.filter(p => p.featured === filterFeatured);
     }
@@ -148,7 +154,7 @@ export default function AdminPage() {
     });
 
     return result;
-  }, [products, searchTerm, filterSku, filterName, filterCategory, filterFeatured, filterStatus, sortBy, sortDirection]);
+  }, [products, searchTerm, filterSku, filterName, filterCategory, filterTag, filterFeatured, filterStatus, sortBy, sortDirection]);
 
   useEffect(() => {
     // 只有加载完成后才判断，未加载时保持当前页面
@@ -494,7 +500,19 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-28">普通标签</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
+                      普通标签
+                      <select
+                        value={filterTag}
+                        onChange={(e) => setFilterTag(e.target.value)}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="">全部</option>
+                        {allTags.map(tag => (
+                          <option key={tag} value={tag}>{tag}</option>
+                        ))}
+                      </select>
+                    </th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
                       精选
                       <select
@@ -507,7 +525,29 @@ export default function AdminPage() {
                         <option value="优选产品">优选产品</option>
                       </select>
                     </th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-16">排序</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
+                      排序
+                      <select
+                        value={`${sortBy}-${sortDirection}`}
+                        onChange={(e) => {
+                          const [by, dir] = e.target.value.split('-');
+                          setSortBy(by as typeof sortBy);
+                          setSortDirection(dir as typeof sortDirection);
+                        }}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="sortOrder-asc">序号↑</option>
+                        <option value="sortOrder-desc">序号↓</option>
+                        <option value="sku-asc">编号A-Z</option>
+                        <option value="sku-desc">编号Z-A</option>
+                        <option value="name-asc">名称A-Z</option>
+                        <option value="name-desc">名称Z-A</option>
+                        <option value="category-asc">分类A-Z</option>
+                        <option value="category-desc">分类Z-A</option>
+                        <option value="featured-asc">精选A-Z</option>
+                        <option value="featured-desc">精选Z-A</option>
+                      </select>
+                    </th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
                       状态
                       <select
@@ -520,14 +560,13 @@ export default function AdminPage() {
                         <option value="hidden">已隐藏</option>
                       </select>
                     </th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-24">排序方式</th>
                     <th className="px-3 py-3 text-right text-sm font-medium text-gray-600 w-32">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-3 py-8 text-center text-gray-500">暂无产品</td>
+                      <td colSpan={9} className="px-3 py-8 text-center text-gray-500">暂无产品</td>
                     </tr>
                   ) : (
                     filteredProducts.map((product, index) => (
@@ -558,28 +597,6 @@ export default function AdminPage() {
                           <span className={`px-2 py-1 text-xs rounded ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                             {product.hidden ? '已隐藏' : '可见'}
                           </span>
-                        </td>
-                        <td className="px-3 py-3 text-sm">
-                          <select
-                            value={`${sortBy}-${sortDirection}`}
-                            onChange={(e) => {
-                              const [by, dir] = e.target.value.split('-');
-                              setSortBy(by as typeof sortBy);
-                              setSortDirection(dir as typeof sortDirection);
-                            }}
-                            className="px-2 py-1 text-xs border border-gray-300 rounded"
-                          >
-                            <option value="sortOrder-asc">序号↑</option>
-                            <option value="sortOrder-desc">序号↓</option>
-                            <option value="sku-asc">编号A-Z</option>
-                            <option value="sku-desc">编号Z-A</option>
-                            <option value="name-asc">名称A-Z</option>
-                            <option value="name-desc">名称Z-A</option>
-                            <option value="category-asc">分类A-Z</option>
-                            <option value="category-desc">分类Z-A</option>
-                            <option value="featured-asc">精选A-Z</option>
-                            <option value="featured-desc">精选Z-A</option>
-                          </select>
                         </td>
                         <td className="px-3 py-3 text-right">
                           <div className="flex justify-end gap-5">
