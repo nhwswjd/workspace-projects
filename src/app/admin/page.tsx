@@ -312,11 +312,53 @@ export default function AdminPage() {
     const editValue = editingCells[cellKey];
     if (editValue === undefined) return;
     
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex === -1) return;
 
+    // 乐观更新：立即更新本地状态
+    const updatedProducts = [...products];
+    const originalProduct = { ...updatedProducts[productIndex] };
+    
+    switch (field) {
+      case 'sku':
+        updatedProducts[productIndex] = { ...updatedProducts[productIndex], sku: editValue };
+        break;
+      case 'name':
+        updatedProducts[productIndex] = { ...updatedProducts[productIndex], name: editValue };
+        break;
+      case 'sortOrder':
+        updatedProducts[productIndex] = { ...updatedProducts[productIndex], sortOrder: parseInt(editValue) || 0 };
+        break;
+      case 'featured':
+        updatedProducts[productIndex] = { ...updatedProducts[productIndex], featured: editValue || null };
+        break;
+      case 'hidden':
+        updatedProducts[productIndex] = { ...updatedProducts[productIndex], hidden: editValue === 'true' };
+        break;
+      case 'category':
+        updatedProducts[productIndex] = { 
+          ...updatedProducts[productIndex], 
+          categoryId: editValue, 
+          category: categories.find(c => c.id === editValue)?.name || '' 
+        };
+        break;
+      case 'tags':
+        updatedProducts[productIndex] = { ...updatedProducts[productIndex], tags: editValue.split(',').map(t => t.trim()).filter(Boolean) };
+        break;
+    }
+    
+    // 立即更新状态，防止闪烁
+    setProducts(updatedProducts);
+    
+    // 清除编辑状态
+    setEditingCells(prev => {
+      const next = { ...prev };
+      delete next[cellKey];
+      return next;
+    });
+    
+    // 准备更新数据
     let updateData: Partial<Product> = {};
-
     switch (field) {
       case 'sku':
         updateData = { sku: editValue };
@@ -339,8 +381,6 @@ export default function AdminPage() {
       case 'tags':
         updateData = { tags: editValue.split(',').map(t => t.trim()).filter(Boolean) };
         break;
-      default:
-        break;
     }
 
     try {
@@ -353,19 +393,17 @@ export default function AdminPage() {
       
       if (data.success) {
         setMessage({ type: 'success', text: '已保存' });
-        // 清除编辑状态
-        setEditingCells(prev => {
-          const next = { ...prev };
-          delete next[cellKey];
-          return next;
-        });
-        // 刷新数据
+        // 成功后刷新数据以确保同步
         loadData();
       } else {
         setMessage({ type: 'error', text: '保存失败' });
+        // 失败时回滚
+        setProducts(prev => prev.map(p => p.id === productId ? originalProduct : p));
       }
     } catch {
       setMessage({ type: 'error', text: '保存失败' });
+      // 失败时回滚
+      setProducts(prev => prev.map(p => p.id === productId ? originalProduct : p));
     }
     
     setTimeout(() => setMessage(null), 2000);
