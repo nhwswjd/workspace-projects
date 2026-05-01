@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
@@ -7,6 +7,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const { data: product, error } = await supabaseAdmin
       .from('products')
       .select('*')
@@ -27,6 +31,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const { id } = await params;
     const body = await request.json();
     const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, location, hidden, sortOrder } = body;
@@ -67,6 +75,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const { id } = await params;
     const { error } = await supabaseAdmin
       .from('products')

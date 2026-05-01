@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllProducts, supabaseAdmin } from '@/lib/db';
+import { getAllProducts, getSupabaseAdmin } from '@/lib/db';
 import { products as fallbackProducts } from '@/lib/products';
 
 export async function GET(request: NextRequest) {
@@ -26,6 +26,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const body = await request.json();
     const { 
       id, sku, name, tags, description, category, categoryId, 

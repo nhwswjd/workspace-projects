@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const { id } = await params;
     const body = await request.json();
     const { name, description } = body;
@@ -29,6 +33,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const { id } = await params;
 
     const { error } = await supabaseAdmin

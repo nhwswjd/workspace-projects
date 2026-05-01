@@ -1,9 +1,19 @@
 import { getSupabaseClient } from '@/storage/database/supabase-client';
 import { products as staticProducts, categories as staticCategories } from './products';
 import type { Product, Category } from '@/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-// 导出 supabaseAdmin 供 API 路由使用
-export const supabaseAdmin = getSupabaseClient();
+// 延迟初始化 supabaseAdmin，避免构建时错误
+let _supabaseAdmin: SupabaseClient | null = null;
+export function getSupabaseAdmin(): SupabaseClient | null {
+  if (!_supabaseAdmin) {
+    _supabaseAdmin = getSupabaseClient();
+  }
+  return _supabaseAdmin;
+}
+
+// 为了向后兼容，导出 supabaseAdmin（可能是 null）
+export const supabaseAdmin = null as SupabaseClient | null;
 
 // 静态数据导出（作为后备）
 export const products = staticProducts as Product[];
@@ -13,6 +23,10 @@ export const categories = staticCategories as Category[];
 export async function getAllProducts(includeHidden = false): Promise<Product[]> {
   try {
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      return staticProducts as Product[];
+    }
+    
     let query = supabase
       .from('products')
       .select('*')
@@ -50,7 +64,6 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
     })) as unknown as Product[];
     
     // 合并静态数据和数据库数据
-    // 数据库产品会覆盖静态产品（基于ID去重）
     const dbProductIds = new Set(dbProducts.map(p => p.id));
     const staticProductsToAdd = staticProducts.filter(p => !dbProductIds.has(p.id));
     let mergedProducts = [...dbProducts, ...staticProductsToAdd];
@@ -60,12 +73,10 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       mergedProducts = mergedProducts.filter(p => !p.hidden);
     }
     
-    // 按 sortOrder 排序（数字越小越靠前）
     mergedProducts.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     
     return mergedProducts;
   } catch {
-    // 如果数据库查询失败，返回静态数据
     return staticProducts as Product[];
   }
 }
@@ -73,6 +84,10 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
 export async function getCategories(): Promise<Category[]> {
   try {
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      return staticCategories as Category[];
+    }
+    
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -93,6 +108,12 @@ export async function getCategories(): Promise<Category[]> {
 export async function getProductsByCategory(categoryId: string, includeHidden = false): Promise<Product[]> {
   try {
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      const filtered = (staticProducts.filter(p => p.categoryId === categoryId) as Product[]);
+      filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      return filtered;
+    }
+    
     let query = supabase
       .from('products')
       .select('*')
@@ -125,23 +146,19 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
       sortOrder: (p.sort_order as number) || 0,
     })) as unknown as Product[];
     
-    // 合并静态分类数据
     const staticFiltered = staticProducts.filter(p => p.categoryId === categoryId);
     const dbProductIds = new Set(dbProducts.map(p => p.id));
     const staticToAdd = staticFiltered.filter(p => !dbProductIds.has(p.id));
     let mergedProducts = [...dbProducts, ...staticToAdd];
     
-    // 访客请求时过滤隐藏产品
     if (!includeHidden) {
       mergedProducts = mergedProducts.filter(p => !p.hidden);
     }
     
-    // 按 sortOrder 排序
     mergedProducts.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     
     return mergedProducts;
   } catch {
-    // 如果数据库失败，返回静态数据并排序
     const filtered = (staticProducts.filter(p => p.categoryId === categoryId) as Product[]);
     filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return filtered;
@@ -151,6 +168,10 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
 export async function getProductById(id: string): Promise<Product | null> {
   try {
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      return (staticProducts.find(p => p.id === id) as Product) || null;
+    }
+    
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -182,6 +203,9 @@ export async function getProductById(id: string): Promise<Product | null> {
 // 产品 CRUD 操作
 export async function createProduct(product: Partial<Product>): Promise<Product> {
   const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available');
+  }
   
   const productData = {
     id: product.id || `product-${Date.now()}`,
@@ -211,6 +235,9 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
   const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available');
+  }
   
   const updateData: Record<string, unknown> = {};
   if (updates.sku !== undefined) updateData.sku = updates.sku;
@@ -227,7 +254,6 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   if (updates.hidden !== undefined) updateData.hidden = updates.hidden;
   if (updates.sortOrder !== undefined) updateData.sort_order = updates.sortOrder;
 
-  // 先尝试更新
   let { data, error } = await supabase
     .from('products')
     .update(updateData)
@@ -235,9 +261,7 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
     .select()
     .single();
 
-  // 如果数据库中没有该产品（error表示不存在），则插入新产品
   if (error || !data) {
-    // 获取静态产品作为基础数据
     const staticProduct = products.find(p => p.id === id);
     const baseProduct = data || staticProduct;
     
@@ -277,6 +301,10 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
 
 export async function deleteProduct(id: string): Promise<void> {
   const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available');
+  }
+  
   const { error } = await supabase
     .from('products')
     .delete()
@@ -286,6 +314,3 @@ export async function deleteProduct(id: string): Promise<void> {
 }
 
 export { getAllCategories } from './products';
-
-// 导出 getProduct 别名
-export const getProduct = getProductById;

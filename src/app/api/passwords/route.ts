@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/db';
+import { getSupabaseAdmin } from '@/lib/db';
 
 export async function GET() {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const { data: passwords, error } = await supabaseAdmin
       .from('visitor_passwords')
       .select('*')
@@ -19,6 +23,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const body = await request.json();
     const { password, description } = body;
 
@@ -42,6 +50,10 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
+    }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

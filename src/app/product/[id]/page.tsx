@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getProduct, getCategories } from '@/lib/db';
+import { getProductById, getCategories } from '@/lib/db';
 import ProductClient from './ProductClient';
 
 interface PageProps {
@@ -9,7 +9,7 @@ interface PageProps {
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
   
-  const product = await getProduct(id);
+  const product = await getProductById(id);
   
   if (!product) {
     notFound();

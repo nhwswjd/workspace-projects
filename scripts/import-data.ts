@@ -106,6 +106,11 @@ const products = [
 
 async function importData() {
   const client = getSupabaseClient();
+  
+  if (!client) {
+    console.error('Supabase client not available. Please ensure environment variables are set.');
+    process.exit(1);
+  }
 
   console.log('Starting data import...');
 

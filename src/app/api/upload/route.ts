@@ -3,6 +3,12 @@ import { getSupabaseClient } from '@/storage/database/supabase-client';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
+    
+    if (!supabase) {
+      return NextResponse.json({ success: false, message: 'Storage not configured' }, { status: 500 });
+    }
+    
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const type = formData.get('type') as string; // 'images' or 'videos'
@@ -27,7 +33,6 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     // 上传到 Supabase Storage
-    const supabase = getSupabaseClient();
     const { data, error } = await supabase.storage
       .from(bucketId)
       .upload(filePath, buffer, {
