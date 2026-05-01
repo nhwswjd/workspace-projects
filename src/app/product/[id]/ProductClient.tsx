@@ -56,11 +56,18 @@ export default function ProductClient({ product, categories }: ProductClientProp
     };
   }, []);
 
-  const handlePlay = () => {
-    setIsPlaying(true);
+  const handleVideoClick = () => {
     if (videoRef.current) {
-      videoRef.current.play();
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
     }
+  };
+
+  const handlePlayStateChange = (playing: boolean) => {
+    setIsPlaying(playing);
   };
 
   const allImages = [
@@ -79,30 +86,42 @@ export default function ProductClient({ product, categories }: ProductClientProp
         </h1>
       </div>
 
-      {/* 产品图片 - 自适应图片比例，宽度不超过屏幕 */}
-      <div className="max-w-full mx-auto px-1 space-y-2 mt-2">
-        {allImages.map((image, index) => (
-          <div 
-            key={index} 
-            className="relative bg-gray-100 overflow-hidden cursor-pointer mx-auto max-w-full"
-            style={{ maxHeight: '70vh', width: 'auto' }}
-            onClick={() => setSelectedImageIndex(index)}
-          >
-            <Image
-              src={image}
-              alt={`${product.name} - 图片 ${index + 1}`}
-              width={800}
-              height={600}
-              className="object-contain max-w-full max-h-[70vh] mx-auto"
-              sizes="(max-width: 768px) 100vw, 50vw"
-              style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '70vh' }}
-              unoptimized
-            />
-          </div>
-        ))}
+      {/* 产品图片 - 竖向图片占满屏幕宽度 */}
+      <div className="max-w-full mx-auto space-y-2 mt-2">
+        {allImages.map((image, index) => {
+          // 检查图片是否是竖向的（通过URL参数判断或默认处理）
+          const isVertical = image.includes('vertical') || image.includes('portrait');
+          
+          return (
+            <div 
+              key={index} 
+              className={`relative bg-gray-100 overflow-hidden cursor-pointer ${isVertical ? 'w-full' : 'w-full'}`}
+              style={{ 
+                height: isVertical ? 'auto' : 'auto',
+              }}
+              onClick={() => setSelectedImageIndex(index)}
+            >
+              <Image
+                src={image}
+                alt={`${product.name} - 图片 ${index + 1}`}
+                width={1200}
+                height={isVertical ? 1600 : 800}
+                className={`object-contain ${isVertical ? 'w-full' : 'w-full'}`}
+                style={{ 
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: '70vh',
+                  objectFit: 'contain'
+                }}
+                sizes="100vw"
+                unoptimized
+              />
+            </div>
+          );
+        })}
       </div>
 
-      {/* 产品视频 - 竖向视频播放器，封面使用视频第一帧 */}
+      {/* 产品视频 - 竖向视频播放器，宽度95%，封面使用视频第一帧 */}
       {videoUrl && (
         <div className="w-full py-4 flex justify-center">
           {/* 隐藏的canvas用于截取视频帧 */}
@@ -111,8 +130,8 @@ export default function ProductClient({ product, categories }: ProductClientProp
           <div 
             className="relative bg-black flex justify-center items-center"
             style={{ 
-              width: '90vw',
-              maxWidth: '400px',
+              width: '95vw',
+              maxWidth: '430px',
               aspectRatio: '9/16'
             }}
           >
@@ -120,25 +139,26 @@ export default function ProductClient({ product, categories }: ProductClientProp
             <video
               ref={videoRef}
               src={videoUrl}
-              controls={isPlaying}
-              controlsList="nodownload"
               preload="metadata"
               poster={videoPoster}
               className="w-full h-full object-cover"
               playsInline
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onEnded={() => setIsPlaying(false)}
+              disablePictureInPicture
+              controlsList="nofullscreen"
+              onPlay={() => handlePlayStateChange(true)}
+              onPause={() => handlePlayStateChange(false)}
+              onEnded={() => handlePlayStateChange(false)}
+              onClick={handleVideoClick}
             />
             
             {/* 播放按钮遮罩 - 未播放时显示 */}
             {!isPlaying && (
               <div 
                 className="absolute inset-0 bg-black/30 flex items-center justify-center cursor-pointer"
-                onClick={handlePlay}
+                onClick={handleVideoClick}
               >
-                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                  <svg className="w-10 h-10 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z"/>
                   </svg>
                 </div>
