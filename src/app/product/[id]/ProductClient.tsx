@@ -22,18 +22,21 @@ export default function ProductClient({ product, categories }: ProductClientProp
   const getVideoUrl = (video: any): string => {
     if (!video) return '';
     
-    // 如果是字符串，直接返回
-    if (typeof video === 'string') return video;
+    // 如果是字符串且包含 http，返回它
+    if (typeof video === 'string') {
+      return video.includes('http') ? video : '';
+    }
     
-    // 如果是对象，递归查找 url 属性
+    // 如果是对象，递归查找所有可能的URL字段
     if (typeof video === 'object') {
-      // 如果有 url 属性且是字符串，直接返回
-      if (video.url && typeof video.url === 'string') return video.url;
-      // 如果有 url 属性且是对象，递归处理
-      if (video.url && typeof video.url === 'object') return getVideoUrl(video.url);
-      // 如果有 video 属性（某些API格式），递归处理
-      if (video.video && typeof video.video === 'string') return video.video;
-      if (video.video && typeof video.video === 'object') return getVideoUrl(video.video);
+      // 常见URL字段名
+      const urlFields = ['url', 'src', 'link', 'path', 'video_url', 'videoUrl'];
+      for (const field of urlFields) {
+        if (video[field]) {
+          const result = getVideoUrl(video[field]);
+          if (result) return result;
+        }
+      }
     }
     
     return '';
