@@ -52,33 +52,33 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50" style={{marginTop: '-40px'}}>
-      {/* 搜索框 */}
-      <div className="bg-white border-b border-stone-200">
-        <div className="w-4/5 mx-auto px-2 py-8">
-          <div className="flex items-center bg-stone-100 rounded-2xl shadow-sm">
+      {/* 搜索框 - 矩形无倒角，上下高度增大 */}
+      <div className="bg-white">
+        <div className="w-4/5 mx-auto px-2 py-6">
+          <div className="flex items-center gap-3">
             <input
               type="text"
-              placeholder="搜索产品名称、编号或标签"
+              placeholder="编号/名称/地址"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-5 py-8 text-lg bg-transparent focus:outline-none placeholder:text-stone-400"
+              className="flex-1 px-5 py-5 text-lg bg-stone-100 border border-stone-300 focus:outline-none focus:border-stone-500 placeholder:text-stone-400"
             />
-            <button className="px-8 py-8 bg-stone-800 text-white text-lg font-medium rounded-xl hover:bg-stone-700 transition-colors flex-shrink-0 mr-1">
+            <button className="px-6 py-5 text-lg font-medium bg-stone-800 text-white hover:bg-stone-700 transition-colors">
               搜索
             </button>
           </div>
         </div>
       </div>
 
-      {/* 分类导航 - 横向滚动 */}
+      {/* 分类导航 - 矩形无倒角，上下高度增大 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="w-full px-4 py-5">
+        <div className="w-full px-4 py-8">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-5 py-3 text-base font-medium rounded-lg transition-all duration-200 ${
+              className={`flex-shrink-0 px-5 py-3 text-base font-medium transition-all duration-200 ${
                 selectedCategory === null
-                  ? 'bg-stone-800 text-white shadow-md'
+                  ? 'bg-stone-800 text-white'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
@@ -88,9 +88,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-5 py-3 text-base font-medium rounded-lg transition-all duration-200 ${
+                className={`flex-shrink-0 px-5 py-3 text-base font-medium transition-all duration-200 ${
                   selectedCategory === cat.id
-                    ? 'bg-stone-800 text-white shadow-md'
+                    ? 'bg-stone-800 text-white'
                     : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
@@ -160,7 +160,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   {product.tags && product.tags.slice(0, 3).map((tag: string) => (
                     <span
                       key={tag}
-                      className="text-xs text-stone-600 bg-white border border-stone-300 px-2 py-0.5 rounded-sm"
+                      className="text-xs text-stone-600 bg-white border border-stone-300 px-2 py-0.5"
                     >
                       {tag}
                     </span>
