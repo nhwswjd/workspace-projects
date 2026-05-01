@@ -51,9 +51,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   }, [searchQuery, selectedCategory, initialProducts]);
 
   return (
-    <div className="min-h-screen bg-stone-50 pt-0">
+    <div className="min-h-screen bg-stone-50" style={{marginTop: '-200px', borderTop: '2px solid orange'}}>
       <div style={{backgroundColor: 'blue', color: 'white', padding: '40px', fontSize: '24px', textAlign: 'center'}}>
-        搜索框区域 - 测试
+        搜索框区域 - 测试 (margin-top: -200px)
       </div>
 
       {/* 分类导航 - 横向滚动，蓝色选中样式 */}
