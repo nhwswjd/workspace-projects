@@ -124,11 +124,13 @@ export default function ProductClient({ product, categories }: ProductClientProp
     ...product.images,
   ].filter(Boolean);
 
-  const videoUrl = getVideoUrl(product.videos?.[0]);
-  // 临时alert显示videoUrl值用于调试
-  if (typeof window !== 'undefined' && !videoUrl.includes('alert')) {
-    setTimeout(() => { if (!videoUrl) alert('videoUrl为空'); }, 1000);
+  const videoData = product.videos?.[0];
+  // 显示完整视频数据结构
+  if (typeof window !== 'undefined') {
+    setTimeout(() => { alert('视频数据: ' + JSON.stringify(videoData)); }, 1000);
   }
+  
+  const videoUrl = getVideoUrl(videoData);
 
   // 根据视频方向确定播放器的aspect-ratio
   const videoAspectRatio = isVideoVertical ? '9/16' : '16/9';
