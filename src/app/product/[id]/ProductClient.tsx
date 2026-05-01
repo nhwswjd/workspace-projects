@@ -73,15 +73,15 @@ export default function ProductClient({ product, categories }: ProductClientProp
         ))}
       </div>
 
-      {/* 产品视频 - 根据方向调整样式 */}
+      {/* 产品视频 - 默认竖向样式，占80%宽度，居中显示 */}
       {product.videos?.[0] && (
-        <div className={`w-full px-1 py-4 ${isPortrait ? 'max-w-[80vw] mx-auto' : ''}`}>
+        <div className={`w-full px-1 py-4 ${!isPortrait ? 'max-w-[80vw] mx-auto' : ''}`}>
           <video
             ref={videoRef}
             controls
             preload="metadata"
             onLoadedMetadata={handleVideoLoadedMetadata}
-            className={isPortrait ? 'w-full h-auto bg-black' : 'w-full h-auto bg-black'}
+            className={`w-full h-auto bg-black ${!isPortrait ? 'max-h-[80vh]' : ''}`}
             playsInline
           >
             <source src={getVideoUrl(product.videos[0])} type="video/mp4" />
