@@ -112,7 +112,12 @@ export default function ProductClient({ product, categories }: ProductClientProp
     ...product.images,
   ].filter(Boolean);
 
+  // 调试：打印视频数据结构
+  console.log('product.videos:', product.videos);
+  console.log('product.videos?.[0]:', product.videos?.[0]);
+  
   const videoUrl = getVideoUrl(product.videos?.[0]);
+  console.log('videoUrl:', videoUrl);
 
   // 根据视频方向确定播放器的aspect-ratio
   const videoAspectRatio = isVideoVertical ? '9/16' : '16/9';
