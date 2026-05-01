@@ -992,9 +992,13 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
 
   const [uploadingImages, setUploadingImages] = useState<{ [key: string]: 'uploading' | 'success' | 'error' }>({});
   const [uploadingVideos, setUploadingVideos] = useState<{ [key: string]: 'uploading' | 'success' | 'error' }>({});
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  
+  // 检测是否为移动端
+  const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   const uploadFile = async (file: File, type: 'images' | 'videos'): Promise<UploadResult> => {
     const formData = new FormData();
@@ -1002,12 +1006,29 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
     formData.append('type', type);
 
     try {
+      // 视频文件设置更长的超时时间
+      const timeout = type === 'videos' ? 120000 : 30000; // 视频2分钟，图片30秒
+      
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        signal: AbortSignal.timeout(timeout),
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        return { success: false, message: errorData.message || `上传失败 (${res.status})` };
+      }
+      
       return await res.json();
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('上传错误:', error);
+      if (error instanceof Error) {
+        if (error.name === 'TimeoutError') {
+          return { success: false, message: '上传超时，请重试或尝试更小的文件' };
+        }
+        return { success: false, message: error.message };
+      }
       return { success: false, message: '上传失败' };
     }
   };
@@ -1016,6 +1037,13 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 检查文件大小 (限制10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError('封面图片超过10MB限制');
+      setTimeout(() => setUploadError(null), 3000);
+      return;
+    }
+
     setUploadingImages(prev => ({ ...prev, cover: 'uploading' }));
     const result = await uploadFile(file, 'images');
     
@@ -1023,23 +1051,36 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
       setForm(prev => ({ ...prev, coverImage: result.url! }));
       setUploadingImages(prev => ({ ...prev, cover: 'success' }));
     } else {
+      setUploadError(result.message || '封面上传失败');
       setUploadingImages(prev => ({ ...prev, cover: 'error' }));
     }
     
-    setTimeout(() => setUploadingImages(prev => {
-      const newState = { ...prev };
-      delete newState.cover;
-      return newState;
-    }), 2000);
+    setTimeout(() => {
+      setUploadingImages(prev => {
+        const newState = { ...prev };
+        delete newState.cover;
+        return newState;
+      });
+      setUploadError(null);
+    }, 2000);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
+    setUploadError(null);
     const newUrls: string[] = [];
+    let hasError = false;
     
     for (const file of files) {
+      // 检查文件大小 (限制10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setUploadError(`图片 "${file.name}" 超过10MB限制`);
+        hasError = true;
+        continue;
+      }
+      
       const key = `img_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       setUploadingImages(prev => ({ ...prev, [key]: 'uploading' }));
       
@@ -1048,6 +1089,8 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
         newUrls.push(result.url);
         setUploadingImages(prev => ({ ...prev, [key]: 'success' }));
       } else {
+        hasError = true;
+        setUploadError(result.message || '图片上传失败');
         setUploadingImages(prev => ({ ...prev, [key]: 'error' }));
       }
       
@@ -1064,16 +1107,40 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
         ...prev,
         images: [...currentImages, ...newUrls].join('\n')
       }));
+      setUploadError(null);
+    }
+    
+    if (hasError) {
+      setTimeout(() => setUploadError(null), 3000);
+    }
+    
+    // 清除input值
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
     }
   };
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-
+    
+    setUploadError(null);
     const newUrls: string[] = [];
+    let hasError = false;
     
     for (const file of files) {
+      // 检查文件大小 (限制100MB)
+      if (file.size > 100 * 1024 * 1024) {
+        setUploadError(`文件 "${file.name}" 超过100MB限制`);
+        continue;
+      }
+      
+      // 检查文件类型
+      if (!file.type.startsWith('video/')) {
+        setUploadError(`"${file.name}" 不是有效的视频文件`);
+        continue;
+      }
+      
       const key = `vid_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       setUploadingVideos(prev => ({ ...prev, [key]: 'uploading' }));
       
@@ -1082,9 +1149,12 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
         newUrls.push(result.url);
         setUploadingVideos(prev => ({ ...prev, [key]: 'success' }));
       } else {
+        hasError = true;
+        setUploadError(result.message || '视频上传失败');
         setUploadingVideos(prev => ({ ...prev, [key]: 'error' }));
       }
       
+      // 2秒后清除状态
       setTimeout(() => setUploadingVideos(prev => {
         const newState = { ...prev };
         delete newState[key];
@@ -1098,6 +1168,17 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
         ...prev,
         videos: [...currentVideos, ...newUrls].join('\n')
       }));
+      setUploadError(null);
+    }
+    
+    // 3秒后清除错误提示
+    if (hasError) {
+      setTimeout(() => setUploadError(null), 3000);
+    }
+    
+    // 清除input值，允许重复选择同一文件
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
     }
   };
 
@@ -1335,22 +1416,29 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
               type="file"
               ref={videoInputRef}
               onChange={handleVideoUpload}
-              accept="video/*"
+              accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
               multiple
               className="hidden"
             />
             <button
               type="button"
               onClick={() => videoInputRef.current?.click()}
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors mb-2"
+              className="flex items-center gap-2 px-3 py-2 md:py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors mb-2"
               disabled={Object.values(uploadingVideos).includes('uploading')}
             >
               {Object.values(uploadingVideos).includes('uploading') ? (
                 <><Loader2 size={14} className="animate-spin" /> 上传中...</>
               ) : (
-                <><Upload size={14} /> 添加视频</>
+                <><Video size={14} /> 添加视频</>
               )}
             </button>
+            
+            {/* 错误提示 */}
+            {uploadError && (
+              <div className="mb-2 px-2 py-1.5 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs">
+                {uploadError}
+              </div>
+            )}
             
             {currentVideos.length > 0 && (
               <div className="space-y-2">
@@ -1369,7 +1457,7 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
                 ))}
               </div>
             )}
-            <p className="text-xs text-gray-500 mt-1">支持 MP4、WebM 格式</p>
+            <p className="text-xs text-gray-500 mt-1">支持 MP4、WebM 格式，最大 100MB</p>
           </div>
 
           <div className="flex items-center gap-2">
