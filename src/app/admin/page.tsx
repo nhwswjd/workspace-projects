@@ -46,16 +46,17 @@ export default function AdminPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // 只有管理员才能访问管理页面
+    if (!isAuthenticated || !isAdmin) {
       router.push('/gallery');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isAdmin, router]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && isAdmin) {
       loadData();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAdmin]);
 
   const loadData = async () => {
     try {

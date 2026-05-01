@@ -59,7 +59,8 @@ export default function LandingPage() {
       style={{
         backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: 'center top',
+        backgroundAttachment: 'fixed',
       }}
     >
       {/* 渐变遮罩 */}

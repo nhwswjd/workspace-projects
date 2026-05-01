@@ -61,13 +61,18 @@ export function useAuth() {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback((navigateToHome = true) => {
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(CATEGORY_KEY);
     localStorage.removeItem(ADMIN_KEY);
     setIsAuthenticated(false);
     setIsAdmin(false);
     setCategoryPermission(null);
+    
+    // 如果需要，导航到首页
+    if (navigateToHome && typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   }, []);
 
   const hasCategoryAccess = useCallback((categoryId: string): boolean => {
