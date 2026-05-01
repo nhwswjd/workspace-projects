@@ -54,16 +54,16 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
     <div className="min-h-screen bg-stone-50">
       {/* 搜搜框 - 紧贴顶部 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="w-full px-4 py-4">
+        <div className="w-full px-4 py-12">
           <div className="flex items-center bg-stone-100 rounded-full overflow-hidden">
             <input
               type="text"
               placeholder="搜搜产品名称、编号或标签"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-5 py-4 text-base bg-transparent focus:outline-none placeholder:text-stone-400"
+              className="flex-1 px-5 py-10 text-2xl bg-transparent focus:outline-none placeholder:text-stone-400"
             />
-            <button className="px-5 py-4 text-stone-900 font-medium hover:text-stone-700 transition-colors mr-2 flex-shrink-0">
+            <button className="px-8 py-10 text-stone-900 text-xl font-bold hover:text-stone-700 transition-colors mr-2 flex-shrink-0">
               搜搜
             </button>
           </div>
