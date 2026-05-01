@@ -71,20 +71,17 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
       {/* 主内容区 */}
       <main className="max-w-[90%] mx-auto px-2 py-6 md:py-8">
-        {/* 产品统计 */}
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-sm text-stone-500">
-            共 <span className="font-medium text-stone-700">{filteredProducts.length}</span> 个产品
-          </p>
-          {selectedCategory && (
+        {/* 筛选按钮 */}
+        {selectedCategory && (
+          <div className="flex items-center justify-end mb-5">
             <button
               onClick={() => setSelectedCategory(null)}
               className="text-sm text-amber-600 hover:text-amber-700"
             >
               清除筛选
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* 产品网格 - 响应式布局 */}
         {filteredProducts.length > 0 ? (

@@ -28,9 +28,12 @@ export default function LandingPage() {
     setError('');
 
     try {
-      const success = await checkPassword(password);
-      if (success) {
-        router.push('/gallery');
+      const result = await checkPassword(password);
+      if (result.success) {
+        // 等待状态更新后跳转
+        setTimeout(() => {
+          router.push('/gallery');
+        }, 100);
       } else {
         setError('密码错误，请重试');
         setPassword('');
@@ -52,7 +55,7 @@ export default function LandingPage() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center relative overflow-hidden pt-0"
       style={{
         backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
         backgroundSize: 'cover',

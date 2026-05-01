@@ -44,8 +44,8 @@ export function Header() {
 
   const handleLogin = async (password: string): Promise<boolean> => {
     setLoginError(undefined);
-    const success = await checkPassword(password);
-    if (success) {
+    const result = await checkPassword(password);
+    if (result.success) {
       setShowLoginDialog(false);
       return true;
     } else {
@@ -139,15 +139,25 @@ export function Header() {
                   登录
                 </button>
               ) : (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    logout();
-                  }}
-                  className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                >
-                  已登录
-                </button>
+                <>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    >
+                      <span className="hidden sm:inline">管理</span>
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      logout();
+                    }}
+                    className="px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                  >
+                    已登录
+                  </button>
+                </>
               )}
               
               <button
