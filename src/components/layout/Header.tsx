@@ -129,7 +129,7 @@ export function Header() {
 
       {/* Mobile menu Sheet */}
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetContent side="right" className="w-[280px] h-auto max-h-[12.5vh]">
+        <SheetContent side="right" className="w-[280px] h-auto max-h-[14vh]">
           <SheetHeader>
             <SheetTitle className="font-display tracking-widest text-left">
               {brandInfo.name}
