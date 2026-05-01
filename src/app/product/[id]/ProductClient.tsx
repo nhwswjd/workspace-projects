@@ -11,8 +11,10 @@ interface ProductClientProps {
 
 export default function ProductClient({ product, categories }: ProductClientProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [isPortrait, setIsPortrait] = useState<boolean>(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [videoPoster, setVideoPoster] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 提取视频URL，处理两种格式
   const getVideoUrl = (video: any): string => {
@@ -26,13 +28,38 @@ export default function ProductClient({ product, categories }: ProductClientProp
     return '';
   };
 
-  // 检测视频方向并调整样式
-  const handleVideoLoadedMetadata = () => {
+  // 从视频中截取第一帧作为封面
+  useEffect(() => {
     const video = videoRef.current;
-    if (video && video.videoWidth && video.videoHeight) {
-      // 如果视频高度大于宽度，则是竖向视频
-      const portrait = video.videoHeight > video.videoWidth;
-      setIsPortrait(portrait);
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const captureFrame = () => {
+      if (video.readyState >= 2 && !videoPoster) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          setVideoPoster(dataUrl);
+        }
+      }
+    };
+
+    video.addEventListener('loadeddata', captureFrame);
+    video.addEventListener('seeked', captureFrame);
+    
+    return () => {
+      video.removeEventListener('loadeddata', captureFrame);
+      video.removeEventListener('seeked', captureFrame);
+    };
+  }, []);
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+    if (videoRef.current) {
+      videoRef.current.play();
     }
   };
 
@@ -40,6 +67,8 @@ export default function ProductClient({ product, categories }: ProductClientProp
     product.coverImage,
     ...product.images,
   ].filter(Boolean);
+
+  const videoUrl = getVideoUrl(product.videos?.[0]);
 
   return (
     <div className="min-h-screen bg-white pb-8">
@@ -73,21 +102,49 @@ export default function ProductClient({ product, categories }: ProductClientProp
         ))}
       </div>
 
-      {/* 产品视频 - 占80%宽度，居中显示封面 */}
-      {product.videos?.[0] && (
+      {/* 产品视频 - 竖向视频播放器，封面使用视频第一帧 */}
+      {videoUrl && (
         <div className="w-full py-4 flex justify-center">
-          <video
-            ref={videoRef}
-            controls
-            preload="metadata"
-            onLoadedMetadata={handleVideoLoadedMetadata}
-            poster={product.images?.[0] ? (typeof product.images[0] === 'string' ? product.images[0] : product.images[0].url) : undefined}
-            className="w-[80vw] max-w-[80vw] h-auto bg-black"
-            playsInline
+          {/* 隐藏的canvas用于截取视频帧 */}
+          <canvas ref={canvasRef} className="hidden" />
+          
+          <div 
+            className="relative bg-black flex justify-center items-center"
+            style={{ 
+              width: '90vw',
+              maxWidth: '400px',
+              aspectRatio: '9/16'
+            }}
           >
-            <source src={getVideoUrl(product.videos[0])} type="video/mp4" />
-            您的浏览器不支持视频播放
-          </video>
+            {/* 视频元素 */}
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              controls={isPlaying}
+              controlsList="nodownload"
+              preload="metadata"
+              poster={videoPoster}
+              className="w-full h-full object-cover"
+              playsInline
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
+            />
+            
+            {/* 播放按钮遮罩 - 未播放时显示 */}
+            {!isPlaying && (
+              <div 
+                className="absolute inset-0 bg-black/30 flex items-center justify-center cursor-pointer"
+                onClick={handlePlay}
+              >
+                <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -131,22 +188,14 @@ export default function ProductClient({ product, categories }: ProductClientProp
             </button>
           )}
           
-          <div 
-            className="relative w-full h-full max-w-3xl max-h-full p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={allImages[selectedImageIndex]}
-              alt={`${product.name} - 图片 ${selectedImageIndex + 1}`}
-              fill
-              className="object-contain"
-              sizes="100vw"
-            />
-          </div>
-          
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm">
-            {selectedImageIndex + 1} / {allImages.length}
-          </div>
+          <Image
+            src={allImages[selectedImageIndex]}
+            alt={`${product.name} - 图片 ${selectedImageIndex + 1}`}
+            className="max-w-full max-h-full object-contain"
+            width={1200}
+            height={1200}
+            unoptimized
+          />
         </div>
       )}
     </div>
