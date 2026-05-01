@@ -55,7 +55,7 @@ export default function LandingPage() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center relative overflow-hidden pt-0"
+      className="min-h-screen relative overflow-hidden"
       style={{
         backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1920&q=80)',
         backgroundSize: 'cover',
@@ -70,8 +70,8 @@ export default function LandingPage() {
       <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-amber-500/10 blur-3xl" />
       <div className="absolute bottom-20 right-10 w-40 h-40 rounded-full bg-amber-500/5 blur-3xl" />
 
-      {/* 内容区域 - 居中 */}
-      <div className="relative z-10 w-full max-w-md mx-4 md:mx-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      {/* 内容区域 - 绝对居中 */}
+      <div className="relative z-10 w-full max-w-md mx-auto px-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         {/* 品牌标识 */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 mb-6 shadow-lg shadow-amber-500/30">

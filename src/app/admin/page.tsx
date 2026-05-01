@@ -36,7 +36,7 @@ interface UploadResult {
 }
 
 export default function AdminPage() {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -46,11 +46,13 @@ export default function AdminPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    // 只有管理员才能访问管理页面
+    // 只有加载完成后才判断，未加载时保持当前页面
+    if (isLoading) return;
+    // 只有非管理员或未登录才跳转
     if (!isAuthenticated || !isAdmin) {
       router.push('/gallery');
     }
-  }, [isAuthenticated, isAdmin, router]);
+  }, [isAuthenticated, isAdmin, isLoading, router]);
 
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
