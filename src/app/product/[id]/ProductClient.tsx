@@ -20,13 +20,19 @@ export default function ProductClient({ product, categories }: ProductClientProp
 
   // 提取视频URL，处理两种格式
   const getVideoUrl = (video: any): string => {
-    if (!video) return '';
+    if (!video) {
+      console.log('getVideoUrl: video is null/undefined');
+      return '';
+    }
     if (typeof video.url === 'string') {
+      console.log('getVideoUrl: string format', video.url);
       return video.url;
     }
     if (typeof video.url === 'object' && video.url?.url) {
+      console.log('getVideoUrl: object format', video.url.url);
       return video.url.url;
     }
+    console.log('getVideoUrl: no valid URL found, video:', video);
     return '';
   };
 
@@ -167,6 +173,12 @@ export default function ProductClient({ product, categories }: ProductClientProp
       {/* 产品视频 - 自适应视频方向 */}
       {videoUrl && (
         <div className="w-full py-4 flex justify-center">
+          {/* 调试：显示视频URL */}
+          <div className="hidden text-xs text-red-500 p-2 bg-yellow-100 mb-2 break-all">
+            视频URL: {videoUrl}
+            <br />
+            原始数据: {JSON.stringify(product.videos?.[0])}
+          </div>
           {/* 隐藏的canvas用于截取视频帧 */}
           <canvas ref={canvasRef} className="hidden" />
           
