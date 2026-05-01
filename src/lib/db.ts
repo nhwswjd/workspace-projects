@@ -225,15 +225,53 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   if (updates.featured !== undefined) updateData.featured = updates.featured;
   if (updates.location !== undefined) updateData.location = updates.location;
   if (updates.hidden !== undefined) updateData.hidden = updates.hidden;
+  if (updates.sortOrder !== undefined) updateData.sort_order = updates.sortOrder;
 
-  const { data, error } = await supabase
+  // 先尝试更新
+  let { data, error } = await supabase
     .from('products')
     .update(updateData)
     .eq('id', id)
     .select()
     .single();
 
-  if (error) throw error;
+  // 如果数据库中没有该产品（error表示不存在），则插入新产品
+  if (error || !data) {
+    // 获取静态产品作为基础数据
+    const staticProduct = products.find(p => p.id === id);
+    const baseProduct = data || staticProduct;
+    
+    if (!baseProduct) {
+      throw new Error(`Product ${id} not found`);
+    }
+
+    const insertData = {
+      id: baseProduct.id,
+      sku: updateData.sku ?? baseProduct.sku,
+      name: updateData.name ?? baseProduct.name,
+      tags: updateData.tags ?? baseProduct.tags,
+      description: updateData.description ?? baseProduct.description,
+      category: updateData.category ?? baseProduct.category,
+      category_id: updateData.category_id ?? baseProduct.categoryId,
+      cover_image: updateData.cover_image ?? baseProduct.coverImage,
+      images: updateData.images ?? baseProduct.images,
+      videos: updateData.videos ?? baseProduct.videos,
+      featured: updateData.featured ?? baseProduct.featured,
+      location: updateData.location ?? baseProduct.location,
+      hidden: updateData.hidden ?? baseProduct.hidden,
+      sort_order: updateData.sort_order ?? baseProduct.sortOrder ?? 0,
+    };
+
+    const { data: insertDataResult, error: insertError } = await supabase
+      .from('products')
+      .upsert(insertData, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+    return insertDataResult as unknown as Product;
+  }
+
   return data as unknown as Product;
 }
 

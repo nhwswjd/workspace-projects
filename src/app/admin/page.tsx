@@ -62,8 +62,11 @@ export default function AdminPage() {
   const [filterFeatured, setFilterFeatured] = useState('');
   const [filterHidden, setFilterHidden] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [sortBy, setSortBy] = useState<'sku' | 'name' | 'category' | 'sortOrder'>('sortOrder');
+  const [sortBy, setSortBy] = useState<'sku' | 'name' | 'category' | 'sortOrder' | 'featured'>('sortOrder');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  // 获取所有唯一标签用于筛选
+  const allTags = Array.from(new Set(products.flatMap(p => p.tags || []))).sort();
 
   useEffect(() => {
     // 只有加载完成后才判断，未加载时保持当前页面
@@ -345,8 +348,38 @@ export default function AdminPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-16">序号</th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">编号</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-16">
+                      序号
+                      <select
+                        value={`${sortBy}-${sortDirection}`}
+                        onChange={(e) => {
+                          const [by, dir] = e.target.value.split('-');
+                          setSortBy(by as typeof sortBy);
+                          setSortDirection(dir as typeof sortDirection);
+                        }}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="sortOrder-asc">↑小到大</option>
+                        <option value="sortOrder-desc">↓大到小</option>
+                        <option value="sku-asc">↑编号A-Z</option>
+                        <option value="sku-desc">↓编号Z-A</option>
+                        <option value="name-asc">↑名称A-Z</option>
+                        <option value="name-desc">↓名称Z-A</option>
+                      </select>
+                    </th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-28">
+                      编号
+                      <select
+                        value={filterSku}
+                        onChange={(e) => setFilterSku(e.target.value)}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="">全部</option>
+                        {Array.from(new Set(products.map(p => p.sku).filter(Boolean))).sort().map(sku => (
+                          <option key={sku} value={sku}>{sku}</option>
+                        ))}
+                      </select>
+                    </th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">名称</th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
                       分类
@@ -361,8 +394,42 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">位置</th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">标签</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
+                      排序
+                      <select
+                        value={`${sortBy}-${sortDirection}`}
+                        onChange={(e) => {
+                          const [field, direction] = e.target.value.split('-');
+                          setSortBy(field as typeof sortBy);
+                          setSortDirection(direction as 'asc' | 'desc');
+                        }}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="sortOrder-asc">序号↑</option>
+                        <option value="sortOrder-desc">序号↓</option>
+                        <option value="sku-asc">编号A-Z</option>
+                        <option value="sku-desc">编号Z-A</option>
+                        <option value="name-asc">名称A-Z</option>
+                        <option value="name-desc">名称Z-A</option>
+                        <option value="category-asc">分类A-Z</option>
+                        <option value="category-desc">分类Z-A</option>
+                        <option value="featured-asc">标签A-Z</option>
+                        <option value="featured-desc">标签Z-A</option>
+                      </select>
+                    </th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
+                      标签
+                      <select
+                        value={filterFeatured}
+                        onChange={(e) => setFilterFeatured(e.target.value)}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="">全部</option>
+                        {allTags.map(tag => (
+                          <option key={tag} value={tag}>{tag}</option>
+                        ))}
+                      </select>
+                    </th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
                       状态
                       <select
@@ -375,58 +442,51 @@ export default function AdminPage() {
                         <option value="hidden">已隐藏</option>
                       </select>
                     </th>
-                    <th className="px-3 py-3 text-right text-sm font-medium text-gray-600 w-48">操作</th>
+                    <th className="px-3 py-3 text-right text-sm font-medium text-gray-600 w-32">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {products.map((product, index) => (
-                    <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
-                      <td className="px-3 py-3 text-sm text-gray-600 text-center">{index + 1}</td>
-                      <td className="px-3 py-3 text-sm text-gray-600">{product.sku}</td>
-                      <td className="px-3 py-3 text-sm text-gray-800 font-medium max-w-[150px] truncate">{product.name}</td>
-                      <td className="px-3 py-3 text-sm text-gray-600">{product.category}</td>
-                      <td className="px-3 py-3 text-sm text-gray-600">{product.location || '-'}</td>
-                      <td className="px-3 py-3">
-                        <div className="flex flex-wrap gap-1 max-w-[200px]">
-                          {product.featured && (
-                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded whitespace-nowrap">
-                              {product.featured}
-                            </span>
-                          )}
-                          {product.tags?.slice(0, 2).map((tag, i) => (
-                            <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded whitespace-nowrap">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <span className={`px-2 py-1 text-xs rounded ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                          {product.hidden ? '已隐藏' : '可见'}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-right">
-                        <button
-                          onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
-                          className="text-blue-600 hover:text-blue-800 mr-2 text-sm"
-                        >
-                          编辑
-                        </button>
-                        <button
-                          onClick={() => handleToggleHidden(product)}
-                          className={`text-sm mr-2 ${product.hidden ? 'text-green-600 hover:text-green-800' : 'text-orange-600 hover:text-orange-800'}`}
-                        >
-                          {product.hidden ? '显示' : '隐藏'}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="text-red-600 hover:text-red-800 text-sm"
-                        >
-                          删除
-                        </button>
-                      </td>
+                  {products.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-8 text-center text-gray-500">暂无产品</td>
                     </tr>
-                  ))}
+                  ) : (
+                    products.map((product, index) => (
+                      <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
+                        <td className="px-3 py-3 text-sm text-gray-600 text-center">{index + 1}</td>
+                        <td className="px-3 py-3 text-sm text-gray-600">{product.sku || '-'}</td>
+                        <td className="px-3 py-3 text-sm text-gray-800 font-medium max-w-[150px] truncate">{product.name}</td>
+                        <td className="px-3 py-3 text-sm text-gray-600">{product.category || '-'}</td>
+                        <td className="px-3 py-3 text-sm text-gray-600">
+                          <span className={`px-2 py-1 text-xs rounded ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                            {product.hidden ? '已隐藏' : '可见'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-right">
+                          <div className="flex justify-end gap-5">
+                            <button
+                              onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
+                              className="px-4 py-1.5 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
+                            >
+                              编辑
+                            </button>
+                            <button
+                              onClick={() => handleToggleHidden(product)}
+                              className={`px-4 py-1.5 rounded text-sm font-medium ${product.hidden ? 'text-green-600 hover:bg-green-50' : 'text-orange-600 hover:bg-orange-50'}`}
+                            >
+                              {product.hidden ? '显示' : '隐藏'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(product.id)}
+                              className="px-4 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm font-medium"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
