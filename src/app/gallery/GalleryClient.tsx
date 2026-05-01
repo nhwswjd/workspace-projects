@@ -51,7 +51,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   }, [searchQuery, selectedCategory, initialProducts]);
 
   return (
-    <div className="min-h-screen bg-stone-50 pt-14">
+    <div className="min-h-screen bg-stone-50">
       {/* 搜索框 - 紧贴顶部，高度放大1.5倍 */}
       <div className="bg-white border-b border-stone-200">
         <div className="max-w-full mx-auto px-1">

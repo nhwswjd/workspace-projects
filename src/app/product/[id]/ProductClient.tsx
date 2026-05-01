@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Product, Category } from '@/types';
 
@@ -11,7 +11,8 @@ interface ProductClientProps {
 
 export default function ProductClient({ product, categories }: ProductClientProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
-  const [videoAspectRatio, setVideoAspectRatio] = useState<number>(16/9); // 默认横向
+  const [isPortrait, setIsPortrait] = useState<boolean>(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // 提取视频URL，处理两种格式
   const getVideoUrl = (video: any): string => {
@@ -25,12 +26,13 @@ export default function ProductClient({ product, categories }: ProductClientProp
     return '';
   };
 
-  // 检测视频方向
-  const handleVideoLoaded = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    if (video.videoWidth && video.videoHeight) {
-      const ratio = video.videoWidth / video.videoHeight;
-      setVideoAspectRatio(ratio);
+  // 检测视频方向并调整样式
+  const handleVideoLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (video && video.videoWidth && video.videoHeight) {
+      // 如果视频高度大于宽度，则是竖向视频
+      const portrait = video.videoHeight > video.videoWidth;
+      setIsPortrait(portrait);
     }
   };
 
@@ -40,7 +42,7 @@ export default function ProductClient({ product, categories }: ProductClientProp
   ].filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-white pb-8 pt-10">
+    <div className="min-h-screen bg-white pb-8">
       {/* 产品名称 */}
       <div className="max-w-full mx-auto px-1 py-4 border-b border-gray-100">
         <h1 className="text-xl font-semibold text-gray-900 text-center">
@@ -71,13 +73,18 @@ export default function ProductClient({ product, categories }: ProductClientProp
         ))}
       </div>
 
-      {/* 产品视频 - 竖向视频占满屏幕宽度 */}
+      {/* 产品视频 - 竖向视频占满屏幕宽度，横向视频保持比例 */}
       {product.videos?.[0] && (
         <div className="w-full px-1 py-4">
           <video
+            ref={videoRef}
             controls
-            className="w-full max-h-[70vh] object-contain bg-black"
+            className={isPortrait 
+              ? 'w-full max-h-[80vh] bg-black'  // 竖向视频：全宽
+              : 'w-full max-h-[70vh] bg-black'  // 横向视频：全宽，保持比例
+            }
             playsInline
+            onLoadedMetadata={handleVideoLoadedMetadata}
           >
             <source src={getVideoUrl(product.videos[0])} type="video/mp4" />
             您的浏览器不支持视频播放
