@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { Upload, X, Image as ImageIcon, Video, Loader2, Check, AlertCircle } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -25,6 +26,13 @@ interface Category {
   id: string;
   name: string;
   description: string;
+}
+
+interface UploadResult {
+  success: boolean;
+  url?: string;
+  path?: string;
+  message?: string;
 }
 
 export default function AdminPage() {
@@ -51,7 +59,6 @@ export default function AdminPage() {
 
   const loadData = async () => {
     try {
-      // 管理员获取所有产品（包括隐藏的）
       const [productsRes, categoriesRes] = await Promise.all([
         fetch('/api/products?includeHidden=true').then(r => r.json()),
         fetch('/api/categories').then(r => r.json())
@@ -294,10 +301,134 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
     categoryId: product?.categoryId || '',
     coverImage: product?.coverImage || '',
     images: product?.images?.join('\n') || '',
+    videos: product?.videos?.map(v => v.url).join('\n') || '',
     featured: product?.featured || '',
     location: product?.location || '',
     hidden: product?.hidden || false,
   });
+
+  const [uploadingImages, setUploadingImages] = useState<{ [key: string]: 'uploading' | 'success' | 'error' }>({});
+  const [uploadingVideos, setUploadingVideos] = useState<{ [key: string]: 'uploading' | 'success' | 'error' }>({});
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadFile = async (file: File, type: 'images' | 'videos'): Promise<UploadResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      return await res.json();
+    } catch (error) {
+      return { success: false, message: '上传失败' };
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImages(prev => ({ ...prev, cover: 'uploading' }));
+    const result = await uploadFile(file, 'images');
+    
+    if (result.success && result.url) {
+      setForm(prev => ({ ...prev, coverImage: result.url! }));
+      setUploadingImages(prev => ({ ...prev, cover: 'success' }));
+    } else {
+      setUploadingImages(prev => ({ ...prev, cover: 'error' }));
+    }
+    
+    setTimeout(() => setUploadingImages(prev => {
+      const newState = { ...prev };
+      delete newState.cover;
+      return newState;
+    }), 2000);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const newUrls: string[] = [];
+    
+    for (const file of files) {
+      const key = `img_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      setUploadingImages(prev => ({ ...prev, [key]: 'uploading' }));
+      
+      const result = await uploadFile(file, 'images');
+      if (result.success && result.url) {
+        newUrls.push(result.url);
+        setUploadingImages(prev => ({ ...prev, [key]: 'success' }));
+      } else {
+        setUploadingImages(prev => ({ ...prev, [key]: 'error' }));
+      }
+      
+      setTimeout(() => setUploadingImages(prev => {
+        const newState = { ...prev };
+        delete newState[key];
+        return newState;
+      }), 2000);
+    }
+
+    if (newUrls.length > 0) {
+      const currentImages = form.images.split('\n').filter(Boolean);
+      setForm(prev => ({
+        ...prev,
+        images: [...currentImages, ...newUrls].join('\n')
+      }));
+    }
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const newUrls: string[] = [];
+    
+    for (const file of files) {
+      const key = `vid_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      setUploadingVideos(prev => ({ ...prev, [key]: 'uploading' }));
+      
+      const result = await uploadFile(file, 'videos');
+      if (result.success && result.url) {
+        newUrls.push(result.url);
+        setUploadingVideos(prev => ({ ...prev, [key]: 'success' }));
+      } else {
+        setUploadingVideos(prev => ({ ...prev, [key]: 'error' }));
+      }
+      
+      setTimeout(() => setUploadingVideos(prev => {
+        const newState = { ...prev };
+        delete newState[key];
+        return newState;
+      }), 2000);
+    }
+
+    if (newUrls.length > 0) {
+      const currentVideos = form.videos.split('\n').filter(Boolean);
+      setForm(prev => ({
+        ...prev,
+        videos: [...currentVideos, ...newUrls].join('\n')
+      }));
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const images = form.images.split('\n').filter(Boolean);
+    images.splice(index, 1);
+    setForm(prev => ({ ...prev, images: images.join('\n') }));
+  };
+
+  const removeVideo = (index: number) => {
+    const videos = form.videos.split('\n').filter(Boolean);
+    videos.splice(index, 1);
+    setForm(prev => ({ ...prev, videos: videos.join('\n') }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -306,14 +437,19 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
       ...form,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       images: form.images.split('\n').map(i => i.trim()).filter(Boolean),
+      videos: form.videos.split('\n').map(v => v.trim()).filter(Boolean).map(url => ({ url, thumbnail: '' })),
       category: selectedCategory?.name || form.category,
       featured: form.featured || null,
     });
   };
 
+  const currentImages = form.images.split('\n').filter(Boolean);
+  const currentVideos = form.videos.split('\n').filter(Boolean);
+  const isUploading = Object.values(uploadingImages).includes('uploading') || Object.values(uploadingVideos).includes('uploading');
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
           <h2 className="text-lg font-semibold">{product?.id ? '编辑产品' : '添加产品'}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -408,26 +544,140 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
             </div>
           </div>
 
+          {/* 封面图上传 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">封面图URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">封面图</label>
             <input
-              type="text"
-              value={form.coverImage}
-              onChange={e => setForm({ ...form, coverImage: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
-              placeholder="https://..."
-              required
+              type="file"
+              ref={coverInputRef}
+              onChange={handleCoverUpload}
+              accept="image/*"
+              className="hidden"
             />
+            <div className="flex items-center gap-3">
+              {form.coverImage ? (
+                <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
+                  <Image src={form.coverImage} alt="封面" fill className="object-cover" />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => coverInputRef.current?.click()}
+                  className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-gray-400 transition-colors"
+                >
+                  <ImageIcon size={24} />
+                  <span className="text-xs mt-1">上传</span>
+                </button>
+              )}
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => coverInputRef.current?.click()}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
+                  disabled={uploadingImages.cover === 'uploading'}
+                >
+                  {uploadingImages.cover === 'uploading' ? (
+                    <><Loader2 size={14} className="animate-spin" /> 上传中...</>
+                  ) : uploadingImages.cover === 'success' ? (
+                    <><Check size={14} className="text-green-600" /> 上传成功</>
+                  ) : uploadingImages.cover === 'error' ? (
+                    <><AlertCircle size={14} className="text-red-600" /> 上传失败</>
+                  ) : (
+                    <><Upload size={14} /> 选择封面图</>
+                  )}
+                </button>
+                <span className="text-xs text-gray-500">支持 JPG、PNG、WebP</span>
+              </div>
+            </div>
           </div>
 
+          {/* 产品图片上传 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">图片URL（每行一个）</label>
-            <textarea
-              value={form.images}
-              onChange={e => setForm({ ...form, images: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 h-32"
-              placeholder="每行一个图片URL"
+            <label className="block text-sm font-medium text-gray-700 mb-1">产品图片</label>
+            <input
+              type="file"
+              ref={imageInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              multiple
+              className="hidden"
             />
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors mb-2"
+              disabled={Object.values(uploadingImages).includes('uploading')}
+            >
+              {Object.values(uploadingImages).includes('uploading') ? (
+                <><Loader2 size={14} className="animate-spin" /> 上传中...</>
+              ) : (
+                <><Upload size={14} /> 添加图片</>
+              )}
+            </button>
+            
+            {currentImages.length > 0 && (
+              <div className="grid grid-cols-4 gap-2">
+                {currentImages.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <div className="relative w-full h-20 rounded-lg overflow-hidden border">
+                      <Image src={url} alt={`图片 ${index + 1}`} fill className="object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">支持多选，支持 JPG、PNG、WebP</p>
+          </div>
+
+          {/* 产品视频上传 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">产品视频</label>
+            <input
+              type="file"
+              ref={videoInputRef}
+              onChange={handleVideoUpload}
+              accept="video/*"
+              multiple
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => videoInputRef.current?.click()}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors mb-2"
+              disabled={Object.values(uploadingVideos).includes('uploading')}
+            >
+              {Object.values(uploadingVideos).includes('uploading') ? (
+                <><Loader2 size={14} className="animate-spin" /> 上传中...</>
+              ) : (
+                <><Upload size={14} /> 添加视频</>
+              )}
+            </button>
+            
+            {currentVideos.length > 0 && (
+              <div className="space-y-2">
+                {currentVideos.map((url, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg group">
+                    <Video size={16} className="text-gray-400" />
+                    <span className="flex-1 text-sm text-gray-600 truncate">{url.split('/').pop()}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeVideo(index)}
+                      className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500 mt-1">支持 MP4、WebM 格式</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -444,9 +694,14 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+              disabled={isUploading}
+              className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              保存
+              {isUploading ? (
+                <><Loader2 size={16} className="animate-spin" /> 上传中，请稍候...</>
+              ) : (
+                '保存'
+              )}
             </button>
             <button
               type="button"
