@@ -136,6 +136,9 @@ export default function ProductClient({ product, categories }: ProductClientProp
   // 根据当前视频索引获取视频数据
   const videoData = product.videos?.[currentVideoIndex];
   const videoUrl = getVideoUrl(videoData);
+  
+  // 调试：显示当前视频信息
+  console.log('currentVideoIndex:', currentVideoIndex, 'videoData:', JSON.stringify(videoData), 'videoUrl:', videoUrl);
 
   // 根据视频方向确定播放器的aspect-ratio
   const videoAspectRatio = isVideoVertical ? '9/16' : '16/9';
