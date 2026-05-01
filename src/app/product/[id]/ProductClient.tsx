@@ -27,16 +27,25 @@ export default function ProductClient({ product, categories }: ProductClientProp
       return video.includes('http') ? video : '';
     }
     
+    // 如果是数组，取第一个元素
+    if (Array.isArray(video)) {
+      return video.length > 0 ? getVideoUrl(video[0]) : '';
+    }
+    
     // 如果是对象，递归查找所有可能的URL字段
     if (typeof video === 'object') {
       // 常见URL字段名
-      const urlFields = ['url', 'src', 'link', 'path', 'video_url', 'videoUrl'];
+      const urlFields = ['url', 'src', 'link', 'path', 'video_url', 'videoUrl', 'href'];
       for (const field of urlFields) {
         if (video[field]) {
           const result = getVideoUrl(video[field]);
           if (result) return result;
         }
       }
+      // 尝试获取第一个包含http的值
+      const str = JSON.stringify(video);
+      const match = str.match(/"(https?:\/\/[^"]+)"/);
+      if (match) return match[1];
     }
     
     return '';
@@ -115,12 +124,11 @@ export default function ProductClient({ product, categories }: ProductClientProp
     ...product.images,
   ].filter(Boolean);
 
-  // 调试：打印视频数据结构
-  console.log('product.videos:', product.videos);
-  console.log('product.videos?.[0]:', product.videos?.[0]);
-  
   const videoUrl = getVideoUrl(product.videos?.[0]);
-  console.log('videoUrl:', videoUrl);
+  // 临时alert显示videoUrl值用于调试
+  if (typeof window !== 'undefined' && !videoUrl.includes('alert')) {
+    setTimeout(() => { if (!videoUrl) alert('videoUrl为空'); }, 1000);
+  }
 
   // 根据视频方向确定播放器的aspect-ratio
   const videoAspectRatio = isVideoVertical ? '9/16' : '16/9';
