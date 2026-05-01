@@ -54,6 +54,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
+  // 单元格编辑状态: { productId-fieldName }
+  const [editingCell, setEditingCell] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  
   // 筛选和排序状态
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSku, setFilterSku] = useState('');
@@ -254,6 +258,70 @@ export default function AdminPage() {
       setMessage({ type: 'error', text: '保存失败' });
     }
     setTimeout(() => setMessage(null), 3000);
+  };
+
+  // 开始编辑单元格
+  const startCellEdit = (productId: string, field: string, currentValue: string) => {
+    setEditingCell(`${productId}-${field}`);
+    setEditValue(currentValue);
+  };
+
+  // 保存单元格编辑
+  const saveCellEdit = async (productId: string, field: string) => {
+    if (!editingCell) return;
+    
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    let updateData: Partial<Product> = {};
+
+    switch (field) {
+      case 'sku':
+        updateData = { sku: editValue };
+        break;
+      case 'name':
+        updateData = { name: editValue };
+        break;
+      case 'sortOrder':
+        updateData = { sortOrder: parseInt(editValue) || 0 };
+        break;
+      case 'featured':
+        updateData = { featured: editValue || null };
+        break;
+      case 'hidden':
+        updateData = { hidden: editValue === 'true' };
+        break;
+      default:
+        break;
+    }
+
+    try {
+      const res = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setMessage({ type: 'success', text: '已保存' });
+        loadData();
+      } else {
+        setMessage({ type: 'error', text: '保存失败' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: '保存失败' });
+    }
+    
+    setEditingCell(null);
+    setEditValue('');
+    setTimeout(() => setMessage(null), 2000);
+  };
+
+  // 取消编辑
+  const cancelCellEdit = () => {
+    setEditingCell(null);
+    setEditValue('');
   };
 
   if (!isAuthenticated || !isAdmin) {
@@ -571,10 +639,57 @@ export default function AdminPage() {
                   ) : (
                     filteredProducts.map((product, index) => (
                       <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
+                        {/* 序号 */}
                         <td className="px-3 py-3 text-sm text-gray-600 text-center">{index + 1}</td>
-                        <td className="px-3 py-3 text-sm text-gray-600">{product.sku || '-'}</td>
-                        <td className="px-3 py-3 text-sm text-gray-800 font-medium max-w-[150px] truncate">{product.name}</td>
+                        
+                        {/* 编号 - 可编辑 */}
+                        <td className="px-3 py-3 text-sm">
+                          {editingCell === `${product.id}-sku` ? (
+                            <input
+                              type="text"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveCellEdit(product.id, 'sku')}
+                              onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'sku')}
+                              autoFocus
+                              className="w-full px-2 py-1 text-sm border border-blue-400 rounded"
+                            />
+                          ) : (
+                            <div
+                              onClick={() => startCellEdit(product.id, 'sku', product.sku || '')}
+                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                            >
+                              {product.sku || '-'}
+                            </div>
+                          )}
+                        </td>
+                        
+                        {/* 名称 - 可编辑 */}
+                        <td className="px-3 py-3 text-sm">
+                          {editingCell === `${product.id}-name` ? (
+                            <input
+                              type="text"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveCellEdit(product.id, 'name')}
+                              onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'name')}
+                              autoFocus
+                              className="w-full px-2 py-1 text-sm border border-blue-400 rounded font-medium"
+                            />
+                          ) : (
+                            <div
+                              onClick={() => startCellEdit(product.id, 'name', product.name || '')}
+                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded max-w-[150px] truncate font-medium"
+                            >
+                              {product.name}
+                            </div>
+                          )}
+                        </td>
+                        
+                        {/* 分类 - 只读 */}
                         <td className="px-3 py-3 text-sm text-gray-600">{product.category || '-'}</td>
+                        
+                        {/* 普通标签 - 只读 */}
                         <td className="px-3 py-3 text-sm">
                           {product.tags && product.tags.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
@@ -587,34 +702,82 @@ export default function AdminPage() {
                             </div>
                           ) : '-'}
                         </td>
+                        
+                        {/* 精选 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {product.featured ? (
-                            <span className="px-2 py-1 text-xs rounded bg-amber-100 text-amber-700">{product.featured}</span>
-                          ) : '-'}
+                          {editingCell === `${product.id}-featured` ? (
+                            <select
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveCellEdit(product.id, 'featured')}
+                              onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'featured')}
+                              autoFocus
+                              className="w-full px-2 py-1 text-xs border border-blue-400 rounded"
+                            >
+                              <option value="">无</option>
+                              <option value="精选产品">精选产品</option>
+                              <option value="优选产品">优选产品</option>
+                            </select>
+                          ) : (
+                            <div
+                              onClick={() => startCellEdit(product.id, 'featured', product.featured || '')}
+                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded inline-block"
+                            >
+                              {product.featured ? (
+                                <span className="px-2 py-1 text-xs rounded bg-amber-100 text-amber-700">{product.featured}</span>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </div>
+                          )}
                         </td>
-                        <td className="px-3 py-3 text-sm text-gray-600 text-center">{product.sortOrder ?? '-'}</td>
+                        
+                        {/* 排序 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          <span className={`px-2 py-1 text-xs rounded ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                          {editingCell === `${product.id}-sortOrder` ? (
+                            <input
+                              type="number"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => saveCellEdit(product.id, 'sortOrder')}
+                              onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'sortOrder')}
+                              autoFocus
+                              className="w-16 px-2 py-1 text-sm border border-blue-400 rounded text-center"
+                            />
+                          ) : (
+                            <div
+                              onClick={() => startCellEdit(product.id, 'sortOrder', String(product.sortOrder ?? 0))}
+                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded text-center"
+                            >
+                              {product.sortOrder ?? '-'}
+                            </div>
+                          )}
+                        </td>
+                        
+                        {/* 状态 - 可切换 */}
+                        <td className="px-3 py-3 text-sm">
+                          <button
+                            onClick={() => handleToggleHidden(product)}
+                            className={`px-2 py-1 text-xs rounded cursor-pointer hover:opacity-80 ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+                          >
                             {product.hidden ? '已隐藏' : '可见'}
-                          </span>
+                          </button>
                         </td>
+                        
+                        {/* 操作 */}
                         <td className="px-3 py-3 text-right">
-                          <div className="flex justify-end gap-5">
+                          <div className="flex justify-end gap-2">
                             <button
                               onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
-                              className="px-4 py-1.5 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
+                              className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
+                              title="编辑详情"
                             >
-                              编辑
-                            </button>
-                            <button
-                              onClick={() => handleToggleHidden(product)}
-                              className={`px-4 py-1.5 rounded text-sm font-medium ${product.hidden ? 'text-green-600 hover:bg-green-50' : 'text-orange-600 hover:bg-orange-50'}`}
-                            >
-                              {product.hidden ? '显示' : '隐藏'}
+                              详情
                             </button>
                             <button
                               onClick={() => handleDeleteProduct(product.id)}
-                              className="px-4 py-1.5 text-red-600 hover:bg-red-50 rounded text-sm font-medium"
+                              className="px-3 py-1 text-red-600 hover:bg-red-50 rounded text-sm font-medium"
+                              title="删除产品"
                             >
                               删除
                             </button>
