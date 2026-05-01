@@ -43,6 +43,48 @@ interface VisitorPassword {
   created_at: string;
 }
 
+// 可编辑单元格组件 - 独立管理编辑状态
+function EditableCell({
+  value,
+  onSave,
+  renderDisplay,
+  renderEdit,
+  editValue,
+  setEditValue,
+  isEditing,
+  onStartEdit,
+  onSaveEdit,
+}: {
+  value: string;
+  onSave: (value: string) => Promise<void>;
+  renderDisplay: () => React.ReactNode;
+  renderEdit: () => React.ReactNode;
+  editValue: string;
+  setEditValue: (v: string) => void;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onSaveEdit: () => void;
+}) {
+  if (isEditing) {
+    return (
+      <div onClick={(e) => e.stopPropagation()}>
+        {renderEdit()}
+      </div>
+    );
+  }
+  return (
+    <div
+      onClick={(e) => {
+        e.stopPropagation();
+        onStartEdit();
+      }}
+      className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+    >
+      {renderDisplay()}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const router = useRouter();
@@ -54,9 +96,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
-  // 单元格编辑状态: { productId-fieldName }
-  const [editingCell, setEditingCell] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
+  // 单元格编辑状态: Map<"productId-field", editValue>
+  const [editingCells, setEditingCells] = useState<Record<string, string>>({});
   
   // 筛选和排序状态
   const [searchTerm, setSearchTerm] = useState('');
@@ -262,13 +303,14 @@ export default function AdminPage() {
 
   // 开始编辑单元格
   const startCellEdit = (productId: string, field: string, currentValue: string) => {
-    setEditingCell(`${productId}-${field}`);
-    setEditValue(currentValue);
+    setEditingCells(prev => ({ ...prev, [`${productId}-${field}`]: currentValue }));
   };
 
   // 保存单元格编辑
   const saveCellEdit = async (productId: string, field: string) => {
-    if (!editingCell) return;
+    const cellKey = `${productId}-${field}`;
+    const editValue = editingCells[cellKey];
+    if (editValue === undefined) return;
     
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -302,14 +344,6 @@ export default function AdminPage() {
     }
 
     try {
-      // 立即更新本地状态，避免其他行数据变空白
-      setProducts(prev => prev.map(p => {
-        if (p.id === productId) {
-          return { ...p, ...updateData };
-        }
-        return p;
-      }));
-
       const res = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -319,28 +353,31 @@ export default function AdminPage() {
       
       if (data.success) {
         setMessage({ type: 'success', text: '已保存' });
-        // 延迟刷新确保数据一致性
-        setTimeout(() => loadData(), 500);
+        // 清除编辑状态
+        setEditingCells(prev => {
+          const next = { ...prev };
+          delete next[cellKey];
+          return next;
+        });
+        // 刷新数据
+        loadData();
       } else {
-        // 失败时回滚
-        setProducts(prev => prev.map(p => p.id === productId ? product : p));
         setMessage({ type: 'error', text: '保存失败' });
       }
     } catch {
-      // 失败时回滚
-      setProducts(prev => prev.map(p => p.id === productId ? product : p));
       setMessage({ type: 'error', text: '保存失败' });
     }
     
-    setEditingCell(null);
-    setEditValue('');
     setTimeout(() => setMessage(null), 2000);
   };
 
   // 取消编辑
-  const cancelCellEdit = () => {
-    setEditingCell(null);
-    setEditValue('');
+  const cancelCellEdit = (productId: string, field: string) => {
+    setEditingCells(prev => {
+      const next = { ...prev };
+      delete next[`${productId}-${field}`];
+      return next;
+    });
   };
 
   if (!isAuthenticated || !isAdmin) {
@@ -663,11 +700,11 @@ export default function AdminPage() {
                         
                         {/* 编号 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {editingCell === `${product.id}-sku` ? (
+                          {editingCells[`${product.id}-sku`] !== undefined ? (
                             <input
                               type="text"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
+                              value={editingCells[`${product.id}-sku`]}
+                              onChange={(e) => setEditingCells(prev => ({ ...prev, [`${product.id}-sku`]: e.target.value }))}
                               onBlur={() => saveCellEdit(product.id, 'sku')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'sku')}
                               autoFocus
@@ -685,11 +722,11 @@ export default function AdminPage() {
                         
                         {/* 名称 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {editingCell === `${product.id}-name` ? (
+                          {editingCells[`${product.id}-name`] !== undefined ? (
                             <input
                               type="text"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
+                              value={editingCells[`${product.id}-name`]}
+                              onChange={(e) => setEditingCells(prev => ({ ...prev, [`${product.id}-name`]: e.target.value }))}
                               onBlur={() => saveCellEdit(product.id, 'name')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'name')}
                               autoFocus
@@ -707,10 +744,10 @@ export default function AdminPage() {
                         
                         {/* 分类 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {editingCell === `${product.id}-category` ? (
+                          {editingCells[`${product.id}-category`] !== undefined ? (
                             <select
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
+                              value={editingCells[`${product.id}-category`]}
+                              onChange={(e) => setEditingCells(prev => ({ ...prev, [`${product.id}-category`]: e.target.value }))}
                               onBlur={() => saveCellEdit(product.id, 'category')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'category')}
                               autoFocus
@@ -733,11 +770,11 @@ export default function AdminPage() {
                         
                         {/* 普通标签 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {editingCell === `${product.id}-tags` ? (
+                          {editingCells[`${product.id}-tags`] !== undefined ? (
                             <input
                               type="text"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
+                              value={editingCells[`${product.id}-tags`]}
+                              onChange={(e) => setEditingCells(prev => ({ ...prev, [`${product.id}-tags`]: e.target.value }))}
                               onBlur={() => saveCellEdit(product.id, 'tags')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'tags')}
                               autoFocus
@@ -765,10 +802,10 @@ export default function AdminPage() {
                         
                         {/* 精选 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {editingCell === `${product.id}-featured` ? (
+                          {editingCells[`${product.id}-featured`] !== undefined ? (
                             <select
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
+                              value={editingCells[`${product.id}-featured`]}
+                              onChange={(e) => setEditingCells(prev => ({ ...prev, [`${product.id}-featured`]: e.target.value }))}
                               onBlur={() => saveCellEdit(product.id, 'featured')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'featured')}
                               autoFocus
@@ -794,11 +831,11 @@ export default function AdminPage() {
                         
                         {/* 排序 - 可编辑 */}
                         <td className="px-3 py-3 text-sm">
-                          {editingCell === `${product.id}-sortOrder` ? (
+                          {editingCells[`${product.id}-sortOrder`] !== undefined ? (
                             <input
                               type="number"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
+                              value={editingCells[`${product.id}-sortOrder`]}
+                              onChange={(e) => setEditingCells(prev => ({ ...prev, [`${product.id}-sortOrder`]: e.target.value }))}
                               onBlur={() => saveCellEdit(product.id, 'sortOrder')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'sortOrder')}
                               autoFocus
