@@ -1,5 +1,7 @@
 'use client';
 
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
@@ -1000,36 +1002,70 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
   // 检测是否为移动端
   const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  const uploadFile = async (file: File, type: 'images' | 'videos'): Promise<UploadResult> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
+  // Supabase客户端
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const supabaseRef = useRef<SupabaseClient | null>(null);
+  
+  const getSupabaseClient = () => {
+    if (!supabaseRef.current && supabaseUrl && supabaseAnonKey) {
+      supabaseRef.current = createClient(supabaseUrl, supabaseAnonKey);
+    }
+    return supabaseRef.current;
+  };
 
+  const uploadFile = async (file: File, type: 'images' | 'videos'): Promise<UploadResult> => {
+    const bucketId = type === 'videos' ? 'product-videos' : 'product-images';
+    
+    // 验证文件大小
+    const maxSize = type === 'videos' ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      return { success: false, message: `文件大小超过${type === 'videos' ? '100MB' : '10MB'}限制` };
+    }
+    
+    // 验证文件类型
+    const allowedTypes = type === 'videos' 
+      ? ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
+      : ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    if (!allowedTypes.includes(file.type)) {
+      return { success: false, message: `不支持的文件类型: ${file.type}` };
+    }
+    
+    // 生成唯一文件名
+    const ext = file.name.split('.').pop() || (type === 'videos' ? 'mp4' : 'jpg');
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+    
     try {
-      // 视频文件设置更长的超时时间
-      const timeout = type === 'videos' ? 120000 : 30000; // 视频2分钟，图片30秒
-      
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-        signal: AbortSignal.timeout(timeout),
-      });
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        return { success: false, message: errorData.message || `上传失败 (${res.status})` };
+      const client = getSupabaseClient();
+      if (!client) {
+        return { success: false, message: 'Supabase客户端未初始化' };
       }
       
-      return await res.json();
-    } catch (error: unknown) {
+      // 直接上传到Supabase Storage
+      const { data, error } = await client.storage
+        .from(bucketId)
+        .upload(fileName, file, {
+          contentType: file.type,
+          upsert: true,
+        });
+      
+      if (error) {
+        console.error('上传失败:', error);
+        return { success: false, message: `上传失败: ${error.message}` };
+      }
+      
+      // 获取公开URL
+      const { data: urlData } = client.storage.from(bucketId).getPublicUrl(fileName);
+      
+      return {
+        success: true,
+        url: urlData.publicUrl,
+        path: fileName,
+      };
+    } catch (error: any) {
       console.error('上传错误:', error);
-      if (error instanceof Error) {
-        if (error.name === 'TimeoutError') {
-          return { success: false, message: '上传超时，请重试或尝试更小的文件' };
-        }
-        return { success: false, message: error.message };
-      }
-      return { success: false, message: '上传失败' };
+      return { success: false, message: error?.message || '上传失败' };
     }
   };
 
