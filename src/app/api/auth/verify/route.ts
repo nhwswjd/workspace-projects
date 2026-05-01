@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { adminPassword } from '@/lib/products';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  );
+}
 
 export async function POST(request: Request) {
   try {
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
     }
 
     // 从数据库获取访客密码列表
+    const supabase = getSupabase();
     const { data: visitorPasswords, error } = await supabase
       .from('visitor_passwords')
       .select('password');
