@@ -19,20 +19,20 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
     
+    // 如果不是管理员请求，只返回未隐藏的产品
     if (!includeHidden) {
-      query = query.eq('hidden', false).or('hidden.is.null');
+      query = query.eq('hidden', false);
     }
     
     const { data, error } = await query;
     
-    if (error) throw error;
-    
-    // 如果数据库为空，返回静态数据
-    if (!data || data.length === 0) {
+    // 如果查询出错或数据库为空，返回静态数据
+    if (error || !data || data.length === 0) {
       return staticProducts as Product[];
     }
     
-    return data.map((p: Record<string, unknown>) => ({
+    // 转换为Product格式
+    const dbProducts = data.map((p: Record<string, unknown>) => ({
       id: p.id as string,
       sku: p.sku as string,
       name: p.name as string,
@@ -48,6 +48,19 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       hidden: (p.hidden as boolean) || false,
       sortOrder: (p.sort_order as number) || 0,
     })) as unknown as Product[];
+    
+    // 合并静态数据和数据库数据
+    // 数据库产品会覆盖静态产品（基于ID去重）
+    const dbProductIds = new Set(dbProducts.map(p => p.id));
+    const staticProductsToAdd = staticProducts.filter(p => !dbProductIds.has(p.id));
+    const mergedProducts = [...dbProducts, ...staticProductsToAdd];
+    
+    // 访客请求时过滤掉隐藏的产品
+    if (!includeHidden) {
+      return mergedProducts.filter(p => !p.hidden);
+    }
+    
+    return mergedProducts;
   } catch {
     // 如果数据库查询失败，返回静态数据
     return staticProducts as Product[];
