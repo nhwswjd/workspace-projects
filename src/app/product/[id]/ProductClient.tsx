@@ -79,10 +79,9 @@ export default function ProductClient({ product, categories }: ProductClientProp
             <div 
               className="mx-auto bg-black rounded-lg overflow-hidden"
               style={{ 
-                width: videoAspectRatio >= 1 ? '100%' : `${Math.min(70, videoAspectRatio * 100)}vh`,
+                width: '100%',
                 maxWidth: '100%',
-                height: videoAspectRatio >= 1 ? 'auto' : '80vh',
-                aspectRatio: videoAspectRatio >= 1 ? 'auto' : `${videoAspectRatio}`
+                aspectRatio: videoAspectRatio >= 1 ? '16/9' : '9/16'
               }}
             >
               <video
