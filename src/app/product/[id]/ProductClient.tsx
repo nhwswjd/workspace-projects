@@ -18,28 +18,24 @@ export default function ProductClient({ product, categories }: ProductClientProp
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // 提取视频URL，处理多种格式
+  // 递归提取视频URL，处理任意深度的嵌套对象
   const getVideoUrl = (video: any): string => {
-    if (!video) {
-      console.log('getVideoUrl: video is null/undefined');
-      return '';
+    if (!video) return '';
+    
+    // 如果是字符串，直接返回
+    if (typeof video === 'string') return video;
+    
+    // 如果是对象，递归查找 url 属性
+    if (typeof video === 'object') {
+      // 如果有 url 属性且是字符串，直接返回
+      if (video.url && typeof video.url === 'string') return video.url;
+      // 如果有 url 属性且是对象，递归处理
+      if (video.url && typeof video.url === 'object') return getVideoUrl(video.url);
+      // 如果有 video 属性（某些API格式），递归处理
+      if (video.video && typeof video.video === 'string') return video.video;
+      if (video.video && typeof video.video === 'object') return getVideoUrl(video.video);
     }
-    // 情况1：直接的URL字符串
-    if (typeof video === 'string') {
-      console.log('getVideoUrl: direct string', video);
-      return video;
-    }
-    // 情况2：对象格式 { url: "..." }
-    if (typeof video.url === 'string') {
-      console.log('getVideoUrl: object format', video.url);
-      return video.url;
-    }
-    // 情况3：嵌套对象格式 { url: { url: "..." } }
-    if (typeof video.url === 'object' && video.url?.url) {
-      console.log('getVideoUrl: nested object format', video.url.url);
-      return video.url.url;
-    }
-    console.log('getVideoUrl: no valid URL found, video:', video);
+    
     return '';
   };
 
@@ -180,10 +176,6 @@ export default function ProductClient({ product, categories }: ProductClientProp
       {/* 产品视频 - 自适应视频方向 */}
       {videoUrl && (
         <div className="w-full py-4 flex justify-center">
-          {/* 调试：显示视频URL */}
-          <div className="text-xs text-red-500 p-2 bg-yellow-100 mb-2 break-all">
-            视频URL: {videoUrl}
-          </div>
           {/* 隐藏的canvas用于截取视频帧 */}
           <canvas ref={canvasRef} className="hidden" />
           
