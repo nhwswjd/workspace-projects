@@ -76,27 +76,6 @@ export function Header() {
                   <span>返回</span>
                 </button>
               )}
-              {/* Search box in header */}
-              <div className="relative hidden sm:flex items-center gap-1 flex-[1] max-w-[120px]">
-                <div className="relative w-full">
-                  <input
-                    type="text"
-                    placeholder="搜索"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-full pl-3 pr-9 py-1.5 text-sm bg-accent/50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
-                  />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                  >
-                    <Search className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Center: Brand */}

@@ -52,16 +52,34 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* 分类导航 - 横向滚动 */}
+      {/* 搜索框 - 置顶栏下方 */}
+      <div className="bg-white border-b border-stone-200 pt-12 md:pt-14">
+        <div className="max-w-[90%] mx-auto px-2 py-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="搜索产品名称、编号或标签"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 pl-4 pr-4 py-3 text-base bg-stone-100 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white placeholder:text-stone-400"
+            />
+            <button className="px-5 py-3 bg-stone-900 text-white text-base font-medium rounded-xl hover:bg-stone-800 transition-colors">
+              搜索
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 分类导航 - 横向滚动，字号加大 */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-[90%] mx-auto px-2 py-2.5">
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="max-w-[90%] mx-auto px-2 py-3">
+          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 py-1.5 text-sm rounded-full transition-all duration-200 ${
+              className={`flex-shrink-0 px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 ${
                 selectedCategory === null
                   ? 'bg-stone-900 text-white shadow-md'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
               全部
@@ -70,10 +88,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-1.5 text-sm rounded-full transition-all duration-200 ${
+                className={`flex-shrink-0 px-5 py-2.5 text-base font-medium rounded-full transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? 'bg-stone-900 text-white shadow-md'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                 }`}
               >
                 {cat.name}
@@ -99,12 +117,12 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
         {/* 产品网格 - 响应式布局 */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 justify-items-center">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {filteredProducts.map((product) => (
               <Link
                 key={product.id}
                 href={`/product/${product.id}`}
-                className="group block w-full max-w-[180px] md:max-w-none"
+                className="group block"
               >
                 {/* 图片容器 */}
                 <div className="relative aspect-[3/4] bg-stone-200 rounded-xl overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300">
@@ -116,9 +134,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     loading="lazy"
                   />
-                  {/* 精选标签 - 右上角 */}
+                  {/* 精选标签 - 右上角紧贴 */}
                   {product.featured && (
-                    <span className="absolute top-2.5 right-2.5 bg-amber-500/90 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-md shadow-sm">
+                    <span className="absolute top-0 right-0 bg-amber-500/95 text-white text-xs font-medium px-2.5 py-1.5 rounded-tr-xl rounded-bl-md shadow-sm">
                       {product.featured}
                     </span>
                   )}
@@ -126,8 +144,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
                 {/* 产品信息 */}
                 <div className="flex items-center gap-2 mb-1">
-                  {/* 编号 - 产品名称左边 */}
-                  <span className="text-xs text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+                  {/* 编号 - 红色 */}
+                  <span className="text-xs text-red-600 font-medium whitespace-nowrap">
                     {product.sku}
                   </span>
                   <h3 className="font-medium text-stone-900 text-sm md:text-base group-hover:text-amber-600 transition-colors truncate">

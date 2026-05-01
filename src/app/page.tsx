@@ -75,7 +75,7 @@ export default function LandingPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="输入访问密码"
             disabled={isLoading}
-            className="w-full px-5 py-4 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all mb-4"
+            className="w-full px-5 py-6 bg-white/20 border border-white/30 rounded-xl text-white text-lg placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all mb-4"
           />
           
           {error && (
