@@ -59,6 +59,21 @@ export default function ProductClient({ product, categories }: ProductClientProp
     return '';
   };
 
+  // 获取视频缩略图
+  const getVideoThumbnail = (video: any): string => {
+    if (!video) return '';
+    if (typeof video === 'string') return '';
+    if (video.thumbnail) return video.thumbnail;
+    // 递归查找
+    for (const key in video) {
+      if (typeof video[key] === 'object') {
+        const result = getVideoThumbnail(video[key]);
+        if (result) return result;
+      }
+    }
+    return '';
+  };
+
   // 检测视频方向
   const detectVideoOrientation = (video: HTMLVideoElement) => {
     if (video.videoWidth && video.videoHeight) {
