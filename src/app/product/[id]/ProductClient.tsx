@@ -56,7 +56,9 @@ export default function ProductClient({ product, categories }: ProductClientProp
     };
   }, []);
 
-  const handleVideoClick = () => {
+  const handleVideoClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -145,9 +147,17 @@ export default function ProductClient({ product, categories }: ProductClientProp
                 src={videoUrl}
                 preload="metadata"
                 poster={videoPoster}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover cursor-pointer"
                 playsInline
                 disablePictureInPicture
+                controls={false}
+                onClick={handleVideoClick}
+                onTouchStart={(e) => e.preventDefault()}
+                onTouchMove={(e) => e.preventDefault()}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleVideoClick(e);
+                }}
                 onPlay={() => handlePlayStateChange(true)}
                 onPause={() => handlePlayStateChange(false)}
                 onEnded={() => handlePlayStateChange(false)}
