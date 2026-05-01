@@ -55,8 +55,13 @@ export default function AdminPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   // 筛选和排序状态
-  const [filterText, setFilterText] = useState('');
+  const [filterSku, setFilterSku] = useState('');
+  const [filterName, setFilterName] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterFeatured, setFilterFeatured] = useState('');
+  const [filterHidden, setFilterHidden] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const [sortBy, setSortBy] = useState<'sku' | 'name' | 'category' | 'sortOrder'>('sortOrder');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -340,30 +345,43 @@ export default function AdminPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-20">图片</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-16">序号</th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">编号</th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">名称</th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">分类</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
+                      分类
+                      <select
+                        value={filterCategory}
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="">全部</option>
+                        {categories.map(cat => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">位置</th>
                     <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">标签</th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600 w-20">状态</th>
+                    <th className="px-3 py-3 text-left text-sm font-medium text-gray-600">
+                      状态
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="ml-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                      >
+                        <option value="">全部</option>
+                        <option value="visible">可见</option>
+                        <option value="hidden">已隐藏</option>
+                      </select>
+                    </th>
                     <th className="px-3 py-3 text-right text-sm font-medium text-gray-600 w-48">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {products.map((product) => (
+                  {products.map((product, index) => (
                     <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
-                      <td className="px-3 py-3">
-                        <div className="relative w-12 h-16 bg-gray-200 rounded overflow-hidden">
-                          <Image
-                            src={product.coverImage}
-                            alt={product.name}
-                            fill
-                            className="object-cover"
-                            sizes="48px"
-                          />
-                        </div>
-                      </td>
+                      <td className="px-3 py-3 text-sm text-gray-600 text-center">{index + 1}</td>
                       <td className="px-3 py-3 text-sm text-gray-600">{product.sku}</td>
                       <td className="px-3 py-3 text-sm text-gray-800 font-medium max-w-[150px] truncate">{product.name}</td>
                       <td className="px-3 py-3 text-sm text-gray-600">{product.category}</td>
