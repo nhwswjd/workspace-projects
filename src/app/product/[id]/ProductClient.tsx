@@ -71,32 +71,19 @@ export default function ProductClient({ product, categories }: ProductClientProp
         ))}
       </div>
 
-      {/* 产品视频 - 根据视频方向自适应尺寸 */}
-      {(() => {
-        const firstVideoUrl = product.videos?.[0] ? getVideoUrl(product.videos[0]) : '';
-        return firstVideoUrl ? (
-          <div className="max-w-[95%] mx-auto px-2 py-4">
-            <div 
-              className="mx-auto bg-black rounded-lg overflow-hidden"
-              style={{ 
-                width: '100%',
-                maxWidth: '100%',
-                aspectRatio: videoAspectRatio >= 1 ? '16/9' : '9/16'
-              }}
-            >
-              <video
-                controls
-                className="w-full h-full object-contain"
-                playsInline
-                onLoadedMetadata={handleVideoLoaded}
-              >
-                <source src={firstVideoUrl} type="video/mp4" />
-                您的浏览器不支持视频播放
-              </video>
-            </div>
-          </div>
-        ) : null;
-      })()}
+      {/* 产品视频 - 竖向视频占满屏幕宽度 */}
+      {product.videos?.[0] && (
+        <div className="w-full px-1 py-4">
+          <video
+            controls
+            className="w-full max-h-[70vh] object-contain bg-black"
+            playsInline
+          >
+            <source src={getVideoUrl(product.videos[0])} type="video/mp4" />
+            您的浏览器不支持视频播放
+          </video>
+        </div>
+      )}
 
       {/* 图片查看器 */}
       {selectedImageIndex !== null && (
