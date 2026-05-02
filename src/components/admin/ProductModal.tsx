@@ -475,7 +475,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
               ) : (
                 <button
                   type="button"
-                  onClick={() => coverInputRef.current?.click()}
+                  onClick={() => { console.log('[ProductModal] 封面按钮被点击'); coverInputRef.current?.click(); }}
                   className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-gray-400"
                 >
                   <ImageIcon size={24} />
@@ -507,7 +507,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
             <input type="file" ref={imageInputRef} onChange={handleImageUpload} accept="image/*" multiple className="hidden" />
             <button
               type="button"
-              onClick={() => imageInputRef.current?.click()}
+              onClick={() => { console.log('[ProductModal] 图片按钮被点击'); imageInputRef.current?.click(); }}
               className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm mb-2"
               disabled={Object.values(uploadingImages).includes('uploading')}
             >
