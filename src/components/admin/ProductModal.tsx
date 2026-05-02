@@ -256,14 +256,17 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
     }
     
     if (newUrls.length > 0) {
-      const currentVideos = form.videos.split('\n').filter(Boolean);
-      console.log('[DEBUG] handleVideoUpload - currentVideos:', currentVideos);
-      console.log('[DEBUG] handleVideoUpload - newUrls:', newUrls);
-      setForm(prev => ({
-        ...prev,
-        videos: [...currentVideos, ...newUrls].join('\n')
-      }));
-      console.log('[DEBUG] handleVideoUpload - new form.videos:', [...currentVideos, ...newUrls].join('\n'));
+      // 只添加有效的 URL（以 http 开头的字符串）
+      const validUrls = newUrls.filter(url => typeof url === 'string' && url.startsWith('http'));
+      if (validUrls.length > 0) {
+        const currentVideos = form.videos.split('\n').filter(Boolean);
+        // 确保 currentVideos 中的所有项都是有效 URL
+        const cleanVideos = currentVideos.filter(v => typeof v === 'string' && v.startsWith('http'));
+        setForm(prev => ({
+          ...prev,
+          videos: [...cleanVideos, ...validUrls].join('\n')
+        }));
+      }
     }
     
     if (hasError) {
@@ -300,7 +303,6 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
     const selectedCategory = categories.find(c => c.id === form.categoryId);
     const urls = form.videos.split('\n').map(v => v.trim()).filter(Boolean);
     const videosData = urls.map(url => ({ url, thumbnail: '' }));
-    console.log('★★★ 保存视频数据:', JSON.stringify(videosData));
     onSave({
       ...form,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
