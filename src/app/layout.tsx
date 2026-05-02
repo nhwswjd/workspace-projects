@@ -28,7 +28,7 @@ export default function RootLayout({
 
   return (
     <html lang="zh-CN" className={`${inter.variable} ${notoSansSC.variable}`}>
-      <body className={`antialiased min-h-screen font-sans ${isHomePage ? '' : 'pt-0'}`}>
+      <body className="antialiased min-h-screen font-sans">
         <SearchProvider>
           {!isHomePage && <Header />}
           {children}
