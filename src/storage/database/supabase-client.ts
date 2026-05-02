@@ -28,8 +28,13 @@ function loadEnv(): void {
 function getSupabaseCredentials(): SupabaseCredentials | null {
   loadEnv();
 
-  const url = process.env.COZE_SUPABASE_URL;
-  const anonKey = process.env.COZE_SUPABASE_ANON_KEY;
+  // 尝试多个可能的环境变量名
+  const url = process.env.COZE_SUPABASE_URL 
+    || process.env.NEXT_PUBLIC_SUPABASE_URL 
+    || process.env.SUPABASE_URL;
+  const anonKey = process.env.COZE_SUPABASE_ANON_KEY 
+    || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
+    || process.env.SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
     console.error('Supabase credentials missing:', { url: !!url, anonKey: !!anonKey });
@@ -41,7 +46,8 @@ function getSupabaseCredentials(): SupabaseCredentials | null {
 
 function getSupabaseServiceRoleKey(): string | undefined {
   loadEnv();
-  return process.env.COZE_SUPABASE_SERVICE_ROLE_KEY;
+  return process.env.COZE_SUPABASE_SERVICE_ROLE_KEY 
+    || process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
 function getSupabaseClient(token?: string): SupabaseClient | null {
