@@ -647,8 +647,8 @@ export default function AdminPage() {
               <table className="w-full min-w-[900px]">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600 w-12 md:w-16">序号</th>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600 w-20 md:w-24">
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-left text-xs md:text-sm font-medium text-gray-600 w-12 md:w-16">序号</th>
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-left text-xs md:text-sm font-medium text-gray-600 w-20 md:w-24">
                       编号
                       <select
                         value={filterSku}
@@ -661,7 +661,7 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-left text-xs md:text-sm font-medium text-gray-600">
                       名称
                       <input
                         type="text"
@@ -671,7 +671,7 @@ export default function AdminPage() {
                         className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-16 md:w-24 md:ml-2 md:px-2 md:py-1"
                       />
                     </th>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-left text-xs md:text-sm font-medium text-gray-600">
                       分类
                       <select
                         value={filterCategory}
@@ -684,7 +684,7 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-left text-xs md:text-sm font-medium text-gray-600">
                       标签
                       <select
                         value={filterTag}
@@ -697,7 +697,7 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-left text-xs md:text-sm font-medium text-gray-600">
                       精选
                       <select
                         value={filterFeatured}
@@ -732,7 +732,7 @@ export default function AdminPage() {
                         <option value="featured-desc">精选Z-A</option>
                       </select>
                     </th>
-                    <th className="px-3 py-6 md:px-3 md:py-4 text-left text-sm font-medium text-gray-600">
+                    <th className="px-3 py-6 md:px-3 md:py-6 text-left text-sm font-medium text-gray-600">
                       排序
                       <select
                         value={`${sortBy}-${sortDirection}`}
@@ -755,7 +755,7 @@ export default function AdminPage() {
                         <option value="featured-desc">精选Z-A</option>
                       </select>
                     </th>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-left text-xs md:text-sm font-medium text-gray-600">
                       状态
                       <select
                         value={filterStatus}
@@ -767,7 +767,7 @@ export default function AdminPage() {
                         <option value="hidden">已隐藏</option>
                       </select>
                     </th>
-                    <th className="px-2 py-6 md:px-3 md:py-4 text-right text-xs md:text-sm font-medium text-gray-600 w-20 md:w-32">操作</th>
+                    <th className="px-2 py-6 md:px-3 md:py-6 text-right text-xs md:text-sm font-medium text-gray-600 w-20 md:w-32">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -779,10 +779,10 @@ export default function AdminPage() {
                     filteredProducts.map((product, index) => (
                       <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
                         {/* 序号 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm text-gray-600 text-center">{index + 1}</td>
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm text-gray-600 text-center">{index + 1}</td>
                         
                         {/* 编号 - 可编辑 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm">
                           {editingCells[`${product.id}-sku`] !== undefined ? (
                             <input
                               type="text"
@@ -804,7 +804,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 名称 - 可编辑 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm">
                           {editingCells[`${product.id}-name`] !== undefined ? (
                             <input
                               type="text"
@@ -826,7 +826,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 分类 - 可编辑 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm">
                           {editingCells[`${product.id}-category`] !== undefined ? (
                             <select
                               value={editingCells[`${product.id}-category`]}
@@ -852,7 +852,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 标签 - 可编辑 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm">
                           {editingCells[`${product.id}-tags`] !== undefined ? (
                             <input
                               type="text"
@@ -884,7 +884,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 精选 - 可编辑 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm">
                           {editingCells[`${product.id}-featured`] !== undefined ? (
                             <select
                               value={editingCells[`${product.id}-featured`]}
@@ -913,7 +913,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 排序 - 可编辑 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm">
                           {editingCells[`${product.id}-sortOrder`] !== undefined ? (
                             <input
                               type="number"
@@ -935,7 +935,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 状态 - 可切换 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-xs md:text-sm">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-xs md:text-sm">
                           <button
                             onClick={() => handleToggleHidden(product)}
                             className={`px-1 py-0.5 md:px-2 md:py-1 text-xs rounded cursor-pointer hover:opacity-80 ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
@@ -945,7 +945,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 操作 */}
-                        <td className="px-2 py-6 md:px-3 md:py-4 text-right">
+                        <td className="px-2 py-6 md:px-3 md:py-6 text-right">
                           <div className="flex justify-end gap-1 md:gap-2">
                             <button
                               onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
