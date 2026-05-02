@@ -4,7 +4,7 @@ type Product = any;
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, MoreVertical, Home, Upload, LogOut, RotateCcw } from "lucide-react";
+import { ArrowLeft, MoreVertical, Home, Upload, LogOut, ArrowUp } from "lucide-react";
 
 
 interface ProductClientProps {
@@ -90,63 +90,10 @@ export default function ProductClient({ product }: ProductClientProps) {
           className="fixed bottom-6 right-6 w-12 h-12 bg-stone-800 text-white rounded-lg shadow-lg hover:bg-stone-700 transition-all z-40 flex items-center justify-center text-xl font-bold"
           style={{ bottom: "1.5rem", right: "1.5rem" }}
         >
-          <RotateCcw className="w-6 h-6" />
+          <ArrowUp className="w-6 h-6" />
         </button>
       )}
 
-      {/* Header */}
-      <div className="w-full transition-all duration-500">
-        <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-stone-200">
-          <Link
-            href="/gallery"
-            className="flex items-center gap-1 text-stone-600 hover:text-stone-900 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm">返回</span>
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-stone-800">
-              {product.brandInfo?.name || "ATELIER"}
-            </span>
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 hover:bg-stone-100 rounded-lg transition-colors"
-            >
-              <MoreVertical className="w-5 h-5 text-stone-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* 菜单弹框 */}
-        {showMenu && (
-          <div className="absolute right-0 top-14 w-36 bg-white border border-stone-200 rounded-lg shadow-lg z-50 overflow-hidden">
-            <Link
-              href="/"
-              className="flex items-center gap-2 px-4 py-3 hover:bg-stone-100 transition-colors"
-              onClick={() => setShowMenu(false)}
-            >
-              <Home className="w-4 h-4" />
-              <span className="text-sm">首页</span>
-            </Link>
-            <Link
-              href="/admin"
-              className="flex items-center gap-2 px-4 py-3 hover:bg-stone-100 transition-colors"
-              onClick={() => setShowMenu(false)}
-            >
-              <Upload className="w-4 h-4" />
-              <span className="text-sm">管理产品</span>
-            </Link>
-            <button
-              onClick={() => setShowMenu(false)}
-              className="w-full flex items-center gap-2 px-4 py-3 hover:bg-stone-100 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="text-sm">退出登录</span>
-            </button>
-          </div>
-        )}
-      </div>
 
       {/* 产品信息 */}
       <div className="px-4 py-4">
