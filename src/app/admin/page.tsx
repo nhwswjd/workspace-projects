@@ -644,16 +644,16 @@ export default function AdminPage() {
           
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto -mx-2 px-2">
-              <table className="w-full min-w-[1400px]">
+              <table className="w-full min-w-[900px]">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-left text-sm md:text-base font-medium text-gray-600 w-16 md:w-20">序号</th>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-left text-sm md:text-base font-medium text-gray-600 w-24 md:w-32">
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600 w-12 md:w-16">序号</th>
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600 w-20 md:w-24">
                       编号
                       <select
                         value={filterSku}
                         onChange={(e) => setFilterSku(e.target.value)}
-                        className="ml-2 px-2 py-1 text-sm border border-gray-300 rounded w-20 md:w-auto"
+                        className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-14 md:w-auto md:ml-2"
                       >
                         <option value="">全部</option>
                         {Array.from(new Set(products.map(p => p.sku).filter(Boolean))).sort().map(sku => (
@@ -661,22 +661,22 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-left text-sm md:text-base font-medium text-gray-600">
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
                       名称
                       <input
                         type="text"
                         value={filterName}
                         onChange={(e) => setFilterName(e.target.value)}
                         placeholder="搜索..."
-                        className="ml-2 px-2 py-1 text-sm border border-gray-300 rounded w-24 md:w-32"
+                        className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-16 md:w-24 md:ml-2 md:px-2 md:py-1"
                       />
                     </th>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-left text-sm md:text-base font-medium text-gray-600">
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
                       分类
                       <select
                         value={filterCategory}
                         onChange={(e) => setFilterCategory(e.target.value)}
-                        className="ml-2 px-2 py-1 text-sm border border-gray-300 rounded w-20 md:w-auto"
+                        className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-14 md:w-auto md:ml-2 md:px-2 md:py-1"
                       >
                         <option value="">全部</option>
                         {categories.map(cat => (
@@ -684,12 +684,12 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-left text-sm md:text-base font-medium text-gray-600">
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
                       标签
                       <select
                         value={filterTag}
                         onChange={(e) => setFilterTag(e.target.value)}
-                        className="ml-2 px-2 py-1 text-sm border border-gray-300 rounded w-16 md:w-auto"
+                        className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-12 md:w-auto md:ml-2 md:px-2 md:py-1"
                       >
                         <option value="">全部</option>
                         {allTags.map(tag => (
@@ -697,12 +697,12 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </th>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-left text-sm md:text-base font-medium text-gray-600">
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
                       精选
                       <select
                         value={filterFeatured}
                         onChange={(e) => setFilterFeatured(e.target.value)}
-                        className="ml-2 px-2 py-1 text-sm border border-gray-300 rounded w-20 md:w-auto"
+                        className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-10 md:w-auto md:ml-2 md:px-2 md:py-1"
                       >
                         <option value="">全部</option>
                         <option value="精选产品">精选产品</option>
@@ -732,34 +732,57 @@ export default function AdminPage() {
                         <option value="featured-desc">精选Z-A</option>
                       </select>
                     </th>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-left text-sm md:text-base font-medium text-gray-600">
+                    <th className="px-3 py-3 md:px-3 md:py-4 text-left text-sm font-medium text-gray-600">
+                      排序
+                      <select
+                        value={`${sortBy}-${sortDirection}`}
+                        onChange={(e) => {
+                          const [by, dir] = e.target.value.split('-');
+                          setSortBy(by as typeof sortBy);
+                          setSortDirection(dir as typeof sortDirection);
+                        }}
+                        className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-10 md:w-auto md:ml-2 md:px-2 md:py-1"
+                      >
+                        <option value="sortOrder-asc">序号↑</option>
+                        <option value="sortOrder-desc">序号↓</option>
+                        <option value="sku-asc">编号A-Z</option>
+                        <option value="sku-desc">编号Z-A</option>
+                        <option value="name-asc">名称A-Z</option>
+                        <option value="name-desc">名称Z-A</option>
+                        <option value="category-asc">分类A-Z</option>
+                        <option value="category-desc">分类Z-A</option>
+                        <option value="featured-asc">精选A-Z</option>
+                        <option value="featured-desc">精选Z-A</option>
+                      </select>
+                    </th>
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-left text-xs md:text-sm font-medium text-gray-600">
                       状态
                       <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="ml-2 px-2 py-1 text-sm border border-gray-300 rounded w-16 md:w-auto"
+                        className="ml-1 px-1 py-0.5 text-xs border border-gray-300 rounded w-12 md:w-auto md:ml-2 md:px-2 md:py-1"
                       >
                         <option value="">全部</option>
                         <option value="visible">可见</option>
                         <option value="hidden">已隐藏</option>
                       </select>
                     </th>
-                    <th className="px-3 py-3 md:px-4 md:py-4 text-right text-sm md:text-base font-medium text-gray-600 w-24 md:w-36">操作</th>
+                    <th className="px-2 py-3 md:px-3 md:py-4 text-right text-xs md:text-sm font-medium text-gray-600 w-20 md:w-32">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-3 py-8 md:px-4 md:py-10 text-center text-gray-500 text-base">暂无产品</td>
+                      <td colSpan={9} className="px-2 py-8 md:px-3 md:py-10 text-center text-gray-500 text-sm">暂无产品</td>
                     </tr>
                   ) : (
                     filteredProducts.map((product, index) => (
                       <tr key={product.id} className={`hover:bg-gray-50 ${product.hidden ? 'bg-gray-100' : ''}`}>
                         {/* 序号 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base text-gray-600 text-center">{index + 1}</td>
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm text-gray-600 text-center">{index + 1}</td>
                         
                         {/* 编号 - 可编辑 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm">
                           {editingCells[`${product.id}-sku`] !== undefined ? (
                             <input
                               type="text"
@@ -768,12 +791,12 @@ export default function AdminPage() {
                               onBlur={() => saveCellEdit(product.id, 'sku')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'sku')}
                               autoFocus
-                              className="w-full px-2 py-1 text-sm md:text-base border border-blue-400 rounded"
+                              className="w-full px-1 py-0.5 text-xs md:text-sm border border-blue-400 rounded"
                             />
                           ) : (
                             <div
                               onClick={() => startCellEdit(product.id, 'sku', product.sku || '')}
-                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                              className="cursor-pointer hover:bg-blue-50 px-1 py-0.5 rounded"
                             >
                               {product.sku || '-'}
                             </div>
@@ -781,7 +804,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 名称 - 可编辑 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm">
                           {editingCells[`${product.id}-name`] !== undefined ? (
                             <input
                               type="text"
@@ -790,12 +813,12 @@ export default function AdminPage() {
                               onBlur={() => saveCellEdit(product.id, 'name')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'name')}
                               autoFocus
-                              className="w-full px-2 py-1 text-sm md:text-base border border-blue-400 rounded font-medium"
+                              className="w-full px-1 py-0.5 text-xs md:text-sm border border-blue-400 rounded font-medium"
                             />
                           ) : (
                             <div
                               onClick={() => startCellEdit(product.id, 'name', product.name || '')}
-                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded max-w-[150px] md:max-w-[200px] truncate font-medium"
+                              className="cursor-pointer hover:bg-blue-50 px-1 py-0.5 rounded max-w-[100px] md:max-w-[150px] truncate font-medium"
                             >
                               {product.name}
                             </div>
@@ -803,7 +826,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 分类 - 可编辑 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm">
                           {editingCells[`${product.id}-category`] !== undefined ? (
                             <select
                               value={editingCells[`${product.id}-category`]}
@@ -811,7 +834,7 @@ export default function AdminPage() {
                               onBlur={() => saveCellEdit(product.id, 'category')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'category')}
                               autoFocus
-                              className="px-2 py-1 text-sm md:text-base border border-blue-400 rounded"
+                              className="px-1 py-0.5 text-xs md:text-sm border border-blue-400 rounded"
                             >
                               <option value="">无分类</option>
                               {categories.map(cat => (
@@ -821,7 +844,7 @@ export default function AdminPage() {
                           ) : (
                             <div
                               onClick={() => startCellEdit(product.id, 'category', product.categoryId || '')}
-                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded max-w-[100px] md:max-w-[140px] truncate"
+                              className="cursor-pointer hover:bg-blue-50 px-1 py-0.5 rounded max-w-[60px] md:max-w-[100px] truncate"
                             >
                               {product.category || '-'}
                             </div>
@@ -829,7 +852,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 标签 - 可编辑 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm">
                           {editingCells[`${product.id}-tags`] !== undefined ? (
                             <input
                               type="text"
@@ -839,20 +862,20 @@ export default function AdminPage() {
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'tags')}
                               autoFocus
                               placeholder="标签1, 标签2, 标签3"
-                              className="w-full px-2 py-1 text-sm md:text-base border border-blue-400 rounded"
+                              className="w-full px-1 py-0.5 text-xs md:text-sm border border-blue-400 rounded"
                             />
                           ) : (
                             <div
                               onClick={() => startCellEdit(product.id, 'tags', (product.tags || []).join(', '))}
-                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                              className="cursor-pointer hover:bg-blue-50 px-1 py-0.5 rounded"
                             >
                               {product.tags && product.tags.length > 0 ? (
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-0.5 md:gap-1">
                                   {product.tags.slice(0, 2).map((tag, i) => (
-                                    <span key={i} className="px-2 py-0.5 text-sm rounded bg-gray-100 text-gray-600">{tag}</span>
+                                    <span key={i} className="px-1 py-0.5 text-xs rounded bg-gray-100 text-gray-600">{tag}</span>
                                   ))}
                                   {product.tags.length > 2 && (
-                                    <span className="px-2 py-0.5 text-sm rounded bg-gray-100 text-gray-500">+{product.tags.length - 2}</span>
+                                    <span className="px-1 py-0.5 text-xs rounded bg-gray-100 text-gray-500">+{product.tags.length - 2}</span>
                                   )}
                                 </div>
                               ) : '-'}
@@ -861,7 +884,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 精选 - 可编辑 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm">
                           {editingCells[`${product.id}-featured`] !== undefined ? (
                             <select
                               value={editingCells[`${product.id}-featured`]}
@@ -869,7 +892,7 @@ export default function AdminPage() {
                               onBlur={() => saveCellEdit(product.id, 'featured')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'featured')}
                               autoFocus
-                              className="px-2 py-1 text-sm md:text-base border border-blue-400 rounded"
+                              className="px-1 py-0.5 text-xs md:text-sm border border-blue-400 rounded"
                             >
                               <option value="">无</option>
                               <option value="精选产品">精选产品</option>
@@ -878,10 +901,10 @@ export default function AdminPage() {
                           ) : (
                             <div
                               onClick={() => startCellEdit(product.id, 'featured', product.featured || '')}
-                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded inline-block"
+                              className="cursor-pointer hover:bg-blue-50 px-1 py-0.5 rounded inline-block"
                             >
                               {product.featured ? (
-                                <span className="px-2 py-1 text-sm rounded bg-amber-100 text-amber-700">{product.featured}</span>
+                                <span className="px-1 py-0.5 text-xs rounded bg-amber-100 text-amber-700">{product.featured}</span>
                               ) : (
                                 <span className="text-gray-400">-</span>
                               )}
@@ -890,7 +913,7 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 排序 - 可编辑 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm">
                           {editingCells[`${product.id}-sortOrder`] !== undefined ? (
                             <input
                               type="number"
@@ -899,12 +922,12 @@ export default function AdminPage() {
                               onBlur={() => saveCellEdit(product.id, 'sortOrder')}
                               onKeyDown={(e) => e.key === 'Enter' && saveCellEdit(product.id, 'sortOrder')}
                               autoFocus
-                              className="w-16 md:w-20 px-2 py-1 text-sm md:text-base border border-blue-400 rounded text-center"
+                              className="w-12 md:w-16 px-1 py-0.5 text-xs md:text-sm border border-blue-400 rounded text-center"
                             />
                           ) : (
                             <div
                               onClick={() => startCellEdit(product.id, 'sortOrder', String(product.sortOrder ?? 0))}
-                              className="cursor-pointer hover:bg-blue-50 px-2 py-1 rounded text-center"
+                              className="cursor-pointer hover:bg-blue-50 px-1 py-0.5 rounded text-center"
                             >
                               {product.sortOrder ?? '-'}
                             </div>
@@ -912,28 +935,28 @@ export default function AdminPage() {
                         </td>
                         
                         {/* 状态 - 可切换 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-sm md:text-base">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-xs md:text-sm">
                           <button
                             onClick={() => handleToggleHidden(product)}
-                            className={`px-2 py-1 md:px-3 md:py-1 text-sm rounded cursor-pointer hover:opacity-80 ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
+                            className={`px-1 py-0.5 md:px-2 md:py-1 text-xs rounded cursor-pointer hover:opacity-80 ${product.hidden ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}
                           >
                             {product.hidden ? '隐藏' : '可见'}
                           </button>
                         </td>
                         
                         {/* 操作 */}
-                        <td className="px-3 py-3 md:px-4 md:py-4 text-right">
-                          <div className="flex justify-end gap-2 md:gap-3">
+                        <td className="px-2 py-3 md:px-3 md:py-4 text-right">
+                          <div className="flex justify-end gap-1 md:gap-2">
                             <button
                               onClick={() => { setEditingProduct(product); setIsModalOpen(true); }}
-                              className="px-3 py-1 md:px-4 md:py-1 text-blue-600 hover:bg-blue-50 rounded text-sm md:text-base font-medium"
+                              className="px-2 py-1 md:px-3 md:py-1 text-blue-600 hover:bg-blue-50 rounded text-xs md:text-sm font-medium"
                               title="编辑详情"
                             >
                               详情
                             </button>
                             <button
                               onClick={() => handleDeleteProduct(product.id)}
-                              className="px-3 py-1 md:px-4 md:py-1 text-red-600 hover:bg-red-50 rounded text-sm md:text-base font-medium"
+                              className="px-2 py-1 md:px-3 md:py-1 text-red-600 hover:bg-red-50 rounded text-xs md:text-sm font-medium"
                               title="删除产品"
                             >
                               删除
