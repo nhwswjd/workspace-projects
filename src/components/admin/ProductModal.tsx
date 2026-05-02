@@ -86,7 +86,11 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
       categoryId: product?.categoryId || '',
       coverImage: product?.coverImage || '',
       images: product?.images?.join('\n') || '',
-      videos: product?.videos?.map(v => typeof v === 'object' && v?.url ? v.url : '').filter(Boolean).join('\n') || '',
+      videos: product?.videos?.map(v => {
+        if (typeof v === 'string') return v;
+        if (v && typeof v === 'object' && typeof v.url === 'string' && v.url.startsWith('http')) return v.url;
+        return '';
+      }).filter(Boolean).join('\n') || '',
       featured: product?.featured || '',
       location: product?.location || '',
       hidden: product?.hidden || false,
