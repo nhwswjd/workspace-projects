@@ -82,7 +82,7 @@ function getSupabaseServiceRoleKey(): string | undefined {
 function getSupabaseClient(token?: string): SupabaseClient | null {
   const credentials = getSupabaseCredentials();
   if (!credentials) {
-    console.error('Failed to get Supabase credentials');
+    console.error('[Supabase] getSupabaseClient: credentials is null');
     return null;
   }
 
@@ -94,6 +94,7 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
   } else {
     const serviceRoleKey = getSupabaseServiceRoleKey();
     key = serviceRoleKey ?? anonKey;
+    console.log('[Supabase] Using service role key:', !!serviceRoleKey);
   }
 
   const globalOptions: Record<string, any> = {};
@@ -106,11 +107,12 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
       globalOptions.fetch = createWrappedFetch(buffer, 'supabase');
     }
   } catch {
-    // Silent — reporting setup failure should not block client creation
+    // Silent
   }
 
   try {
-    return createClient(url, key, {
+    console.log('[Supabase] Creating client with URL:', url.substring(0, 40) + '...');
+    const client = createClient(url, key, {
       global: globalOptions,
       db: {
         timeout: 60000,
@@ -120,8 +122,10 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
         persistSession: false,
       },
     });
+    console.log('[Supabase] Client created successfully');
+    return client;
   } catch (error) {
-    console.error('Failed to create Supabase client:', error);
+    console.error('[Supabase] Failed to create client:', error);
     return null;
   }
 }

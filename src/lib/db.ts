@@ -35,17 +35,22 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       .order('sort_order', { ascending: true, nullsFirst: false })
       .order('created_at', { ascending: false });
     
-    // 如果不是管理员请求，只返回未隐藏的产品
+    // 如果不是管理员请求，只返回未隐藏的产品（包含 NULL 值）
     if (!includeHidden) {
-      query = query.eq('hidden', false);
+      query = query.or('hidden.eq.false,hidden.is.null');
     }
     
     const { data, error } = await query;
     
+    console.log('[DB] Query result - data count:', data?.length || 0, 'error:', error);
+    
     // 如果查询出错或数据库为空，返回静态数据
     if (error || !data || data.length === 0) {
+      console.log('[DB] Returning static products due to:', error ? 'error' : 'empty data');
       return staticProducts as Product[];
     }
+    
+    console.log('[DB] Converting', data.length, 'products from database');
     
     // 转换为Product格式
     const dbProducts = data.map((p: Record<string, unknown>) => ({
