@@ -76,20 +76,13 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const [debugInfo, setDebugInfo] = useState<{envUrl?: string; defaultUrl?: string; envKey?: string; defaultKey?: string}>({});
   
   const getSupabaseClient = () => {
+    const url = supabaseUrl || DEFAULT_SUPABASE_URL;
+    const key = supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
+    
+    // 用 alert 显示调试信息
+    alert(`[ProductModal Debug]\nEnv URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL || '(not set)'}\nSupabaseUrl: ${supabaseUrl || '(empty)'}\nDEFAULT_URL: ${DEFAULT_SUPABASE_URL ? '(set)' : '(empty)'}\nFinal URL: ${url || '(empty)'}\n\nEnv KEY: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '(set)' : '(not set)'}\nSupabaseKey: ${supabaseAnonKey || '(empty)'}\nDEFAULT_KEY: ${DEFAULT_SUPABASE_ANON_KEY ? '(set)' : '(empty)'}\nFinal KEY: ${key || '(empty)'}`);
+    
     if (!supabaseRef.current) {
-      const url = supabaseUrl || DEFAULT_SUPABASE_URL;
-      const key = supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
-      console.log('[ProductModal] Creating Supabase client with URL:', url ? url.substring(0, 40) + '...' : 'EMPTY');
-      console.log('[ProductModal] Env URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-      console.log('[ProductModal] Default URL:', DEFAULT_SUPABASE_URL.substring(0, 40) + '...');
-      
-      // Debug: 更新状态
-      setDebugInfo({
-        envUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || '(not set)',
-        defaultUrl: DEFAULT_SUPABASE_URL.substring(0, 40) + '...',
-        envKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '(set)' : '(not set)',
-        defaultKey: DEFAULT_SUPABASE_ANON_KEY ? '(set)' : '(not set)',
-      });
       
       if (url && key) {
         supabaseRef.current = createClient(url, key);
