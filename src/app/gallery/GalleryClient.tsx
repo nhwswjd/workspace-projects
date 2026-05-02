@@ -88,7 +88,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
             placeholder="编号/名称/地址"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 py-2 text-sm bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-stone-400"
+            className="flex-1 py-2 text-sm bg-transparent border-none focus:ring-0 focus:outline-none focus:border-transparent shadow-none text-stone-900 placeholder:text-stone-400"
           />
           <button className="w-11 h-11 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-orange-500 transition-colors">
             <Search className="w-5 h-5 text-white" />
