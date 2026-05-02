@@ -97,23 +97,28 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
     console.log('[Supabase] Using service role key:', !!serviceRoleKey);
   }
 
-  const globalOptions: Record<string, any> = {};
+  const globalOptions: Record<string, unknown> = {};
   if (token) {
     globalOptions.headers = { Authorization: `Bearer ${token}` };
   }
+  
+  // 安全地尝试使用 coze-coding-dev-sdk
   try {
     const buffer = getReportBuffer();
     if (buffer) {
-      globalOptions.fetch = createWrappedFetch(buffer, 'supabase');
+      const wrappedFetch = createWrappedFetch(buffer, 'supabase');
+      if (wrappedFetch) {
+        globalOptions.fetch = wrappedFetch;
+      }
     }
-  } catch {
-    // Silent
+  } catch (err) {
+    console.log('[Supabase] SDK wrapper not available, using default fetch');
   }
 
   try {
     console.log('[Supabase] Creating client with URL:', url.substring(0, 40) + '...');
     const client = createClient(url, key, {
-      global: globalOptions,
+      global: globalOptions as Record<string, string>,
       db: {
         timeout: 60000,
       },
