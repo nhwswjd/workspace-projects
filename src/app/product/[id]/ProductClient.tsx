@@ -1,19 +1,6 @@
 "use client";
 
-interface Product {
-  code: string;
-  name: string;
-  images: string[];
-  videos: unknown[];
-  coverImage: string;
-  description?: string;
-  categoryId?: string;
-  tags?: string[];
-  price?: number;
-  hidden?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
+type Product = any;
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -91,7 +78,7 @@ export default function ProductClient({ product }: ProductClientProps) {
   ].filter(Boolean);
 
   // 根据当前视频索引获取视频数据
-  const videoData = (product.videos as unknown)?.[currentVideoIndex];
+  const videoData = (product.videos as unknown[])?.[currentVideoIndex] as Record<string, unknown> | undefined;
   const videoUrl = getVideoUrl(videoData);
 
   return (
@@ -168,66 +155,42 @@ export default function ProductClient({ product }: ProductClientProps) {
           <h1 className="text-xl font-bold text-stone-900">{product.name}</h1>
         </div>
 
-        {/* 图片网格 */}
+        {/* 图片区域 - 竖向排列 */}
         {allImages.length > 0 && (
-          <div className="grid grid-cols-3 gap-1 mb-4">
+          <div className="mb-4">
             {allImages.map((img, index) => (
               <div
                 key={`img-${index}`}
-                className="relative aspect-square bg-stone-100 overflow-hidden"
+                className="relative bg-stone-100"
               >
                 <img
                   src={img}
                   alt={`${product.name} - 图片 ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full object-cover"
                 />
               </div>
             ))}
           </div>
         )}
 
-        {/* 视频区域 */}
+        {/* 视频区域 - 竖向排列 */}
         {product.videos && product.videos.length > 0 && (
-          <div className="space-y-4">
-            {/* 视频切换器 */}
-            {product.videos.length > 1 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                {product.videos.map((_: string, index: number) => (
-                  <button
-                    key={`video-btn-${index}`}
-                    onClick={() => setCurrentVideoIndex(index)}
-                    className={`px-3 py-1 text-sm rounded ${
-                      index === currentVideoIndex
-                        ? "bg-stone-800 text-white"
-                        : "bg-stone-100 text-stone-600"
-                    }`}
-                  >
-                    视频 {index + 1}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* 视频播放器 */}
-            {videoUrl && (
-              <div className="relative bg-black">
-                <video
-                  key={`video-${currentVideoIndex}`}
-                  src={videoUrl}
-                  controls
-                  playsInline
-                  className={`w-full mx-auto ${
-                    isVideoVertical ? "max-w-[430px]" : "max-w-[800px]"
-                  }`}
-                  onLoadedMetadata={(e) => {
-                    const video = e.currentTarget;
-                    setIsVideoVertical(video.videoHeight > video.videoWidth);
-                  }}
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                />
-              </div>
-            )}
+          <div>
+            {product.videos.map((_: unknown, index: number) => {
+              const vd = (product.videos as unknown[])?.[index];
+              const vUrl = getVideoUrl(vd);
+              if (!vUrl) return null;
+              return (
+                <div key={`video-${index}`} className="relative bg-black mb-4">
+                  <video
+                    src={vUrl}
+                    controls
+                    playsInline
+                    className="w-full max-w-[430px] mx-auto"
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
 
