@@ -257,10 +257,13 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
     
     if (newUrls.length > 0) {
       const currentVideos = form.videos.split('\n').filter(Boolean);
+      console.log('[DEBUG] handleVideoUpload - currentVideos:', currentVideos);
+      console.log('[DEBUG] handleVideoUpload - newUrls:', newUrls);
       setForm(prev => ({
         ...prev,
         videos: [...currentVideos, ...newUrls].join('\n')
       }));
+      console.log('[DEBUG] handleVideoUpload - new form.videos:', [...currentVideos, ...newUrls].join('\n'));
     }
     
     if (hasError) {
@@ -295,11 +298,14 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selectedCategory = categories.find(c => c.id === form.categoryId);
+    const videosData = form.videos.split('\n').map(v => v.trim()).filter(Boolean).map(url => ({ url, thumbnail: '' }));
+    console.log('[DEBUG] form.videos:', form.videos);
+    console.log('[DEBUG] videosData:', videosData);
     onSave({
       ...form,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       images: form.images.split('\n').map(i => i.trim()).filter(Boolean),
-      videos: form.videos.split('\n').map(v => v.trim()).filter(Boolean).map(url => ({ url, thumbnail: '' })),
+      videos: videosData,
       category: selectedCategory?.name || form.category,
       featured: form.featured || null,
     });
