@@ -298,8 +298,9 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selectedCategory = categories.find(c => c.id === form.categoryId);
-    const videosData = form.videos.split('\n').map(v => v.trim()).filter(Boolean).map(url => ({ url, thumbnail: '' }));
-    console.log('[DEBUG] 保存时 videosData:', JSON.stringify(videosData));
+    const urls = form.videos.split('\n').map(v => v.trim()).filter(Boolean);
+    const videosData = urls.map(url => ({ url, thumbnail: '' }));
+    console.log('★★★ 保存视频数据:', JSON.stringify(videosData));
     onSave({
       ...form,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
