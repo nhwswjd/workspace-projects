@@ -346,11 +346,6 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* 调试信息 - 始终显示 */}
-        <div className="bg-yellow-100 border-b border-yellow-300 p-2 text-xs">
-          <strong>Supabase 调试:</strong> {debugInfo}
-          {!supabaseClient && <span className="text-red-600 ml-2">⚠️ 客户端未初始化</span>}
-        </div>
         <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
           <h2 className="text-lg font-semibold">{product?.id ? '编辑产品' : '添加产品'}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
