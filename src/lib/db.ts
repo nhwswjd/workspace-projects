@@ -56,7 +56,13 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       categoryId: p.category_id as string,
       coverImage: p.cover_image as string,
       images: (p.images as string[]) || [],
-      videos: ((p.videos as string[]) || []).map((url: string) => ({ url, thumbnail: '' })),
+      videos: (Array.isArray(p.videos) 
+        ? p.videos.map((v: unknown) => {
+            if (typeof v === 'string') return { url: v, thumbnail: '' };
+            if (typeof v === 'object' && v !== null && 'url' in v) return v as { url: string; thumbnail: string };
+            return null;
+          }).filter(Boolean)
+        : []),
       featured: (p.featured as '精选产品' | '精选产品' | null) || null,
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
@@ -139,7 +145,13 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
       categoryId: p.category_id as string,
       coverImage: p.cover_image as string,
       images: (p.images as string[]) || [],
-      videos: ((p.videos as string[]) || []).map((url: string) => ({ url, thumbnail: '' })),
+      videos: (Array.isArray(p.videos) 
+        ? p.videos.map((v: unknown) => {
+            if (typeof v === 'string') return { url: v, thumbnail: '' };
+            if (typeof v === 'object' && v !== null && 'url' in v) return v as { url: string; thumbnail: string };
+            return null;
+          }).filter(Boolean)
+        : []),
       featured: (p.featured as '精选产品' | '精选产品' | null) || null,
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
@@ -190,7 +202,13 @@ export async function getProductById(id: string): Promise<Product | null> {
       categoryId: data.category_id as string,
       coverImage: data.cover_image as string,
       images: (data.images as string[]) || [],
-      videos: ((data.videos as string[]) || []).map((url: string) => ({ url, thumbnail: '' })),
+      videos: (Array.isArray(data.videos) 
+        ? (data.videos as unknown[]).map((v: unknown) => {
+            if (typeof v === 'string') return { url: v, thumbnail: '' };
+            if (typeof v === 'object' && v !== null && 'url' in v) return v as { url: string; thumbnail: string };
+            return null;
+          }).filter(Boolean)
+        : []),
       featured: (data.featured as '精选产品' | '优选产品' | null) || null,
       location: (data.location as string) || '',
       hidden: (data.hidden as boolean) || false,
