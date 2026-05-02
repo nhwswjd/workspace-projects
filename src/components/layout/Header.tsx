@@ -120,7 +120,7 @@ export function Header() {
                 className="md:hidden p-2"
                 aria-label="打开菜单"
               >
-                <Menu className="w-7 h-7 stroke-[3]" />
+                <Menu className="w-7 h-7 stroke-[3] text-stone-800" />
               </button>
             </div>
           </div>
