@@ -234,7 +234,7 @@ export default function ProductClient({ product, categories }: ProductClientProp
               <div key={index} className="w-full py-2 flex justify-center">
                 {/* 隐藏的canvas用于截取视频帧 */}
                 <canvas ref={(el) => {
-                  if (el) canvasRefs.current[index] = el;
+                  if (el) canvasRef.current[index] = el;
                 }} className="hidden" />
                 
                 {videoUrlSingle ? (
@@ -248,7 +248,7 @@ export default function ProductClient({ product, categories }: ProductClientProp
                   >
                     <video
                       ref={(el) => {
-                        if (el) videoRefs.current[index] = el;
+                        if (el) videoRef.current[index] = el;
                       }}
                       src={videoUrlSingle}
                       preload="metadata"
