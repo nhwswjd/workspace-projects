@@ -11,15 +11,25 @@ interface SupabaseCredentials {
 function loadEnv(): void {
   if (envLoaded) return;
   
-  // 直接从 process.env 读取（Coze 平台会自动注入）
-  // 如果没有值，尝试从 dotenv 读取
-  if (!process.env.COZE_SUPABASE_URL || !process.env.COZE_SUPABASE_ANON_KEY) {
+  try {
+    const path = require('path');
+    const cwd = process.cwd();
+    
+    // 优先加载 .env 文件（服务端配置）
     try {
-      const path = require('path');
-      require('dotenv').config({ path: path.resolve(process.cwd(), '.env.local') });
+      require('dotenv').config({ path: path.resolve(cwd, '.env') });
     } catch {
-      // dotenv not available, ignore
+      // ignore
     }
+    
+    // 其次尝试 .env.local
+    try {
+      require('dotenv').config({ path: path.resolve(cwd, '.env.local') });
+    } catch {
+      // ignore
+    }
+  } catch {
+    // dotenv not available, ignore
   }
   
   envLoaded = true;
@@ -38,14 +48,18 @@ function getSupabaseCredentials(): SupabaseCredentials | null {
 
   if (!url || !anonKey) {
     console.error('[Supabase] Credentials missing!');
-    console.error('[Supabase] COZE_SUPABASE_URL:', !!process.env.COZE_SUPABASE_URL);
-    console.error('[Supabase] NEXT_PUBLIC_SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.error('[Supabase] COZE_SUPABASE_ANON_KEY:', !!process.env.COZE_SUPABASE_ANON_KEY);
-    console.error('[Supabase] NEXT_PUBLIC_SUPABASE_ANON_KEY:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    console.error('[Supabase] Available vars:', {
+      'COZE_SUPABASE_URL': !!process.env.COZE_SUPABASE_URL,
+      'NEXT_PUBLIC_SUPABASE_URL': !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      'SUPABASE_URL': !!process.env.SUPABASE_URL,
+      'COZE_SUPABASE_ANON_KEY': !!process.env.COZE_SUPABASE_ANON_KEY,
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY': !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      'SUPABASE_ANON_KEY': !!process.env.SUPABASE_ANON_KEY,
+    });
     return null;
   }
 
-  console.log('[Supabase] Credentials loaded successfully');
+  console.log('[Supabase] URL loaded:', url.substring(0, 50) + '...');
   return { url, anonKey };
 }
 
