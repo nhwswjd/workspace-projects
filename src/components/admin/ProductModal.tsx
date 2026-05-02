@@ -113,6 +113,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   }, [product]);
 
   const uploadFile = async (file: File, type: 'images' | 'videos'): Promise<UploadResult> => {
+    console.log('[ProductModal] uploadFile called, type:', type);
     const bucketId = type === 'videos' ? 'product-videos' : 'product-images';
     const maxSize = type === 'videos' ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
     const allowedTypes = type === 'videos' 
