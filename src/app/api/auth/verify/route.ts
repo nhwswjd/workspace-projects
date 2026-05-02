@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
-import { adminPassword } from '@/lib/products';
+import { adminPassword, validPasswords } from '@/lib/products';
 import { createClient } from '@supabase/supabase-js';
 
+// 硬编码默认值
+const DEFAULT_SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
+
 function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+  return createClient(url, key);
 }
 
 export async function POST(request: Request) {
@@ -21,10 +24,18 @@ export async function POST(request: Request) {
     }
 
     if (password === adminPassword) {
-      // 管理员密码 - 全权限 + 管理员标识
       return NextResponse.json({ 
         success: true,
         isAdmin: true,
+        categoryPermission: null
+      });
+    }
+
+    // 首先检查代码中定义的后备密码
+    if (validPasswords.includes(password)) {
+      return NextResponse.json({ 
+        success: true,
+        isAdmin: false,
         categoryPermission: null
       });
     }
