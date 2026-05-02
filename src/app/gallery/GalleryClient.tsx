@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUp, ImageIcon } from 'lucide-react';
+import { ArrowUp, ImageIcon, Search, Menu, ArrowLeft } from 'lucide-react';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -67,7 +67,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   }, [searchQuery, selectedCategory, initialProducts]);
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-orange-100">
       {/* Top按钮 - 回到顶部 */}
       {showTopButton && (
         <button
@@ -77,8 +77,63 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <ArrowUp className="w-5 h-5" />
         </button>
       )}
-      {/* 搜索框 - 矩形无倒角，上下高度增大 */}
-      <div className="bg-stone-50">
+
+      {/* 移动端顶部三栏 - 参考图片样式 */}
+      <div className="md:hidden px-4 pt-4 pb-2 space-y-2">
+        {/* 抬头栏 - 圆角胶囊，白色背景 */}
+        <div className="bg-white rounded-full px-4 py-3 flex items-center justify-between">
+          <ArrowLeft className="w-5 h-5 text-stone-800" />
+          <span className="text-lg font-semibold text-stone-800 tracking-wide">ATELIER</span>
+          <Menu className="w-5 h-5 text-stone-800" />
+        </div>
+
+        {/* 搜索栏 - 圆角胶囊，白色背景，减少间距 */}
+        <div className="bg-white rounded-full px-3 py-2 flex items-center gap-2">
+          <Search className="w-5 h-5 text-stone-400 ml-2 flex-shrink-0" />
+          <input
+            type="text"
+            placeholder="编号/名称/地址"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 py-2 text-sm bg-transparent border-none focus:outline-none placeholder:text-stone-400"
+          />
+          <button className="w-9 h-9 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-orange-500 transition-colors">
+            <Search className="w-4 h-4 text-white" />
+          </button>
+        </div>
+
+        {/* 分类栏 - 药丸形标签，多行排列 */}
+        <div className="bg-white/80 rounded-2xl p-3">
+          <div className="flex flex-wrap gap-1.5 justify-center">
+            <button
+              onClick={handleShowAll}
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                selectedCategory === null
+                  ? 'bg-stone-700 text-white'
+                  : 'bg-stone-100 text-stone-600'
+              }`}
+            >
+              全部
+            </button>
+            {initialCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleSelectCategory(cat.id)}
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                  selectedCategory === cat.id
+                    ? 'bg-stone-700 text-white'
+                    : 'bg-stone-100 text-stone-600'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 桌面端搜索框和分类导航 - 保持原有样式 */}
+      <div className="hidden md:block bg-stone-50">
         <div className="w-2/5 mx-auto px-2 py-6">
           <div className="flex items-center gap-1">
             <input
@@ -95,8 +150,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </div>
       </div>
 
-      {/* 分类导航 - 矩形无倒角，上下高度增大 */}
-      <div className="bg-white border-b border-stone-200">
+      {/* 桌面端分类导航 */}
+      <div className="hidden md:block bg-white border-b border-stone-200">
         <div className="w-full px-4 py-8">
           <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
             <button
