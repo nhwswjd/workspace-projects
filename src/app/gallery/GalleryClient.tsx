@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, ImageIcon } from 'lucide-react';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -153,14 +153,20 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 <div className="relative bg-stone-200 overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300"
                   style={{ aspectRatio: '3/4' }}
                 >
-                  <Image
-                    src={product.coverImage || null}
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    loading="lazy"
-                  />
+                  {product.coverImage ? (
+                    <Image
+                      src={product.coverImage}
+                      alt={product.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-stone-200 flex items-center justify-center">
+                      <ImageIcon className="text-stone-400" size={32} />
+                    </div>
+                  )}
                   {/* 精选标签 - 右上角紧贴，无圆角 */}
                   {product.featured && (
                     <span className="absolute top-0 right-0 bg-amber-500/95 text-white text-xs font-medium px-2.5 py-1.5">
