@@ -102,7 +102,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               onClick={handleShowAll}
               className={`px-5 py-3 text-base font-medium rounded-full transition-all ${
                 selectedCategory === null
-                  ? 'bg-stone-700 text-white'
+                  ? 'bg-orange-500 text-white'
                   : 'bg-stone-100 text-stone-600'
               }`}
             >
@@ -114,7 +114,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 onClick={() => handleSelectCategory(cat.id)}
                 className={`px-5 py-3 text-base font-medium rounded-full transition-all ${
                   selectedCategory === cat.id
-                    ? 'bg-stone-700 text-white'
+                    ? 'bg-orange-500 text-white'
                     : 'bg-stone-100 text-stone-600'
                 }`}
               >
