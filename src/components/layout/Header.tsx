@@ -98,7 +98,7 @@ export function Header() {
             </div>
 
             {/* Center: Brand */}
-            <span className="font-display text-lg md:text-xl tracking-widest">
+            <span className="font-display text-lg md:text-xl tracking-widest font-bold">
               {brandName}
             </span>
 
