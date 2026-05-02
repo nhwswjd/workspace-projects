@@ -136,6 +136,11 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
     
     try {
+      // 调试 alert
+      const debugUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL || 'DEFAULT_UNDEFINED';
+      const debugKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY || 'KEY_UNDEFINED';
+      alert(`[uploadFile Debug]\nEnv URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT_SET'}\nDefault URL: ${DEFAULT_SUPABASE_URL ? 'SET' : 'NOT_SET'}\nUrl Length: ${debugUrl.length}\n\nEnv Key: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET'}\nDefault Key: ${DEFAULT_SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET'}`);
+      
       const client = getSupabaseClient();
       if (!client) {
         return { success: false, message: 'Supabase客户端未初始化' };
