@@ -190,7 +190,18 @@ export async function getProductById(id: string): Promise<Product | null> {
       categoryId: data.category_id as string,
       coverImage: data.cover_image as string,
       images: (data.images as string[]) || [],
-      videos: ((data.videos as string[]) || []).map((url: string) => ({ url, thumbnail: '' })),
+      videos: (() => {
+        const rawVideos = data.videos as unknown[];
+        if (!rawVideos || !Array.isArray(rawVideos)) return [];
+        return rawVideos.map((v): { url: string; thumbnail: string } => {
+          if (typeof v === 'string') return { url: v, thumbnail: '' };
+          if (typeof v === 'object' && v !== null) {
+            const obj = v as Record<string, unknown>;
+            if (typeof obj.url === 'string') return { url: obj.url, thumbnail: (obj.thumbnail as string) || '' };
+          }
+          return { url: '', thumbnail: '' };
+        }).filter(v => v.url);
+      })(),
       featured: (data.featured as '精选产品' | '优选产品' | null) || null,
       location: (data.location as string) || '',
       hidden: (data.hidden as boolean) || false,
