@@ -55,6 +55,10 @@ interface UploadResult {
   message?: string;
 }
 
+// 硬编码默认值
+const DEFAULT_SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
+
 export default function ProductModal({ product, categories, isOpen, onClose, onSave }: ProductModalProps) {
   const [form, setForm] = useState<FormData>(initialFormData);
   const [uploadingImages, setUploadingImages] = useState<Record<string, 'uploading' | 'success' | 'error'>>({});
@@ -64,13 +68,13 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const videoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
   const supabaseRef = useRef<SupabaseClient | null>(null);
   
   const getSupabaseClient = () => {
-    if (!supabaseRef.current && supabaseUrl && supabaseAnonKey) {
-      supabaseRef.current = createClient(supabaseUrl, supabaseAnonKey);
+    if (!supabaseRef.current && (supabaseUrl || DEFAULT_SUPABASE_URL) && (supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY)) {
+      supabaseRef.current = createClient(supabaseUrl || DEFAULT_SUPABASE_URL, supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY);
     }
     return supabaseRef.current;
   };
