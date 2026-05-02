@@ -73,8 +73,18 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const supabaseRef = useRef<SupabaseClient | null>(null);
   
   const getSupabaseClient = () => {
-    if (!supabaseRef.current && (supabaseUrl || DEFAULT_SUPABASE_URL) && (supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY)) {
-      supabaseRef.current = createClient(supabaseUrl || DEFAULT_SUPABASE_URL, supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY);
+    if (!supabaseRef.current) {
+      const url = supabaseUrl || DEFAULT_SUPABASE_URL;
+      const key = supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
+      console.log('[ProductModal] Creating Supabase client with URL:', url ? url.substring(0, 40) + '...' : 'EMPTY');
+      console.log('[ProductModal] Env URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      console.log('[ProductModal] Default URL:', DEFAULT_SUPABASE_URL.substring(0, 40) + '...');
+      if (url && key) {
+        supabaseRef.current = createClient(url, key);
+        console.log('[ProductModal] Supabase client created successfully');
+      } else {
+        console.error('[ProductModal] Failed to create Supabase client: url or key is empty');
+      }
     }
     return supabaseRef.current;
   };

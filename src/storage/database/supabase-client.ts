@@ -52,16 +52,13 @@ function getSupabaseCredentials(): SupabaseCredentials | null {
     || process.env.SUPABASE_ANON_KEY
     || DEFAULT_SUPABASE_ANON_KEY;  // 硬编码默认值
 
+  console.log('[Supabase] getSupabaseCredentials:');
+  console.log('[Supabase]   - COZE_SUPABASE_URL:', !!process.env.COZE_SUPABASE_URL);
+  console.log('[Supabase]   - NEXT_PUBLIC_SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('[Supabase]   - Using DEFAULT_SUPABASE_URL:', !process.env.COZE_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.SUPABASE_URL);
+
   if (!url || !anonKey) {
-    console.error('[Supabase] Credentials missing!');
-    console.error('[Supabase] Available vars:', {
-      'COZE_SUPABASE_URL': !!process.env.COZE_SUPABASE_URL,
-      'NEXT_PUBLIC_SUPABASE_URL': !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      'SUPABASE_URL': !!process.env.SUPABASE_URL,
-      'COZE_SUPABASE_ANON_KEY': !!process.env.COZE_SUPABASE_ANON_KEY,
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY': !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      'SUPABASE_ANON_KEY': !!process.env.SUPABASE_ANON_KEY,
-    });
+    console.error('[Supabase] Credentials missing! url:', !!url, 'anonKey:', !!anonKey);
     return null;
   }
 
@@ -83,6 +80,7 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
   const credentials = getSupabaseCredentials();
   if (!credentials) {
     console.error('[Supabase] getSupabaseClient: credentials is null');
+    console.error('[Supabase] Stack:', new Error().stack);
     return null;
   }
 
@@ -131,6 +129,7 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
     return client;
   } catch (error) {
     console.error('[Supabase] Failed to create client:', error);
+    console.error('[Supabase] Error stack:', (error as Error).stack);
     return null;
   }
 }
