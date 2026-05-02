@@ -1,10 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { Upload, X, ImageIcon, Video, Loader2, Check, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Product, Category } from '@/types/admin'; 
+
+// 硬编码默认值 - 确保即使环境变量未设置也能工作
+const DEFAULT_SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
+
+// 在模块加载时就获取环境变量（而不是在组件内）
+const ENV_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const ENV_SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 interface ProductModalProps {
   product: Product | null;
@@ -55,10 +63,6 @@ interface UploadResult {
   message?: string;
 }
 
-// 硬编码默认值
-const DEFAULT_SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
-
 export default function ProductModal({ product, categories, isOpen, onClose, onSave }: ProductModalProps) {
   const [form, setForm] = useState<FormData>(initialFormData);
   const [uploadingImages, setUploadingImages] = useState<Record<string, 'uploading' | 'success' | 'error'>>({});
@@ -68,31 +72,30 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const videoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
-  const supabaseRef = useRef<SupabaseClient | null>(null);
+  // 调试信息状态
+  const [debugInfo, setDebugInfo] = useState<string>('');
   
-  // Debug: 显示环境变量状态
-  const [debugInfo, setDebugInfo] = useState<{envUrl?: string; defaultUrl?: string; envKey?: string; defaultKey?: string}>({});
-  
-  const getSupabaseClient = () => {
-    const url = supabaseUrl || DEFAULT_SUPABASE_URL;
-    const key = supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
+  // 直接创建 Supabase 客户端，不延迟
+  const supabaseClient = useMemo(() => {
+    const url = ENV_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+    const key = ENV_SUPABASE_KEY || DEFAULT_SUPABASE_ANON_KEY;
     
-    // 用 alert 显示调试信息
-    alert(`[ProductModal Debug]\nEnv URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL || '(not set)'}\nSupabaseUrl: ${supabaseUrl || '(empty)'}\nDEFAULT_URL: ${DEFAULT_SUPABASE_URL ? '(set)' : '(empty)'}\nFinal URL: ${url || '(empty)'}\n\nEnv KEY: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '(set)' : '(not set)'}\nSupabaseKey: ${supabaseAnonKey || '(empty)'}\nDEFAULT_KEY: ${DEFAULT_SUPABASE_ANON_KEY ? '(set)' : '(empty)'}\nFinal KEY: ${key || '(empty)'}`);
+    // 更新调试信息
+    const info = `URL: ${url ? 'SET (' + url.substring(0, 30) + '...)' : 'EMPTY'}, KEY: ${key ? 'SET' : 'EMPTY'}`;
+    setDebugInfo(info);
     
-    if (!supabaseRef.current) {
-      
-      if (url && key) {
-        supabaseRef.current = createClient(url, key);
-        console.log('[ProductModal] Supabase client created successfully');
-      } else {
-        console.error('[ProductModal] Failed to create Supabase client: url or key is empty');
-      }
+    if (url && key) {
+      console.log('[ProductModal] Creating Supabase client with URL:', url.substring(0, 30) + '...');
+      return createClient(url, key);
     }
-    return supabaseRef.current;
-  };
+    
+    console.error('[ProductModal] Cannot create Supabase client: URL or KEY is empty');
+    console.error('[ProductModal] ENV_URL:', ENV_SUPABASE_URL ? 'SET' : 'EMPTY');
+    console.error('[ProductModal] ENV_KEY:', ENV_SUPABASE_KEY ? 'SET' : 'EMPTY');
+    console.error('[ProductModal] DEFAULT_URL:', DEFAULT_SUPABASE_URL ? 'SET' : 'EMPTY');
+    console.error('[ProductModal] DEFAULT_KEY:', DEFAULT_SUPABASE_ANON_KEY ? 'SET' : 'EMPTY');
+    return null;
+  }, []);
 
   useEffect(() => {
     setForm({
@@ -118,7 +121,12 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   }, [product]);
 
   const uploadFile = async (file: File, type: 'images' | 'videos'): Promise<UploadResult> => {
-    console.log('[ProductModal] uploadFile called, type:', type);
+    console.log('[ProductModal] uploadFile called, supabaseClient:', supabaseClient ? 'EXISTS' : 'NULL');
+    
+    if (!supabaseClient) {
+      return { success: false, message: 'Supabase客户端未初始化，请刷新页面重试' };
+    }
+    
     const bucketId = type === 'videos' ? 'product-videos' : 'product-images';
     const maxSize = type === 'videos' ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
     const allowedTypes = type === 'videos' 
@@ -136,17 +144,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
     
     try {
-      // 调试 alert
-      const debugUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL || 'DEFAULT_UNDEFINED';
-      const debugKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY || 'KEY_UNDEFINED';
-      alert(`[uploadFile Debug]\nEnv URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT_SET'}\nDefault URL: ${DEFAULT_SUPABASE_URL ? 'SET' : 'NOT_SET'}\nUrl Length: ${debugUrl.length}\n\nEnv Key: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET'}\nDefault Key: ${DEFAULT_SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET'}`);
-      
-      const client = getSupabaseClient();
-      if (!client) {
-        return { success: false, message: 'Supabase客户端未初始化' };
-      }
-      
-      const { data, error } = await client.storage
+      const { data, error } = await supabaseClient.storage
         .from(bucketId)
         .upload(fileName, file, { contentType: file.type, upsert: true });
       
@@ -154,7 +152,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
         return { success: false, message: `上传失败: ${error.message}` };
       }
       
-      const { data: urlData } = client.storage.from(bucketId).getPublicUrl(fileName);
+      const { data: urlData } = supabaseClient.storage.from(bucketId).getPublicUrl(fileName);
       const publicUrl = typeof urlData === 'string' ? urlData : (urlData as { publicUrl?: string })?.publicUrl || '';
       return { success: true, url: publicUrl, path: fileName };
     } catch (error: unknown) {
@@ -287,11 +285,9 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
     }
     
     if (newUrls.length > 0) {
-      // 只添加有效的 URL（以 http 开头的字符串）
       const validUrls = newUrls.filter(url => typeof url === 'string' && url.startsWith('http'));
       if (validUrls.length > 0) {
         const currentVideos = form.videos.split('\n').filter(Boolean);
-        // 确保 currentVideos 中的所有项都是有效 URL
         const cleanVideos = currentVideos.filter(v => typeof v === 'string' && v.startsWith('http'));
         setForm(prev => ({
           ...prev,
@@ -332,7 +328,6 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selectedCategory = categories.find(c => c.id === form.categoryId);
-    // 只保留以 http 开头的有效 URL
     const urls = form.videos.split('\n').map(v => v.trim()).filter(v => v && v.startsWith('http'));
     const videosData = urls.map(url => ({ url, thumbnail: '' }));
     onSave({
@@ -354,11 +349,10 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* 调试信息 */}
-        <div className="bg-yellow-50 border-b border-yellow-200 p-2 text-xs">
-          <strong>Supabase 状态:</strong> 
-          环境URL: {debugInfo.envUrl} | 默认URL: {debugInfo.defaultUrl} | 
-          环境KEY: {debugInfo.envKey} | 默认KEY: {debugInfo.defaultKey}
+        {/* 调试信息 - 始终显示 */}
+        <div className="bg-yellow-100 border-b border-yellow-300 p-2 text-xs">
+          <strong>Supabase 调试:</strong> {debugInfo}
+          {!supabaseClient && <span className="text-red-600 ml-2">⚠️ 客户端未初始化</span>}
         </div>
         <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
           <h2 className="text-lg font-semibold">{product?.id ? '编辑产品' : '添加产品'}</h2>
@@ -484,7 +478,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
               )}
               <button
                 type="button"
-                onClick={() => coverInputRef.current?.click()}
+                onClick={() => { console.log('[ProductModal] 封面按钮被点击'); coverInputRef.current?.click(); }}
                 className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
                 disabled={uploadingImages.cover === 'uploading'}
               >
@@ -626,12 +620,14 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
             >
               {isUploading ? (
                 <><Loader2 size={16} className="animate-spin" /> 上传中...</>
-              ) : '保存'}
+              ) : (
+                <>{product?.id ? '保存修改' : '添加产品'}</>
+              )}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-gray-200 rounded-lg hover:bg-gray-300"
+              className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
               取消
             </button>
