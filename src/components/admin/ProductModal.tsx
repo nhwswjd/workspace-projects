@@ -72,6 +72,9 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
   const supabaseRef = useRef<SupabaseClient | null>(null);
   
+  // Debug: 显示环境变量状态
+  const [debugInfo, setDebugInfo] = useState<{envUrl?: string; defaultUrl?: string; envKey?: string; defaultKey?: string}>({});
+  
   const getSupabaseClient = () => {
     if (!supabaseRef.current) {
       const url = supabaseUrl || DEFAULT_SUPABASE_URL;
@@ -79,6 +82,15 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
       console.log('[ProductModal] Creating Supabase client with URL:', url ? url.substring(0, 40) + '...' : 'EMPTY');
       console.log('[ProductModal] Env URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
       console.log('[ProductModal] Default URL:', DEFAULT_SUPABASE_URL.substring(0, 40) + '...');
+      
+      // Debug: 更新状态
+      setDebugInfo({
+        envUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || '(not set)',
+        defaultUrl: DEFAULT_SUPABASE_URL.substring(0, 40) + '...',
+        envKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '(set)' : '(not set)',
+        defaultKey: DEFAULT_SUPABASE_ANON_KEY ? '(set)' : '(not set)',
+      });
+      
       if (url && key) {
         supabaseRef.current = createClient(url, key);
         console.log('[ProductModal] Supabase client created successfully');
@@ -344,6 +356,12 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        {/* 调试信息 */}
+        <div className="bg-yellow-50 border-b border-yellow-200 p-2 text-xs">
+          <strong>Supabase 状态:</strong> 
+          环境URL: {debugInfo.envUrl} | 默认URL: {debugInfo.defaultUrl} | 
+          环境KEY: {debugInfo.envKey} | 默认KEY: {debugInfo.defaultKey}
+        </div>
         <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
           <h2 className="text-lg font-semibold">{product?.id ? '编辑产品' : '添加产品'}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
