@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUp, ImageIcon, Search, Menu, ArrowLeft } from 'lucide-react';
+import { ArrowUp, ImageIcon, Search } from 'lucide-react';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -78,16 +78,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </button>
       )}
 
-      {/* 移动端顶部三栏 - 高度调整 */}
+      {/* 移动端顶部两栏 */}
       <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
-        {/* 第一栏 - 抬头栏高度翻倍 */}
-        <div className="bg-white rounded-full px-4 py-6 flex items-center justify-between">
-          <ArrowLeft className="w-6 h-6 text-stone-800" />
-          <span className="text-xl font-semibold text-stone-800 tracking-wide">ATELIER</span>
-          <Menu className="w-6 h-6 text-stone-800" />
-        </div>
-
-        {/* 第二栏 - 搜索栏高度缩减80%，改为淡灰色背景 */}
+        {/* 第一栏 - 搜索栏高度缩减80%，淡灰色背景 */}
         <div className="bg-stone-200 rounded-full px-4 py-3 flex items-center gap-3">
           <Search className="w-5 h-5 text-stone-400 ml-2 flex-shrink-0" />
           <input
@@ -102,7 +95,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           </button>
         </div>
 
-        {/* 第三栏 - 分类栏高度翻倍 */}
+        {/* 第二栏 - 分类栏高度翻倍 */}
         <div className="bg-white/90 rounded-2xl p-5">
           <div className="flex flex-wrap gap-2 justify-center">
             <button
