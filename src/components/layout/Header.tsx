@@ -154,7 +154,7 @@ export function Header() {
                     </Link>
                     {pathname.startsWith('/product/') && (
                       <Link
-                        href="/admin"
+                        href={`/admin?productId=${pathname.split('/product/')[1]}`}
                         className="flex items-center gap-3 px-4 py-3 text-base font-medium text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >

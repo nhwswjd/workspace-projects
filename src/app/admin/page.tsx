@@ -4,7 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Upload, X, Image as ImageIcon, Video, Loader2, Check, AlertCircle } from 'lucide-react';
 
@@ -90,6 +90,7 @@ function EditableCell({
 export default function AdminPage() {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [passwords, setPasswords] = useState<VisitorPassword[]>([]);
@@ -217,6 +218,20 @@ export default function AdminPage() {
       loadData();
     }
   }, [isAuthenticated, isAdmin]);
+
+  // 检查 URL 参数，如果有 productId 则打开对应的编辑模态框
+  useEffect(() => {
+    if (!loading && products.length > 0) {
+      const productId = searchParams.get('productId');
+      if (productId) {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+          setEditingProduct(product);
+          setIsModalOpen(true);
+        }
+      }
+    }
+  }, [loading, products, searchParams]);
 
   const loadData = async () => {
     try {
