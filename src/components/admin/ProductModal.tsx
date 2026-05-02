@@ -299,8 +299,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
     e.preventDefault();
     const selectedCategory = categories.find(c => c.id === form.categoryId);
     const videosData = form.videos.split('\n').map(v => v.trim()).filter(Boolean).map(url => ({ url, thumbnail: '' }));
-    console.log('[DEBUG] form.videos:', form.videos);
-    console.log('[DEBUG] videosData:', videosData);
+    console.log('[DEBUG] 保存时 videosData:', JSON.stringify(videosData));
     onSave({
       ...form,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
