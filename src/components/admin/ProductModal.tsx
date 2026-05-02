@@ -86,7 +86,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
       categoryId: product?.categoryId || '',
       coverImage: product?.coverImage || '',
       images: product?.images?.join('\n') || '',
-      videos: product?.videos?.map(v => v.url).join('\n') || '',
+      videos: product?.videos?.map(v => typeof v === 'object' && v?.url ? v.url : '').filter(Boolean).join('\n') || '',
       featured: product?.featured || '',
       location: product?.location || '',
       hidden: product?.hidden || false,
