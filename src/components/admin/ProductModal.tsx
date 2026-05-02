@@ -154,6 +154,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('[ProductModal] handleCoverUpload called');
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -185,6 +186,7 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('[ProductModal] handleImageUpload called');
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     
