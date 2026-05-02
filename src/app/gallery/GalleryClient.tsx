@@ -154,7 +154,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   style={{ aspectRatio: '3/4' }}
                 >
                   <Image
-                    src={product.coverImage}
+                    src={product.coverImage || null}
                     alt={product.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
