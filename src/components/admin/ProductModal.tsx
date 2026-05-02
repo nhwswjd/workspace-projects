@@ -17,7 +17,6 @@ const ENV_SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 interface ProductModalProps {
   product: Product | null;
   categories: Category[];
-  isOpen: boolean;
   onClose: () => void;
   onSave: (product: Product) => void;
 }
@@ -63,7 +62,7 @@ interface UploadResult {
   message?: string;
 }
 
-export default function ProductModal({ product, categories, isOpen, onClose, onSave }: ProductModalProps) {
+export default function ProductModal({ product, categories, onClose, onSave }: ProductModalProps) {
   const [form, setForm] = useState<FormData>(initialFormData);
   const [uploadingImages, setUploadingImages] = useState<Record<string, 'uploading' | 'success' | 'error'>>({});
   const [uploadingVideos, setUploadingVideos] = useState<Record<string, 'uploading' | 'success' | 'error'>>({});
@@ -343,8 +342,6 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const currentImages = form.images.split('\n').filter(Boolean);
   const currentVideos = form.videos.split('\n').filter(Boolean);
   const isUploading = Object.values(uploadingImages).includes('uploading') || Object.values(uploadingVideos).includes('uploading');
-
-  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
