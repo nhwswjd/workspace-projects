@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getProductById, getCategories } from '@/lib/db';
+import { getProductById } from '@/lib/db';
 import ProductClient from './ProductClient';
 
 interface PageProps {
@@ -15,12 +15,10 @@ export default async function ProductPage({ params }: PageProps) {
     notFound();
   }
   
-  const allCategories = await getCategories();
   
   return (
     <ProductClient 
       product={product}
-      categories={allCategories}
     />
   );
 }
