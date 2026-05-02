@@ -126,7 +126,8 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
       }
       
       const { data: urlData } = client.storage.from(bucketId).getPublicUrl(fileName);
-      return { success: true, url: urlData.publicUrl, path: fileName };
+      const publicUrl = typeof urlData === 'string' ? urlData : (urlData as { publicUrl?: string })?.publicUrl || '';
+      return { success: true, url: publicUrl, path: fileName };
     } catch (error: unknown) {
       const err = error as { message?: string };
       return { success: false, message: err?.message || '上传失败' };
