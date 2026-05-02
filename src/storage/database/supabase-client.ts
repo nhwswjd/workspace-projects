@@ -15,7 +15,8 @@ function loadEnv(): void {
   // 如果没有值，尝试从 dotenv 读取
   if (!process.env.COZE_SUPABASE_URL || !process.env.COZE_SUPABASE_ANON_KEY) {
     try {
-      require('dotenv').config();
+      const path = require('path');
+      require('dotenv').config({ path: path.resolve(process.cwd(), '.env.local') });
     } catch {
       // dotenv not available, ignore
     }
