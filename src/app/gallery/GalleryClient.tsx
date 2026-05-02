@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUp, ImageIcon, Search } from 'lucide-react';
+import { ArrowUp, ImageIcon, Search, Menu, ArrowLeft } from 'lucide-react';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -78,25 +78,32 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </button>
       )}
 
-      {/* 移动端顶部两栏 - 参考图片样式 */}
+      {/* 移动端顶部三栏 - 高度调整 */}
       <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
-        {/* 搜索栏 - 圆角胶囊，白色背景，高度翻倍 */}
-        <div className="bg-white rounded-full px-4 py-4 flex items-center gap-3">
-          <Search className="w-6 h-6 text-stone-400 ml-2 flex-shrink-0" />
+        {/* 第一栏 - 抬头栏高度翻倍 */}
+        <div className="bg-white rounded-full px-4 py-6 flex items-center justify-between">
+          <ArrowLeft className="w-6 h-6 text-stone-800" />
+          <span className="text-xl font-semibold text-stone-800 tracking-wide">ATELIER</span>
+          <Menu className="w-6 h-6 text-stone-800" />
+        </div>
+
+        {/* 第二栏 - 搜索栏高度缩减80%，改为淡灰色背景 */}
+        <div className="bg-stone-200 rounded-full px-4 py-3 flex items-center gap-3">
+          <Search className="w-5 h-5 text-stone-400 ml-2 flex-shrink-0" />
           <input
             type="text"
             placeholder="编号/名称/地址"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 py-3 text-base bg-transparent border-none focus:outline-none placeholder:text-stone-400"
+            className="flex-1 py-2 text-sm bg-transparent border-none focus:outline-none placeholder:text-stone-400"
           />
-          <button className="w-14 h-14 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-orange-500 transition-colors">
-            <Search className="w-6 h-6 text-white" />
+          <button className="w-11 h-11 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-orange-500 transition-colors">
+            <Search className="w-5 h-5 text-white" />
           </button>
         </div>
 
-        {/* 分类栏 - 药丸形标签，多行排列，高度翻倍 */}
-        <div className="bg-white/80 rounded-2xl p-4">
+        {/* 第三栏 - 分类栏高度翻倍 */}
+        <div className="bg-white/90 rounded-2xl p-5">
           <div className="flex flex-wrap gap-2 justify-center">
             <button
               onClick={handleShowAll}
