@@ -102,7 +102,7 @@ body {
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding-top: 80px;
+  padding-top: 0;
 }
 
 /* Custom selection */
