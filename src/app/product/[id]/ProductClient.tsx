@@ -97,10 +97,7 @@ export default function ProductClient({ product }: ProductClientProps) {
 
       {/* 产品信息 */}
       <div className="px-4 py-4">
-        <div className="mb-4">
-          <p className="text-xs text-stone-400 mb-1">编号 {product.code}</p>
-          <h1 className="text-xl font-bold text-stone-900">{product.name}</h1>
-        </div>
+        <h1 className="text-xl font-bold text-stone-900">{product.name}</h1>
 
         {/* 图片区域 - 竖向排列 */}
         {allImages.length > 0 && (
