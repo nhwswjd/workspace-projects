@@ -79,7 +79,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
       )}
 
       {/* 移动端顶部两栏 */}
-      <div className="md:hidden px-4 pt-4 pb-2 space-y-3">
+      <div className="md:hidden px-4 pt-4 pb-2 space-y-3 bg-orange-100">
         {/* 第一栏 - 搜索栏高度缩减80%，淡灰色背景 */}
         <div className="bg-stone-200 rounded-full px-4 py-3 flex items-center gap-3">
           <Search className="w-5 h-5 text-stone-400 ml-2 flex-shrink-0" />
