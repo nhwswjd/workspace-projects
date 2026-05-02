@@ -51,7 +51,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   }, [searchQuery, selectedCategory, initialProducts]);
 
   return (
-<div className="min-h-screen bg-stone-50 pt-12" style={{marginTop: '-50px', paddingTop: '50px'}}>
+<div className="min-h-screen bg-stone-50" style={{marginTop: '-60px', paddingTop: '60px'}}>
       {/* 搜索框 - 矩形无倒角，上下高度增大 */}
       <div className="bg-white">
         <div className="w-2/5 mx-auto px-2 py-6">
