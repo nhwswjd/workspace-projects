@@ -305,7 +305,8 @@ export default function ProductModal({ product, categories, isOpen, onClose, onS
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const selectedCategory = categories.find(c => c.id === form.categoryId);
-    const urls = form.videos.split('\n').map(v => v.trim()).filter(Boolean);
+    // 只保留以 http 开头的有效 URL
+    const urls = form.videos.split('\n').map(v => v.trim()).filter(v => v && v.startsWith('http'));
     const videosData = urls.map(url => ({ url, thumbnail: '' }));
     onSave({
       ...form,
