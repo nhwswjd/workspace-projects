@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Upload, X, Image as ImageIcon, Video, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Video, Loader2, Check, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -1256,6 +1256,14 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
     }
   };
 
+  const moveImage = (index: number, direction: number) => {
+    const images = form.images.split('\n').filter(Boolean);
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= images.length) return;
+    [images[index], images[newIndex]] = [images[newIndex], images[index]];
+    setForm(prev => ({ ...prev, images: images.join('\n') }));
+  };
+
   const removeImage = (index: number) => {
     const images = form.images.split('\n').filter(Boolean);
     images.splice(index, 1);
@@ -1468,10 +1476,30 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
                   <div key={index} className="relative group">
                     <div className="relative w-full h-20 rounded-lg overflow-hidden border">
                       <Image src={url} alt={`图片 ${index + 1}`} fill className="object-cover" />
+                      {/* 排序按钮 */}
+                      <div className="absolute top-1 left-1 flex gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => moveImage(index, -1)}
+                          disabled={index === 0}
+                          className="w-5 h-5 bg-black/50 text-white rounded flex items-center justify-center disabled:opacity-30"
+                        >
+                          <ArrowUp size={10} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveImage(index, 1)}
+                          disabled={index === currentImages.length - 1}
+                          className="w-5 h-5 bg-black/50 text-white rounded flex items-center justify-center disabled:opacity-30"
+                        >
+                          <ArrowDown size={10} />
+                        </button>
+                      </div>
+                      {/* 删除按钮 */}
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
                       >
                         <X size={12} />
                       </button>
@@ -1517,15 +1545,15 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
             {currentVideos.length > 0 && (
               <div className="space-y-2">
                 {currentVideos.map((url, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg group">
+                  <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                     <Video size={16} className="text-gray-400" />
                     <span className="flex-1 text-sm text-gray-600 truncate">{url.split('/').pop()}</span>
                     <button
                       type="button"
                       onClick={() => removeVideo(index)}
-                      className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="w-6 h-6 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600"
                     >
-                      <X size={16} />
+                      <X size={14} />
                     </button>
                   </div>
                 ))}
