@@ -95,8 +95,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           </button>
         </div>
 
-        {/* 第二栏 - 分类栏高度加倍，左对齐 */}
-        <div className="bg-white/90 rounded-2xl p-12">
+        {/* 第二栏 - 分类栏高度加倍，左对齐，黄色背景 */}
+        <div className="bg-orange-200 rounded-2xl p-12">
           <div className="flex flex-wrap gap-2 justify-start">
             <button
               onClick={handleShowAll}
