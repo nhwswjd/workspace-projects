@@ -2,7 +2,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -87,7 +87,7 @@ function EditableCell({
   );
 }
 
-export default function AdminPage() {
+function AdminPageContent() {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1596,5 +1596,13 @@ function ProductModal({ product, categories, onSave, onClose }: ProductModalProp
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><p>加载中...</p></div>}>
+      <AdminPageContent />
+    </Suspense>
   );
 }
