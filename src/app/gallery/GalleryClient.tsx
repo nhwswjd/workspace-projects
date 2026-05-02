@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ArrowUp } from 'lucide-react';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,6 +16,21 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   const { searchQuery, setSearchQuery } = useSearch();
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showTopButton, setShowTopButton] = useState(false);
+
+  // 监听滚动显示Top按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowTopButton(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 回到顶部
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // 点击"全部"按钮 - 清空搜搜并显示所有产品
   const handleShowAll = () => {
@@ -51,7 +67,16 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   }, [searchQuery, selectedCategory, initialProducts]);
 
   return (
-<div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50">
+      {/* Top按钮 - 回到顶部 */}
+      {showTopButton && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-20 right-4 z-50 w-12 h-12 bg-stone-800 text-white rounded-lg shadow-lg flex items-center justify-center hover:bg-stone-700 transition-all"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
       {/* 搜索框 - 矩形无倒角，上下高度增大 */}
       <div className="bg-stone-50">
         <div className="w-2/5 mx-auto px-2 py-6">
