@@ -217,8 +217,22 @@ function AdminPageContent() {
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
       loadData();
+      loadSiteSettings();
     }
   }, [isAuthenticated, isAdmin]);
+
+  const loadSiteSettings = async () => {
+    try {
+      const res = await fetch('/api/site-settings/brand_name');
+      const data = await res.json();
+      if (data.value) {
+        const input = document.getElementById('brandNameInput') as HTMLInputElement;
+        if (input) input.value = data.value;
+      }
+    } catch {
+      // 使用默认值
+    }
+  };
 
   // 检查 URL 参数，如果有 productId 则打开对应的编辑模态框
   useEffect(() => {
@@ -483,6 +497,48 @@ function AdminPageContent() {
           {message.text}
         </div>
       )}
+
+      {/* 站点设置 */}
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-medium text-gray-700">网站名称：</label>
+          <input
+            type="text"
+            id="brandNameInput"
+            defaultValue="ATELIER"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
+          />
+          <button
+            onClick={async () => {
+              const input = document.getElementById('brandNameInput') as HTMLInputElement;
+              const newName = input.value.trim();
+              if (!newName) return;
+              
+              try {
+                const res = await fetch('/api/site-settings/brand_name', {
+                  method: 'PUT',
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer admin2024`
+                  },
+                  body: JSON.stringify({ value: newName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                  setMessage({ type: 'success', text: '网站名称已更新' });
+                  setTimeout(() => setMessage(null), 2000);
+                }
+              } catch {
+                setMessage({ type: 'error', text: '保存失败' });
+                setTimeout(() => setMessage(null), 2000);
+              }
+            }}
+            className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            保存
+          </button>
+        </div>
+      </div>
 
       {/* 搜索栏 */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">

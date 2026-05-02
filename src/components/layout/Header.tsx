@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Menu, X, Home, ChevronLeft, Search, Edit } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSearch } from '@/contexts/SearchContext';
-import { brandInfo, categories } from '@/lib/products';
+import { brandInfo as staticBrandInfo } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -29,10 +29,29 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [loginError, setLoginError] = useState<string>();
+  const [brandName, setBrandName] = useState(staticBrandInfo.name);
   const router = useRouter();
   const pathname = usePathname();
   
   const isSubPage = pathname === '/gallery' || pathname.startsWith('/category/') || pathname.startsWith('/product/');
+
+  // 从数据库获取品牌名称
+  useEffect(() => {
+    async function fetchBrandName() {
+      try {
+        const res = await fetch('/api/site-settings/brand_name');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.value) {
+            setBrandName(data.value);
+          }
+        }
+      } catch {
+        // 使用默认值
+      }
+    }
+    fetchBrandName();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,7 +99,7 @@ export function Header() {
 
             {/* Center: Brand */}
             <span className="font-display text-lg md:text-xl tracking-widest">
-              {brandInfo.name}
+              {brandName}
             </span>
 
             {/* Right: Menu button */}
@@ -132,7 +151,7 @@ export function Header() {
         <SheetContent side="right" className="w-[140px] h-auto max-h-[18vh]">
           <SheetHeader>
             <SheetTitle className="font-display tracking-widest text-left">
-              {brandInfo.name}
+              {brandName}
             </SheetTitle>
           </SheetHeader>
           

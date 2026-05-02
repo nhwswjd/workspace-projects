@@ -339,3 +339,55 @@ export async function deleteProduct(id: string): Promise<void> {
 }
 
 export { getAllCategories } from './products';
+
+// 站点设置管理
+export async function getSiteSetting(key: string): Promise<string | null> {
+  try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      // 返回静态默认值
+      if (key === 'brand_name') {
+        const { brandInfo } = await import('./products');
+        return brandInfo.name;
+      }
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', key)
+      .single();
+
+    if (error || !data) {
+      // 返回静态默认值
+      if (key === 'brand_name') {
+        const { brandInfo } = await import('./products');
+        return brandInfo.name;
+      }
+      return null;
+    }
+
+    return data.value;
+  } catch {
+    // 返回静态默认值
+    if (key === 'brand_name') {
+      const { brandInfo } = await import('./products');
+      return brandInfo.name;
+    }
+    return null;
+  }
+}
+
+export async function updateSiteSetting(key: string, value: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available');
+  }
+
+  const { error } = await supabase
+    .from('site_settings')
+    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+
+  if (error) throw error;
+}
