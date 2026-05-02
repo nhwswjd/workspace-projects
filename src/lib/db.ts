@@ -24,6 +24,8 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
   try {
     const supabase = getSupabaseClient();
     if (!supabase) {
+      console.error('[DB] Supabase client not available, returning static data');
+      console.error('[DB] Check environment variables: COZE_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL');
       return staticProducts as Product[];
     }
     

@@ -37,10 +37,15 @@ function getSupabaseCredentials(): SupabaseCredentials | null {
     || process.env.SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
-    console.error('Supabase credentials missing:', { url: !!url, anonKey: !!anonKey });
+    console.error('[Supabase] Credentials missing!');
+    console.error('[Supabase] COZE_SUPABASE_URL:', !!process.env.COZE_SUPABASE_URL);
+    console.error('[Supabase] NEXT_PUBLIC_SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.error('[Supabase] COZE_SUPABASE_ANON_KEY:', !!process.env.COZE_SUPABASE_ANON_KEY);
+    console.error('[Supabase] NEXT_PUBLIC_SUPABASE_ANON_KEY:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
     return null;
   }
 
+  console.log('[Supabase] Credentials loaded successfully');
   return { url, anonKey };
 }
 
