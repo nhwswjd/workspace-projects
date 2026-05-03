@@ -110,6 +110,31 @@ export default function AdminPage() {
     setShowDeleteModal(true);
   };
 
+  const handleToggleHidden = async (product: Product) => {
+    const newHidden = !product.hidden;
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...product,
+          hidden: newHidden
+        })
+      });
+      
+      if (res.ok) {
+        setProducts(products.map(p => 
+          p.id === product.id ? { ...p, hidden: newHidden } : p
+        ));
+        showToast(newHidden ? '已隐藏' : '已显示');
+      } else {
+        showToast('操作失败', 'error');
+      }
+    } catch {
+      showToast('操作失败', 'error');
+    }
+  };
+
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     
@@ -289,18 +314,22 @@ export default function AdminPage() {
                       <p className="text-xs text-gray-400 mt-1 truncate">{product.location}</p>
                     )}
                     <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => handleToggleHidden(product)}
+                        className={`flex-1 py-1.5 text-xs border rounded-lg text-center transition-colors ${
+                          product.hidden
+                            ? 'text-gray-400 border-gray-200 hover:bg-gray-50'
+                            : 'text-green-600 border-green-200 hover:bg-green-50'
+                        }`}
+                      >
+                        {product.hidden ? '显示' : '隐藏'}
+                      </button>
                       <a
                         href={`/admin/edit/${product.id}`}
                         className="flex-1 py-1.5 text-xs text-[#14b8a6] border border-[#14b8a6] rounded-lg text-center hover:bg-[#14b8a6]/5"
                       >
                         编辑
                       </a>
-                      <button
-                        onClick={() => handleDelete('product', product.id, product.name)}
-                        className="flex-1 py-1.5 text-xs text-red-500 border border-red-200 rounded-lg hover:bg-red-50"
-                      >
-                        删除
-                      </button>
                     </div>
                   </div>
                 </div>
