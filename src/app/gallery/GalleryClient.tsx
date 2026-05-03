@@ -63,15 +63,26 @@ export default function GalleryClient({
   // 滚动监听 - 显示/隐藏返回顶部按钮
   useEffect(() => {
     const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 100);
+      // 同时监听 window 和 mainRef 的滚动
+      const scrollY = window.scrollY || (mainRef.current?.scrollTop || 0);
+      setShowBackToTop(scrollY > 100);
     };
     
+    // 监听 window 滚动
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    // 监听 mainRef 滚动（移动端）
+    mainRef.current?.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      mainRef.current?.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const scrollToTop = () => {
+    // 同时滚动 window 和 mainRef
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSearch = () => {
