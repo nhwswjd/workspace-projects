@@ -89,9 +89,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               placeholder=""
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-20 h-[46px] bg-gray-50 border border-emerald-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
+              className="w-full pl-10 pr-20 h-[46px] bg-gray-50 border border-emerald-200 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
             />
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-xl text-sm font-medium transition-colors flex items-center justify-center">
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-xl text-base font-medium transition-colors flex items-center justify-center">
               <Search className="w-4 h-4" />
             </button>
           </div>
@@ -102,7 +102,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 h-[46px] text-sm font-medium rounded-full border-2 transition-all ${
+              className={`flex-shrink-0 px-4 h-[46px] text-base font-medium rounded-full border-2 transition-all ${
                 selectedCategory === null
                   ? 'border-emerald-600 bg-emerald-600 text-white'
                   : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
@@ -114,7 +114,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 h-[46px] text-sm font-medium rounded-full border-2 transition-all ${
+                className={`flex-shrink-0 px-4 h-[46px] text-base font-medium rounded-full border-2 transition-all ${
                   selectedCategory === cat.id
                     ? 'border-emerald-600 bg-emerald-600 text-white'
                     : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
@@ -132,10 +132,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         {/* 筛选提示 */}
         {selectedCategory && (
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-500">共 {filteredProducts.length} 个产品</span>
+            <span className="text-base text-gray-500">共 {filteredProducts.length} 个产品</span>
             <button
               onClick={handleShowAll}
-              className="text-sm text-emerald-600 hover:text-emerald-700"
+              className="text-base text-emerald-600 hover:text-emerald-700"
             >
               清除筛选
             </button>
@@ -179,7 +179,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 <div className="px-2.5 py-2">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="text-base text-gray-500 font-medium whitespace-nowrap">{product.sku}</span>
-                    <h3 className="text-sm text-gray-700 truncate flex-1 group-hover:text-emerald-600 transition-colors">
+                    <h3 className="text-base text-gray-700 truncate flex-1 group-hover:text-emerald-600 transition-colors">
                       {product.name}
                     </h3>
                   </div>
@@ -209,10 +209,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               </svg>
             </div>
             <p className="text-gray-500 text-base">未找到相关产品</p>
-            <p className="text-gray-400 text-sm mt-1">尝试其他关键词或浏览全部分类</p>
+            <p className="text-gray-400 text-base mt-1">尝试其他关键词或浏览全部分类</p>
             <button
               onClick={() => setSelectedCategory(null)}
-              className="mt-4 text-sm text-emerald-600 hover:text-emerald-700"
+              className="mt-4 text-base text-emerald-600 hover:text-emerald-700"
             >
               查看全部产品
             </button>
@@ -229,9 +229,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               placeholder="编号/名称/地址"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-3 md:py-2 text-base md:text-sm bg-stone-100 border border-stone-300 focus:outline-none focus:border-stone-500 placeholder:text-stone-400"
+              className="flex-1 px-4 py-3 md:py-2 text-base md:text-base bg-stone-100 border border-stone-300 focus:outline-none focus:border-stone-500 placeholder:text-stone-400"
             />
-            <button className="px-4 py-3 md:py-2 text-base md:text-sm font-medium bg-stone-800 text-white hover:bg-stone-700 transition-colors whitespace-nowrap min-w-[60px] md:min-w-[50px]">
+            <button className="px-4 py-3 md:py-2 text-base md:text-base font-medium bg-stone-800 text-white hover:bg-stone-700 transition-colors whitespace-nowrap min-w-[60px] md:min-w-[50px]">
               搜索
             </button>
           </div>
@@ -276,7 +276,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex items-center justify-end mb-5">
             <button
               onClick={handleShowAll}
-              className="text-sm text-amber-600 hover:text-amber-700"
+              className="text-base text-amber-600 hover:text-amber-700"
             >
               清除筛选
             </button>
@@ -324,7 +324,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   <span className="text-base text-red-600 font-medium whitespace-nowrap">
                     {product.sku}
                   </span>
-                  <h3 className="font-medium text-stone-900 text-sm md:text-base group-hover:text-amber-600 transition-colors truncate">
+                  <h3 className="font-medium text-stone-900 text-base md:text-base group-hover:text-amber-600 transition-colors truncate">
                     {product.name}
                   </h3>
                 </div>
@@ -352,10 +352,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               </svg>
             </div>
             <p className="text-stone-500 text-base">未找到相关产品</p>
-            <p className="text-stone-400 text-sm mt-1">尝试其他关键词或浏览全部分类</p>
+            <p className="text-stone-400 text-base mt-1">尝试其他关键词或浏览全部分类</p>
             <button
               onClick={() => setSelectedCategory(null)}
-              className="mt-4 text-sm text-amber-600 hover:text-amber-700"
+              className="mt-4 text-base text-amber-600 hover:text-amber-700"
             >
               查看全部产品
             </button>
