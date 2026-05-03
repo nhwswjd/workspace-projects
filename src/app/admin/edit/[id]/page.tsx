@@ -135,6 +135,7 @@ export default function EditProductPage() {
         body: JSON.stringify({
           name,
           sku,
+          sort_order: sortOrder,
           description,
           category,
           category_id: categoryId,
@@ -212,6 +213,17 @@ export default function EditProductPage() {
           {/* Basic Info */}
           <div className="space-y-4">
             <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">基本信息</h2>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">排序（数值越小越靠前）</label>
+              <input
+                type="number"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                placeholder="0"
+              />
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">SKU编号</label>
