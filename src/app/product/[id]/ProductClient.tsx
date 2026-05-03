@@ -99,7 +99,7 @@ export default function ProductClient({ product }: ProductClientProps) {
       {showBackToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 w-12 h-12 bg-stone-800 text-white rounded-lg shadow-lg hover:bg-stone-700 transition-all z-40 flex items-center justify-center text-xl font-bold"
+          className="fixed bottom-6 right-6 w-12 h-12 bg-teal-500 text-white rounded-lg shadow-lg hover:bg-teal-600 transition-all z-40 flex items-center justify-center text-xl font-bold"
           style={{ bottom: "1.5rem", right: "1.5rem" }}
         >
           <ArrowUp className="w-6 h-6" />
