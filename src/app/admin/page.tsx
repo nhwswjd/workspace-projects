@@ -480,7 +480,7 @@ export default function AdminPage() {
               {filteredProducts.map(product => (
                 <div key={product.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
                   <div className="aspect-[3/4] relative">
-                    <a href={`/admin/product/${product.id}`} className="block w-full h-full">
+                    <a href={`/product/${product.id}`} className="block w-full h-full">
                       {product.coverImage || product.cover_image ? (
                         <img
                           src={product.coverImage || product.cover_image}
