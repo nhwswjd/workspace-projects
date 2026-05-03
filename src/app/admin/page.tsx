@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Product {
   id: string;
@@ -48,34 +49,21 @@ export default function AdminPage() {
   const [randomTo, setRandomTo] = useState('');
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
-    checkAdminAndLoad();
-  }, []);
-
-  const checkAdminAndLoad = async () => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
+    if (!authLoading && !isAuthenticated) {
       window.location.href = '/';
       return;
     }
-    try {
-      const verifyRes = await fetch('/api/auth/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-      const verifyData = await verifyRes.json();
-      if (!verifyData.success || !verifyData.isAdmin) {
-        window.location.href = '/';
-        return;
-      }
-    } catch {
+    if (!authLoading && isAuthenticated && !isAdmin) {
       window.location.href = '/';
       return;
     }
-    loadData();
-  };
+    if (!authLoading && isAuthenticated && isAdmin) {
+      loadData();
+    }
+  }, [authLoading, isAuthenticated, isAdmin]);
 
   const loadData = async () => {
     try {
