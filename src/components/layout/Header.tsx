@@ -71,7 +71,7 @@ export function Header({ siteName }: HeaderProps) {
             className="block px-4 py-3 text-gray-700 hover:bg-gray-50"
             onClick={() => setShowMobileMenu(false)}
           >
-            相册广场
+            首    页
           </Link>
           {isAdmin && (
             <Link
@@ -108,7 +108,7 @@ export function Header({ siteName }: HeaderProps) {
           href="/gallery"
           className="px-3 py-1.5 text-sm text-gray-700 hover:text-teal-600 rounded-md hover:bg-white"
         >
-          相册广场
+          首    页
         </Link>
         {isAdmin && (
           <Link
