@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
@@ -13,6 +14,14 @@ interface CategoryClientProps {
 
 export default function CategoryClient({ category, products, allCategories }: CategoryClientProps) {
   const router = useRouter();
+
+  // 检查登录状态 - 未登录则跳转到首页
+  useEffect(() => {
+    const authData = localStorage.getItem('atelier_authenticated');
+    if (authData !== 'true') {
+      router.replace('/');
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-white pb-8">

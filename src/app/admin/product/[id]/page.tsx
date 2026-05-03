@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 interface Product {
   id: string;
@@ -26,13 +26,20 @@ interface Product {
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mainImage, setMainImage] = useState('');
 
+  // 检查登录状态 - 未登录则跳转到首页
   useEffect(() => {
+    const authData = localStorage.getItem('atelier_authenticated');
+    if (authData !== 'true') {
+      router.replace('/');
+      return;
+    }
     fetch(`/api/products/${id}`)
       .then(res => res.json())
       .then(data => {

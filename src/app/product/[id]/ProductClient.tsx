@@ -4,6 +4,7 @@ type Product = any;
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, MoreVertical, Home, Upload, LogOut, ArrowUp } from "lucide-react";
 
 
@@ -18,12 +19,19 @@ export default function ProductClient({ product }: ProductClientProps) {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
+    // 检查登录状态 - 未登录则跳转到首页
+    const authData = localStorage.getItem('atelier_authenticated');
+    if (authData !== 'true') {
+      router.replace('/');
+      return;
+    }
     // 检查管理员权限
     const adminData = localStorage.getItem('atelier_is_admin');
     setIsAdmin(adminData === 'true');
-  }, []);
+  }, [router]);
 
   // 递归查找URL
   function getVideoUrl(data: unknown): string {

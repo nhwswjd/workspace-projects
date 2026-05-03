@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Search, X, Heart, Share2, ChevronLeft, MoreVertical, ShoppingBag, Image as ImageIcon } from 'lucide-react';
 
@@ -36,8 +37,20 @@ export default function GalleryClient({
   const [showBackToTop, setShowBackToTop] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const mainRef = useRef<HTMLElement>(null);
+  const router = useRouter();
 
   const brandName = brandInfo?.name || '江南风景好';
+
+  // 检查登录状态 - 未登录则跳转到首页
+  useEffect(() => {
+    const checkAuth = () => {
+      const authData = localStorage.getItem('atelier_authenticated');
+      if (authData !== 'true') {
+        router.replace('/');
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     let result = initialProducts;

@@ -28,13 +28,20 @@ export default function NewProductPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // 检查登录状态 - 未登录则跳转到首页
   useEffect(() => {
+    const authData = localStorage.getItem('atelier_authenticated');
+    if (authData !== 'true') {
+      router.replace('/');
+      return;
+    }
+    // 获取分类列表
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
         if (data.categories) setCategories(data.categories);
       });
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
