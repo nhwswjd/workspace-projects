@@ -120,10 +120,10 @@ export default function EditProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-100">
-        <div className="h-14 px-4 flex items-center justify-between">
+    <div className="h-screen bg-gray-50 overflow-hidden flex flex-col">
+      {/* Header - Fixed */}
+      <header className="flex-shrink-0 fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-100">
+        <div className="h-14 px-4 flex items-center justify-between max-w-2xl mx-auto">
           <button 
             onClick={() => router.back()}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100"
@@ -143,8 +143,8 @@ export default function EditProductPage() {
         </div>
       </header>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="p-4 space-y-4">
+      {/* Form - Scrollable */}
+      <form onSubmit={handleSubmit} className="flex-1 pt-14 px-4 pb-6 space-y-4 max-w-2xl mx-auto w-full overflow-y-auto">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">产品名称</label>
           <input
