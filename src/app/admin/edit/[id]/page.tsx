@@ -18,6 +18,7 @@ interface Product {
   category_id: string;
   cover_image: string;
   images: string[];
+  videos: string[];
   featured: string;
   location: string;
 }
@@ -44,29 +45,24 @@ export default function EditProductPage() {
   const [categoryId, setCategoryId] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [videos, setVideos] = useState<string[]>([]);
   const [featured, setFeatured] = useState('');
   const [location, setLocation] = useState('');
   
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    fetchData();
+    loadData();
   }, [id]);
 
-  const fetchData = async () => {
+  const loadData = async () => {
     try {
-      // Fetch product
-      const { data: product, error: productError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // Load categories
+      const { data: cats } = await supabase.from('categories').select('id, name').order('name');
+      if (cats) setCategories(cats);
       
-      if (productError) throw productError;
-      
-      // Fetch categories
-      const { data: cats } = await supabase.from('categories').select('*');
-      
+      // Load product
+      const { data: product } = await supabase.from('products').select('*').eq('id', id).single();
       if (product) {
         setSku(product.sku || '');
         setName(product.name || '');
@@ -75,13 +71,12 @@ export default function EditProductPage() {
         setCategoryId(product.category_id || '');
         setCoverImage(product.cover_image || '');
         setImages(product.images || []);
+        setVideos(product.videos || []);
         setFeatured(product.featured || '');
         setLocation(product.location || '');
       }
-      
-      if (cats) setCategories(cats);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
@@ -93,21 +88,19 @@ export default function EditProductPage() {
     setMessage(null);
     
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({
-          sku,
-          name,
-          description,
-          category,
-          category_id: categoryId,
-          cover_image: coverImage,
-          images,
-          featured: featured || null,
-          location,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
+      const { error } = await supabase.from('products').update({
+        sku,
+        name,
+        description,
+        category,
+        category_id: categoryId,
+        cover_image: coverImage,
+        images,
+        videos,
+        featured: featured || null,
+        location,
+        updated_at: new Date().toISOString()
+      }).eq('id', id);
       
       if (error) throw error;
       
@@ -120,6 +113,7 @@ export default function EditProductPage() {
     }
   };
 
+  // Image handlers
   const handleAddImage = () => {
     setImages([...images, '']);
   };
@@ -132,6 +126,21 @@ export default function EditProductPage() {
 
   const handleRemoveImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  // Video handlers
+  const handleAddVideo = () => {
+    setVideos([...videos, '']);
+  };
+
+  const handleVideoChange = (index: number, value: string) => {
+    const newVideos = [...videos];
+    newVideos[index] = value;
+    setVideos(newVideos);
+  };
+
+  const handleRemoveVideo = (index: number) => {
+    setVideos(videos.filter((_, i) => i !== index));
   };
 
   const handleDelete = async () => {
@@ -172,7 +181,7 @@ export default function EditProductPage() {
       </header>
 
       {/* Form */}
-      <form id="product-form" onSubmit={handleSubmit} className="flex-1 px-4 py-4 pb-24 space-y-5 max-w-2xl mx-auto w-full overflow-y-auto">
+      <form id="product-form" onSubmit={handleSubmit} className="flex-1 px-4 py-4 pb-24 space-y-6 max-w-2xl mx-auto w-full overflow-y-auto">
         {/* Message */}
         {message && (
           <div className={`p-3 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -180,141 +189,209 @@ export default function EditProductPage() {
           </div>
         )}
 
-        {/* SKU */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">产品编号</label>
-          <input
-            type="text"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="如: ZJ-001"
-          />
-        </div>
-
-        {/* Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">产品名称</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="如: 西湖断桥"
-          />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">产品描述</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
-            placeholder="描述产品的特点..."
-          />
-        </div>
-
-        {/* Category */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">分类</label>
-          <select
-            value={categoryId}
-            onChange={(e) => {
-              setCategoryId(e.target.value);
-              const cat = categories.find(c => c.id === e.target.value);
-              if (cat) setCategory(cat.name);
-            }}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
-          >
-            <option value="">选择分类</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Location */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">地点</label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="如: 杭州市西湖区"
-          />
-        </div>
-
-        {/* Featured */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">精选标签</label>
-          <input
-            type="text"
-            value={featured}
-            onChange={(e) => setFeatured(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="如: 精选产品（留空则不显示）"
-          />
-        </div>
-
-        {/* Cover Image */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">封面图片URL</label>
-          <input
-            type="text"
-            value={coverImage}
-            onChange={(e) => setCoverImage(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-            placeholder="https://..."
-          />
-          {coverImage && (
-            <div className="mt-2 rounded-lg overflow-hidden border border-gray-200">
-              <img src={coverImage} alt="封面预览" className="w-full h-48 object-cover" />
-            </div>
-          )}
-        </div>
-
-        {/* Images */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm font-medium text-gray-700">产品图片列表</label>
-            <button type="button" onClick={handleAddImage} className="text-sm text-teal-600 font-medium">
-              + 添加图片
-            </button>
+        {/* Basic Info Section */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">基本信息</h2>
+          
+          {/* SKU */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">产品编号</label>
+            <input
+              type="text"
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="如: ZJ-001"
+            />
           </div>
-          
-          {images.length > 0 && (
-            <div className="space-y-2">
-              {images.map((img, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={img}
-                    onChange={(e) => handleImageChange(index, e.target.value)}
-                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    placeholder="图片URL"
-                  />
-                  <button type="button" onClick={() => handleRemoveImage(index)} className="p-2 text-red-500">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
+
+          {/* Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">产品名称</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="如: 西湖断桥"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">产品描述</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+              placeholder="描述产品的特点..."
+            />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">分类</label>
+            <select
+              value={categoryId}
+              onChange={(e) => {
+                setCategoryId(e.target.value);
+                const cat = categories.find(c => c.id === e.target.value);
+                if (cat) setCategory(cat.name);
+              }}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+            >
+              <option value="">选择分类</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
+            </select>
+          </div>
+
+          {/* Location */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">地点</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="如: 杭州市西湖区"
+            />
+          </div>
+
+          {/* Featured */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">精选标签</label>
+            <input
+              type="text"
+              value={featured}
+              onChange={(e) => setFeatured(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="如: 精选产品（留空则不显示）"
+            />
+          </div>
+        </div>
+
+        {/* Media Section */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">媒体文件</h2>
+
+          {/* Cover Image */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">封面图片</label>
+            <input
+              type="text"
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="封面图片URL"
+            />
+            {coverImage && (
+              <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                <img src={coverImage} alt="封面预览" className="w-full h-48 object-contain" />
+              </div>
+            )}
+          </div>
+
+          {/* Images List */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">
+                图片列表 ({images.length}张)
+              </label>
+              <button type="button" onClick={handleAddImage} className="text-sm text-teal-600 font-medium">
+                + 添加图片
+              </button>
             </div>
-          )}
-          
-          {images.length > 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {images.map((img, index) => img && (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-                  <img src={img} alt={`图片 ${index + 1}`} className="w-full h-full object-cover" />
+            
+            {images.length > 0 && (
+              <>
+                <div className="space-y-2 mb-3">
+                  {images.map((img, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={img}
+                        onChange={(e) => handleImageChange(index, e.target.value)}
+                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="图片URL"
+                      />
+                      <button type="button" onClick={() => handleRemoveImage(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+                
+                {/* Image Preview Grid */}
+                <div className="grid grid-cols-3 gap-2">
+                  {images.map((img, index) => img && (
+                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                      <img src={img} alt={`图片 ${index + 1}`} className="w-full h-full object-cover" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center">
+                        {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Videos List */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">
+                视频列表 ({videos.length}个)
+              </label>
+              <button type="button" onClick={handleAddVideo} className="text-sm text-teal-600 font-medium">
+                + 添加视频
+              </button>
             </div>
-          )}
+            
+            {videos.length > 0 && (
+              <>
+                <div className="space-y-2 mb-3">
+                  {videos.map((video, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={video}
+                        onChange={(e) => handleVideoChange(index, e.target.value)}
+                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        placeholder="视频URL"
+                      />
+                      <button type="button" onClick={() => handleRemoveVideo(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Video Preview Grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  {videos.map((video, index) => video && (
+                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                      <video 
+                        src={video} 
+                        className="w-full h-full object-cover" 
+                        controls 
+                        preload="metadata"
+                      />
+                      <div className="absolute top-0 left-0 bg-teal-600 text-white text-xs px-2 py-0.5 rounded-br">
+                        视频 {index + 1}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Delete Button */}
