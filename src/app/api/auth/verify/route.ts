@@ -67,13 +67,24 @@ export async function POST(request: Request) {
     // 从数据库获取访客密码列表
     const supabaseAdmin = getSupabaseAdmin();
     if (supabaseAdmin) {
-      const { data: visitorPasswords, error } = await supabaseAdmin
-        .from('visitor_passwords')
-        .select('password');
+      const { data: visitorData, error } = await supabaseAdmin
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'visitor_password')
+        .single();
       
-      if (!error && visitorPasswords && visitorPasswords.length > 0) {
-        const validVisitorPasswords = visitorPasswords.map(p => p.password);
-        if (validVisitorPasswords.includes(password)) {
+      if (!error && visitorData?.value) {
+        let visitorPasswords: string[] = [];
+        try {
+          const value = visitorData.value;
+          if (value.startsWith('[')) {
+            visitorPasswords = JSON.parse(value);
+          } else if (value) {
+            visitorPasswords = [value];
+          }
+        } catch {}
+        
+        if (visitorPasswords.length > 0 && visitorPasswords.includes(password)) {
           return NextResponse.json({ 
             success: true,
             isAdmin: false,
