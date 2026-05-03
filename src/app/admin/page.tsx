@@ -238,34 +238,24 @@ export default function AdminPage() {
 
   // 前移产品
   const handleMoveUp = async (index: number) => {
-    if (index === 0) return; // 已经是第一个
+    if (index === 0) return;
     const currentProduct = filteredProducts[index];
     const prevProduct = filteredProducts[index - 1];
     
-    // 交换排序编号
-    const currentSort = currentProduct.sortOrder ?? 0;
-    const prevSort = prevProduct.sortOrder ?? 0;
-    
     try {
-      await Promise.all([
-        fetch(`/api/products/${currentProduct.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...currentProduct, sortOrder: prevSort })
-        }),
-        fetch(`/api/products/${prevProduct.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...prevProduct, sortOrder: currentSort })
-        })
-      ]);
+      // 前移：当前产品排到前一个之前
+      const newSort = (prevProduct.sortOrder ?? 0) - 1;
+      
+      await fetch(`/api/products/${currentProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...currentProduct, sortOrder: newSort })
+      });
       
       // 更新本地状态
-      setProducts(products.map(p => {
-        if (p.id === currentProduct.id) return { ...p, sortOrder: prevSort };
-        if (p.id === prevProduct.id) return { ...p, sortOrder: currentSort };
-        return p;
-      }));
+      setProducts(products.map(p => 
+        p.id === currentProduct.id ? { ...p, sortOrder: newSort } : p
+      ));
       
       showToast('已上移');
     } catch {
@@ -275,34 +265,24 @@ export default function AdminPage() {
 
   // 后移产品
   const handleMoveDown = async (index: number) => {
-    if (index === filteredProducts.length - 1) return; // 已经是最后一个
+    if (index === filteredProducts.length - 1) return;
     const currentProduct = filteredProducts[index];
     const nextProduct = filteredProducts[index + 1];
     
-    // 交换排序编号
-    const currentSort = currentProduct.sortOrder ?? 0;
-    const nextSort = nextProduct.sortOrder ?? 0;
-    
     try {
-      await Promise.all([
-        fetch(`/api/products/${currentProduct.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...currentProduct, sortOrder: nextSort })
-        }),
-        fetch(`/api/products/${nextProduct.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...nextProduct, sortOrder: currentSort })
-        })
-      ]);
+      // 后移：当前产品排到后一个之后
+      const newSort = (nextProduct.sortOrder ?? 0) + 1;
+      
+      await fetch(`/api/products/${currentProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...currentProduct, sortOrder: newSort })
+      });
       
       // 更新本地状态
-      setProducts(products.map(p => {
-        if (p.id === currentProduct.id) return { ...p, sortOrder: nextSort };
-        if (p.id === nextProduct.id) return { ...p, sortOrder: currentSort };
-        return p;
-      }));
+      setProducts(products.map(p => 
+        p.id === currentProduct.id ? { ...p, sortOrder: newSort } : p
+      ));
       
       showToast('已下移');
     } catch {
