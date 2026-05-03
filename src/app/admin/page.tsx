@@ -232,8 +232,16 @@ export default function AdminPage() {
                     )}
                   </div>
                   <div className="p-3">
-                    <h3 className="font-medium text-gray-800 text-sm truncate">{product.name}</h3>
-                    <p className="text-xs text-gray-500 mt-1">{product.category || product.category_id}</p>
+                    <p className="text-xs text-[#14b8a6] font-medium">{product.sku || product.id}</p>
+                    <h3 className="font-medium text-gray-800 text-sm truncate mt-1">{product.name}</h3>
+                    {product.tags && product.tags.length > 0 && (
+                      <p className="text-xs text-gray-500 mt-1 truncate">
+                        {Array.isArray(product.tags) ? product.tags.join(', ') : product.tags}
+                      </p>
+                    )}
+                    {product.location && (
+                      <p className="text-xs text-gray-400 mt-1 truncate">{product.location}</p>
+                    )}
                     <div className="flex gap-2 mt-3">
                       <a
                         href={`/admin/edit/${product.id}`}
