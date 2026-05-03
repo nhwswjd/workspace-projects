@@ -72,7 +72,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
       {showTopButton && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 z-50 w-12 h-12 bg-emerald-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-emerald-700 transition-all"
+          className="fixed bottom-20 right-4 z-50 w-12 h-12 bg-emerald-600 text-white rounded-lg shadow-lg flex items-center justify-center hover:bg-emerald-700 transition-all"
         >
           <ArrowUp className="w-5 h-5" />
         </button>
@@ -102,7 +102,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 h-[38px] text-base font-medium rounded-full border-2 transition-all ${
+              className={`flex-shrink-0 px-4 h-[38px] text-base font-medium rounded-lg border-2 transition-all ${
                 selectedCategory === null
                   ? 'border-emerald-600 bg-emerald-600 text-white'
                   : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
@@ -114,7 +114,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 h-[38px] text-base font-medium rounded-full border-2 transition-all ${
+                className={`flex-shrink-0 px-4 h-[38px] text-base font-medium rounded-lg border-2 transition-all ${
                   selectedCategory === cat.id
                     ? 'border-emerald-600 bg-emerald-600 text-white'
                     : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
@@ -169,7 +169,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   )}
                   {/* 精选标签 */}
                   {product.featured && (
-                    <span className="absolute top-2 right-2 bg-emerald-500/90 text-white text-base font-medium px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 right-2 bg-emerald-500/90 text-white text-base font-medium px-2 py-0.5 rounded-lg">
                       {product.featured}
                     </span>
                   )}
@@ -203,7 +203,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         ) : (
           /* 空状态 */
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gray-100 flex items-center justify-center">
               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -346,7 +346,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         ) : (
           /* 空状态 */
           <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-stone-100 flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-stone-100 flex items-center justify-center">
               <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
