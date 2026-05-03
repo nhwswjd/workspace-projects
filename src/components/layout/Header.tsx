@@ -72,11 +72,11 @@ export function Header({ siteName }: HeaderProps) {
             onClick={() => setShowMobileMenu(false)}
           />
           {/* 左侧菜单面板 */}
-          <nav className="fixed left-0 top-14 w-36 bg-black/80 backdrop-blur-md rounded-br-2xl shadow-xl z-50 md:hidden overflow-hidden">
+          <nav className="fixed left-0 top-14 w-36 bg-transparent z-50 md:hidden overflow-hidden">
             <div className="py-3 px-2 flex flex-col gap-2">
               <Link
                 href="/gallery"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-teal-600 text-white"
                 onClick={() => setShowMobileMenu(false)}
               >
                 <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -89,7 +89,7 @@ export function Header({ siteName }: HeaderProps) {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-teal-600 text-white"
                   onClick={() => setShowMobileMenu(false)}
                 >
                   <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -112,7 +112,7 @@ export function Header({ siteName }: HeaderProps) {
                     setShowMobileMenu(false);
                     window.location.href = '/';
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-teal-600 text-white"
                 >
                   <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                     <LogOut className="w-4 h-4" />
