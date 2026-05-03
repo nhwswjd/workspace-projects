@@ -596,15 +596,17 @@ export default function AdminPage() {
               />
             </div>
 
+            {/* 管理员密码管理 */}
             <div className="bg-white rounded-xl p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">访问密码</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">管理员密码</label>
+              <p className="text-xs text-gray-400 mb-3">管理员密码可以进入管理后台和查看产品</p>
               
               {/* 已有密码列表 */}
               {adminPasswords.length > 0 && (
                 <div className="space-y-2 mb-3">
                   {adminPasswords.map((pwd, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <div className="flex-1 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono">
+                      <div className="flex-1 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm font-mono">
                         {pwd}
                       </div>
                       <button
@@ -628,14 +630,62 @@ export default function AdminPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddPassword()}
-                  placeholder="输入新密码后点击添加"
+                  placeholder="输入新管理员密码"
                   className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6]"
                 />
                 <button
                   type="button"
                   onClick={handleAddPassword}
                   disabled={!newPassword.trim()}
-                  className="px-4 py-2.5 bg-[#14b8a6] text-white rounded-lg text-sm font-medium hover:bg-[#14b8a6]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  添加
+                </button>
+              </div>
+            </div>
+
+            {/* 访客密码管理 */}
+            <div className="bg-white rounded-xl p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">访客密码</label>
+              <p className="text-xs text-gray-400 mb-3">访客密码只能查看产品，无法进入管理后台</p>
+              
+              {/* 已有密码列表 */}
+              {visitorPasswords.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {visitorPasswords.map((pwd, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="flex-1 px-3 py-2.5 bg-blue-50 border border-blue-200 rounded-lg text-sm font-mono">
+                        {pwd}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveVisitorPassword(index)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* 新增密码输入 */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newVisitorPassword}
+                  onChange={(e) => setNewVisitorPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddVisitorPassword()}
+                  placeholder="输入新访客密码"
+                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6]"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddVisitorPassword}
+                  disabled={!newVisitorPassword.trim()}
+                  className="px-4 py-2.5 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   添加
                 </button>

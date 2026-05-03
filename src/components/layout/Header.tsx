@@ -81,6 +81,7 @@ export function Header({ siteName }: HeaderProps) {
             <button
               onClick={() => {
                 localStorage.removeItem('atelier_authenticated');
+                localStorage.removeItem('atelier_is_admin');
                 setIsLoggedIn(false);
                 setShowMobileMenu(false);
                 window.location.href = '/';
