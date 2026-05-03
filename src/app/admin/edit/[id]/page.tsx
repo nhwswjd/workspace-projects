@@ -534,8 +534,8 @@ export default function EditProductPage() {
                             setUploadingVideoIndex(index);
                             const formData = new FormData();
                             formData.append('file', file);
-                            formData.append('type', 'videos');
-                            fetch('/api/upload', { method: 'POST', body: formData })
+                            // 使用大文件上传端点
+                            fetch('/api/upload-large', { method: 'POST', body: formData })
                               .then(response => {
                                 if (!response.ok) {
                                   throw new Error('HTTP ' + response.status + ': ' + response.statusText);
