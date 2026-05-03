@@ -15,7 +15,8 @@ interface Product {
   featured?: string | null;
   location?: string;
   hidden?: boolean;
-  sort_order?: number;
+  sortOrder?: number;
+  sort_order?: number; // 兼容数据库字段
   updated_at?: string;
 }
 
@@ -223,10 +224,91 @@ export default function AdminPage() {
     showToast('备份功能开发中...');
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // 按 sortOrder 排序的产品列表
+  const filteredProducts = products
+    .filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
+    )
+    .sort((a, b) => {
+      const aOrder = a.sortOrder ?? 999;
+      const bOrder = b.sortOrder ?? 999;
+      return aOrder - bOrder;
+    });
+
+  // 前移产品
+  const handleMoveUp = async (index: number) => {
+    if (index === 0) return; // 已经是第一个
+    const currentProduct = filteredProducts[index];
+    const prevProduct = filteredProducts[index - 1];
+    
+    // 交换排序编号
+    const currentSort = currentProduct.sortOrder ?? 0;
+    const prevSort = prevProduct.sortOrder ?? 0;
+    
+    try {
+      await Promise.all([
+        fetch(`/api/products/${currentProduct.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...currentProduct, sort_order: prevSort })
+        }),
+        fetch(`/api/products/${prevProduct.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...prevProduct, sort_order: currentSort })
+        })
+      ]);
+      
+      // 更新本地状态
+      setProducts(products.map(p => {
+        if (p.id === currentProduct.id) return { ...p, sortOrder: prevSort };
+        if (p.id === prevProduct.id) return { ...p, sortOrder: currentSort };
+        return p;
+      }));
+      
+      showToast('已上移');
+    } catch {
+      showToast('操作失败', 'error');
+    }
+  };
+
+  // 后移产品
+  const handleMoveDown = async (index: number) => {
+    if (index === filteredProducts.length - 1) return; // 已经是最后一个
+    const currentProduct = filteredProducts[index];
+    const nextProduct = filteredProducts[index + 1];
+    
+    // 交换排序编号
+    const currentSort = currentProduct.sortOrder ?? 0;
+    const nextSort = nextProduct.sortOrder ?? 0;
+    
+    try {
+      await Promise.all([
+        fetch(`/api/products/${currentProduct.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...currentProduct, sort_order: nextSort })
+        }),
+        fetch(`/api/products/${nextProduct.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...nextProduct, sort_order: currentSort })
+        })
+      ]);
+      
+      // 更新本地状态
+      setProducts(products.map(p => {
+        if (p.id === currentProduct.id) return { ...p, sortOrder: nextSort };
+        if (p.id === nextProduct.id) return { ...p, sortOrder: currentSort };
+        return p;
+      }));
+      
+      showToast('已下移');
+    } catch {
+      showToast('操作失败', 'error');
+    }
+  };
 
   const tabs = [
     { id: 'products', label: '产品管理' },
@@ -303,7 +385,10 @@ export default function AdminPage() {
                     )}
                   </div>
                   <div className="p-3">
-                    <p className="text-xs text-[#14b8a6] font-medium">{product.sku || product.id}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-[#14b8a6] font-medium">{product.sku || product.id}</p>
+                      <span className="text-xs text-gray-400">#{product.sortOrder ?? 0}</span>
+                    </div>
                     <h3 className="font-medium text-gray-800 text-sm truncate mt-1">{product.name}</h3>
                     {product.tags && product.tags.length > 0 && (
                       <p className="text-xs text-gray-500 mt-1 truncate">
@@ -313,7 +398,27 @@ export default function AdminPage() {
                     {product.location && (
                       <p className="text-xs text-gray-400 mt-1 truncate">{product.location}</p>
                     )}
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-1.5 mt-3">
+                      <button
+                        onClick={() => handleMoveUp(filteredProducts.findIndex(p => p.id === product.id))}
+                        disabled={filteredProducts.findIndex(p => p.id === product.id) === 0}
+                        className="p-1.5 text-xs text-gray-400 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="上移"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleMoveDown(filteredProducts.findIndex(p => p.id === product.id))}
+                        disabled={filteredProducts.findIndex(p => p.id === product.id) === filteredProducts.length - 1}
+                        className="p-1.5 text-xs text-gray-400 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="下移"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
                       <button
                         onClick={() => handleToggleHidden(product)}
                         className={`flex-1 py-1.5 text-xs border rounded-lg text-center transition-colors ${
