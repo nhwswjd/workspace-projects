@@ -3,9 +3,25 @@
     {
       "type": "html",
       "options": {
-        "path": ".cozeproj/prototype/mobile/gallery.html"
+        "path": ".cozeproj/prototype/mobile/home.html"
       },
-      "title": "产品列表",
+      "title": "相册广场",
+      "size": "mobile"
+    },
+    {
+      "type": "html",
+      "options": {
+        "path": ".cozeproj/prototype/mobile/product-detail.html"
+      },
+      "title": "产品详情",
+      "size": "mobile"
+    },
+    {
+      "type": "html",
+      "options": {
+        "path": ".cozeproj/prototype/mobile/admin.html"
+      },
+      "title": "管理后台",
       "size": "mobile"
     }
   ]

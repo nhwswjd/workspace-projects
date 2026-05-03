@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 - 清新蓝绿色 === */
+      --color-primary:              #14b8a6;
+      --color-primary-container:    #ccfbf1;
+      --color-on-primary:          #ffffff;
+      /* === 背景 / 表面 === */
+      --color-background:                 #fafafa;
+      --color-surface-container-lowest:   #ffffff;
+      --color-surface:                    #ffffff;
+      --color-surface-container:          #f5f5f5;
+      --color-surface-container-high:     #f0f0f0;
+      --color-surface-container-highest:  #ebebeb;
+      /* === 文字 === */
+      --color-on-surface:           #1a1a1a;
+      --color-on-surface-variant:   #666666;
+      /* === 功能色 === */
+      --color-success:  #22c55e;
+      --color-error:    #ef4444;
+      --color-warning:  #f59e0b;
+      /* === 边框 === */
+      --color-outline:          #e0e0e0;
+      --color-outline-variant:  #eeeeee;
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 1px 3px rgba(0,0,0,0.04);
+      --shadow-float:  0 4px 12px rgba(0,0,0,0.06);
+      --shadow-dialog: 0 16px 32px rgba(0,0,0,0.08);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <style>
+    body {
+      min-height: max(812px, 100dvh);
+      font-family: "Inter", "Noto Sans SC", system-ui, sans-serif;
+      background: #fafafa;
+    }
+    /* 隐藏滚动条但保持滚动功能 */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* 图片轮播 */
+    .carousel {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+    }
+    .carousel-item {
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+    }
+    .carousel-item img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+    /* 轮播指示器 */
+    .dot {
+      transition: all 0.3s ease;
+    }
+    .dot.active {
+      background-color: #14b8a6;
+      width: 20px;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#14b8a6',
+            'primary-container': '#ccfbf1',
+            'on-primary': '#ffffff',
+            background: '#fafafa',
+            surface: '#ffffff',
+            'surface-container': '#f5f5f5',
+            'on-surface': '#1a1a1a',
+            'on-surface-variant': '#666666',
+            outline: '#e0e0e0',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-background text-on-surface">
+
+  <!-- 顶部 Header - 带返回箭头 -->
+  <header class="sticky top-0 z-40 bg-background/80 backdrop-blur-md">
+    <div class="h-12 flex items-center justify-between px-4">
+      <!-- 左侧返回按钮 -->
+      <button id="btn-back" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container active:bg-surface-container-high transition-colors">
+        <i data-lucide="arrow-left" class="w-5 h-5 text-on-surface"></i>
+      </button>
+      <!-- 中间标题 -->
+      <h1 class="text-base font-semibold text-on-surface tracking-tight">产品详情</h1>
+      <!-- 右侧占位 -->
+      <div class="w-9"></div>
+    </div>
+  </header>
+
+  <!-- @main-content:start -->
+  <main class="overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+    
+    <!-- 图片轮播区域 -->
+    <section id="carousel-section" class="relative">
+      <div id="image-carousel" class="carousel hide-scrollbar">
+        <!-- 列表-图片1 -->
+        <div class="carousel-item">
+          <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4" alt="阿尔卑斯山脉壮丽日出" data-category="自然风景">
+        </div>
+        <!-- 列表-图片2 -->
+        <div class="carousel-item">
+          <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b" alt="高山草甸与雪山" data-category="自然风景">
+        </div>
+        <!-- 列表-图片3 -->
+        <div class="carousel-item">
+          <img src="https://images.unsplash.com/photo-1454496522488-7a8e488e8606" alt="雪山日出云海" data-category="自然风景">
+        </div>
+      </div>
+      <!-- 圆点指示器 -->
+      <div id="carousel-dots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+        <button class="dot w-2 h-2 rounded-full bg-white/70 active" data-index="0"></button>
+        <button class="dot w-2 h-2 rounded-full bg-white/70" data-index="1"></button>
+        <button class="dot w-2 h-2 rounded-full bg-white/70" data-index="2"></button>
+      </div>
+    </section>
+
+    <!-- 产品信息区域 -->
+    <section class="px-4 py-5">
+      <!-- 产品名称 -->
+      <h2 id="product-name" class="text-xl font-bold text-on-surface leading-tight">阿尔卑斯山脉经典徒步路线</h2>
+      
+      <!-- 产品编号 -->
+      <div class="flex items-center gap-2 mt-3">
+        <span class="text-xs text-on-surface-variant">编号</span>
+        <span id="product-code" class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">ALP-2024-0892</span>
+      </div>
+      
+      <!-- 分隔线 -->
+      <div class="h-px bg-outline-variant/50 my-4"></div>
+      
+      <!-- 地点信息 -->
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0">
+          <i data-lucide="map-pin" class="w-4 h-4 text-primary"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-on-surface">瑞士·因特拉肯</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">格林德尔瓦尔德镇附近</p>
+        </div>
+      </div>
+      
+      <!-- 行程天数 -->
+      <div class="flex items-start gap-3 mt-4">
+        <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0">
+          <i data-lucide="calendar" class="w-4 h-4 text-primary"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-on-surface">7天6晚</p>
+          <p class="text-xs text-on-surface-variant mt-0.5">全程约85公里，累计爬升3200米</p>
+        </div>
+      </div>
+      
+      <!-- 分隔线 -->
+      <div class="h-px bg-outline-variant/50 my-4"></div>
+      
+      <!-- 产品描述 -->
+      <h3 class="text-base font-semibold text-on-surface mb-2">行程亮点</h3>
+      <p class="text-sm text-on-surface-variant leading-relaxed">
+        这条经典徒步路线穿越阿尔卑斯山脉最壮丽的景色，途经高山草甸、冰川峡谷和古老的山间小屋。您将有机会近距离欣赏艾格峰、僧侣峰和少女峰的绝美风光，感受大自然的震撼与宁静。
+      </p>
+      
+      <!-- 难度等级 -->
+      <div class="flex items-center gap-2 mt-4">
+        <span class="text-xs text-on-surface-variant">难度</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-success/10 text-success">中等</span>
+      </div>
+    </section>
+
+    <!-- 推荐装备卡片 -->
+    <section class="px-4 mb-4">
+      <div class="bg-surface rounded-xl shadow-card p-4">
+        <h3 class="text-sm font-semibold text-on-surface mb-3">推荐装备</h3>
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant">登山背包</span>
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant">防水冲锋衣</span>
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant">登山杖</span>
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant">登山鞋</span>
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-surface-container text-on-surface-variant">防晒霜</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <!-- @main-content:end -->
+
+  <!-- 底部操作栏 -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-outline-variant/20
+              flex items-center justify-between px-4 h-16 pb-[env(safe-area-inset-bottom)]">
+    <!-- 左侧操作按钮 -->
+    <div class="flex items-center gap-2">
+      <!-- 收藏按钮 -->
+      <button id="btn-favorite" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high active:bg-surface-container-highest transition-colors">
+        <i data-lucide="heart" class="w-5 h-5 text-on-surface-variant"></i>
+        <span class="text-sm font-medium text-on-surface-variant">收藏</span>
+      </button>
+      
+      <!-- 分享按钮 -->
+      <button id="btn-share" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high active:bg-surface-container-highest transition-colors">
+        <i data-lucide="share-2" class="w-5 h-5 text-on-surface-variant"></i>
+        <span class="text-sm font-medium text-on-surface-variant">分享</span>
+      </button>
+    </div>
+    
+    <!-- 右侧主按钮 -->
+    <button id="btn-book" class="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all">
+      <i data-lucide="calendar-check" class="w-5 h-5"></i>
+      立即预约
+    </button>
+  </nav>
+
+  <script>
+    // 导航函数
+    function navPush(route) {
+      console.log('[原型演示] PUSH 到: ' + route);
+      window.location.href = route;
+    }
+    function navReplace(route) {
+      console.log('[原型演示] REPLACE 为: ' + route);
+      window.location.replace(route);
+    }
+    function navReset(route) {
+      console.log('[原型演示] RESET 到: ' + route);
+      window.location.href = route;
+    }
+    function navBack() {
+      console.log('[原型演示] BACK 返回上一页');
+      if (window.history.length > 1) window.history.back();
+    }
+
+    $(function() {
+      // 返回按钮
+      $('#btn-back').on('click', function() {
+        navBack();
+      });
+
+      // 轮播指示器点击
+      $('#carousel-dots').on('click', '.dot', function() {
+        var index = $(this).data('index');
+        var $carousel = $('#image-carousel');
+        var itemWidth = $carousel.width();
+        $carousel.animate({ scrollLeft: itemWidth * index }, 300);
+      });
+
+      // 轮播滚动时更新指示器
+      $('#image-carousel').on('scroll', function() {
+        var $carousel = $(this);
+        var scrollLeft = $carousel.scrollLeft();
+        var width = $carousel.width();
+        var index = Math.round(scrollLeft / width);
+        
+        $('#carousel-dots .dot').removeClass('active');
+        $('#carousel-dots .dot[data-index="' + index + '"]').addClass('active');
+      });
+
+      // 收藏按钮交互
+      $('#btn-favorite').on('click', function() {
+        var $icon = $(this).find('i');
+        var $span = $(this).find('span');
+        var isFavorited = $(this).hasClass('favorited');
+        
+        if (isFavorited) {
+          $(this).removeClass('favorited');
+          $icon.attr('data-lucide', 'heart');
+          $span.text('收藏');
+          $(this).removeClass('text-error');
+          $(this).addClass('text-on-surface-variant');
+          $icon.removeClass('text-error');
+          $icon.addClass('text-on-surface-variant');
+          console.log('已取消收藏');
+        } else {
+          $(this).addClass('favorited');
+          $icon.attr('data-lucide', 'heart');
+          $span.text('已收藏');
+          $(this).removeClass('text-on-surface-variant');
+          $(this).addClass('text-error');
+          $icon.removeClass('text-on-surface-variant');
+          $icon.addClass('text-error');
+          console.log('已添加收藏');
+        }
+        lucide.createIcons();
+      });
+
+      // 分享按钮交互
+      $('#btn-share').on('click', function() {
+        console.log('点击分享，应展示分享选项弹窗');
+        alert('分享功能：可分享至微信好友、朋友圈、微博等平台');
+      });
+
+      // 预约按钮交互
+      $('#btn-book').on('click', function() {
+        console.log('点击预约，应跳转至预约页面或展示预约表单');
+        alert('预约功能：将跳转至预约页面');
+      });
+    });
+
+    // 初始化 Lucide 图标
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 - 清新蓝绿色 === */
+      --color-primary:              #14b8a6;
+      --color-primary-container:    #ccfbf1;
+      --color-on-primary:          #ffffff;
+      /* === 背景 / 表面 === */
+      --color-background:                 #fafafa;
+      --color-surface-container-lowest:   #ffffff;
+      --color-surface:                    #ffffff;
+      --color-surface-container:          #f5f5f5;
+      --color-surface-container-high:     #f0f0f0;
+      --color-surface-container-highest:  #ebebeb;
+      /* === 文字 === */
+      --color-on-surface:           #1a1a1a;
+      --color-on-surface-variant:   #666666;
+      /* === 功能色 === */
+      --color-success:  #22c55e;
+      --color-error:    #ef4444;
+      --color-warning:  #f59e0b;
+      /* === 边框 === */
+      --color-outline:          #e0e0e0;
+      --color-outline-variant:  #eeeeee;
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 1px 3px rgba(0,0,0,0.04);
+      --shadow-float:  0 4px 12px rgba(0,0,0,0.06);
+      --shadow-dialog: 0 16px 32px rgba(0,0,0,0.08);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <style>
+    body {
+      min-height: max(812px, 100dvh);
+      font-family: "Inter", "Noto Sans SC", system-ui, sans-serif;
+      background: #fafafa;
+    }
+    /* 隐藏滚动条但保持滚动功能 */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* 瀑布流两列布局 */
+    .waterfall-grid {
+      column-count: 2;
+      column-gap: 0.75rem;
+    }
+    .waterfall-item {
+      break-inside: avoid;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#14b8a6',
+            'primary-container': '#ccfbf1',
+            'on-primary': '#ffffff',
+            background: '#fafafa',
+            surface: '#ffffff',
+            'surface-container': '#f5f5f5',
+            'on-surface': '#1a1a1a',
+            'on-surface-variant': '#666666',
+            outline: '#e0e0e0',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-background text-on-surface">
+
+  <!-- 顶部 Header - 极简风格 -->
+  <header class="sticky top-0 z-40 bg-background/80 backdrop-blur-md">
+    <div class="h-12 flex items-center justify-between px-4">
+      <!-- 左侧菜单图标 -->
+      <button id="btn-menu" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors">
+        <i data-lucide="menu-2" class="w-5 h-5 text-on-surface"></i>
+      </button>
+      <!-- 中间标题 -->
+      <h1 class="text-base font-semibold text-on-surface tracking-tight">江南风景好</h1>
+      <!-- 右侧占位 -->
+      <div class="w-9"></div>
+    </div>
+  </header>
+
+  <!-- @main-content:start -->
+  <main class="overflow-y-auto pb-4">
+    <!-- 搜索框 -->
+    <div class="px-4 py-3">
+      <div class="flex items-center gap-2">
+        <div class="flex-1 relative">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/50"></i>
+          <input id="search-input" type="text" placeholder="搜索你喜欢的风景" 
+                 class="w-full bg-surface-container border-none rounded-full pl-10 pr-4 py-2.5 text-sm
+                        text-on-surface placeholder:text-on-surface-variant/50
+                        focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"/>
+        </div>
+        <button id="btn-search" class="bg-primary text-on-primary px-4 py-2.5 rounded-full text-sm font-medium
+                                       hover:opacity-90 active:scale-[0.98] transition-all">
+          搜索
+        </button>
+      </div>
+    </div>
+
+    <!-- 分类标签 -->
+    <div class="px-4 pb-3">
+      <div id="category-scroll" class="flex gap-2 overflow-x-auto hide-scrollbar py-1">
+        <!-- 列表-分类-全部 -->
+        <button class="category-tag px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+                       bg-primary text-on-primary transition-all" data-category="all">
+          全部
+        </button>
+        <!-- 列表-分类-山水 -->
+        <button class="category-tag px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+                       bg-surface text-on-surface-variant hover:bg-surface-container transition-all" data-category="landscape">
+          山水
+        </button>
+        <!-- 列表-分类-古镇 -->
+        <button class="category-tag px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+                       bg-surface text-on-surface-variant hover:bg-surface-container transition-all" data-category="town">
+          古镇
+        </button>
+        <!-- 列表-分类-花卉 -->
+        <button class="category-tag px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+                       bg-surface text-on-surface-variant hover:bg-surface-container transition-all" data-category="flower">
+          花卉
+        </button>
+        <!-- 列表-分类-日出日落 -->
+        <button class="category-tag px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+                       bg-surface text-on-surface-variant hover:bg-surface-container transition-all" data-category="sunrise">
+          日出日落
+        </button>
+        <!-- 列表-分类-烟雨 -->
+        <button class="category-tag px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+                       bg-surface text-on-surface-variant hover:bg-surface-container transition-all" data-category="rain">
+          烟雨
+        </button>
+        <!-- 列表-分类-夜景 -->
+        <button class="category-tag px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+                       bg-surface text-on-surface-variant hover:bg-surface-container transition-all" data-category="night">
+          夜景
+        </button>
+      </div>
+    </div>
+
+    <!-- 瀑布流网格 -->
+    <div class="px-4">
+      <div id="photo-grid" class="waterfall-grid">
+        <!-- 列表-照片1 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=1" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=533&fit=crop" 
+                   alt="云海日出" 
+                   data-category="山水"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">云海日出</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">黄山风景区</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片2 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=2" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1537531383496-f4749b85c3c7?w=400&h=533&fit=crop" 
+                   alt="西湖荷花" 
+                   data-category="花卉"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">西湖荷花</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">杭州西湖</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片3 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=3" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400&h=533&fit=crop" 
+                   alt="乌镇夜色" 
+                   data-category="夜景"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">乌镇夜色</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">桐乡乌镇</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片4 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=4" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=400&h=533&fit=crop" 
+                   alt="漓江竹筏" 
+                   data-category="山水"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">漓江竹筏</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">桂林阳朔</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片5 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=5" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=533&fit=crop" 
+                   alt="苏州园林" 
+                   data-category="古镇"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">苏州园林</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">苏州拙政园</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片6 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=6" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=400&h=533&fit=crop" 
+                   alt="烟雨江南" 
+                   data-category="烟雨"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">烟雨江南</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">周庄古镇</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片7 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=7" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400&h=533&fit=crop" 
+                   alt="金色夕阳" 
+                   data-category="日出日落"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">金色夕阳</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">千岛湖</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片8 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=8" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1508022713622-df2d8a7d3b2a?w=400&h=533&fit=crop" 
+                   alt="凤凰古城" 
+                   data-category="古镇"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">凤凰古城</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">湖南凤凰</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片9 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=9" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                     hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&h=533&fit=crop" 
+                   alt="山间云雾" 
+                   data-category="山水"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">山间云雾</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">张家界</p>
+            </div>
+          </a>
+        </div>
+        
+        <!-- 列表-照片10 -->
+        <div class="waterfall-item">
+          <a href="product-detail.html?id=10" class="block bg-surface rounded-xl shadow-card overflow-hidden
+                      hover:shadow-float transition-shadow">
+            <div class="relative" style="padding-bottom: 133.33%;">
+              <img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=533&fit=crop" 
+                   alt="樱花盛开" 
+                   data-category="花卉"
+                   class="absolute inset-0 w-full h-full object-cover"/>
+            </div>
+            <div class="p-2.5">
+              <p class="text-sm font-medium text-on-surface truncate">樱花盛开</p>
+              <p class="text-xs text-on-surface-variant mt-0.5">武汉大学</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <!-- @main-content:end -->
+
+  <script>
+    function navPush(route) {
+      console.log(`[原型演示] PUSH 到: ${route}`);
+      window.location.href = route;
+    }
+
+    function navReplace(route) {
+      console.log(`[原型演示] REPLACE 为: ${route}`);
+      window.location.replace(route);
+    }
+
+    function navReset(route) {
+      console.log(`[原型演示] RESET 到: ${route}`);
+      window.location.href = route;
+    }
+
+    function navBack() {
+      console.log(`[原型演示] BACK 返回上一页`);
+      if(window.history.length > 1) window.history.back();
+    }
+
+    $(function() {
+      // 菜单按钮点击
+      $('#btn-menu').on('click', function() {
+        console.log('点击菜单，打开侧边栏');
+      });
+
+      // 搜索按钮点击
+      $('#btn-search').on('click', function() {
+        const keyword = $('#search-input').val();
+        console.log('搜索关键词:', keyword);
+      });
+
+      // 分类标签切换
+      $('#category-scroll').on('click', '.category-tag', function() {
+        const $this = $(this);
+        const category = $this.data('category');
+        
+        // 切换选中状态
+        $('.category-tag').removeClass('bg-primary text-on-primary')
+                         .addClass('bg-surface text-on-surface-variant');
+        $this.removeClass('bg-surface text-on-surface-variant')
+             .addClass('bg-primary text-on-primary');
+        
+        console.log('切换分类:', category);
+      });
+    });
+  </script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+
+</html>
