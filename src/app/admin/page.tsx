@@ -41,6 +41,9 @@ export default function AdminPage() {
   const [siteName, setSiteName] = useState('江南风景好');
   const [adminPasswords, setAdminPasswords] = useState<string[]>([]);
   const [newPassword, setNewPassword] = useState('');
+  const [randomRules, setRandomRules] = useState<{ id: number; from: number; to: number; createdAt: string }[]>([]);
+  const [randomFrom, setRandomFrom] = useState('');
+  const [randomTo, setRandomTo] = useState('');
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [loading, setLoading] = useState(true);
 
@@ -50,11 +53,12 @@ export default function AdminPage() {
 
   const loadData = async () => {
     try {
-      const [productsRes, categoriesRes, brandRes, passwordRes] = await Promise.all([
+      const [productsRes, categoriesRes, brandRes, passwordRes, rulesRes] = await Promise.all([
         fetch('/api/products').then(r => r.json()),
         fetch('/api/categories').then(r => r.json()),
         fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
         fetch('/api/site-settings/admin_password').then(r => r.json()).catch(() => ({ value: '' })),
+        fetch('/api/site-settings/random-sort-rules').then(r => r.json()).catch(() => ({ rules: [] })),
       ]);
       
       if (productsRes.products) setProducts(productsRes.products);
@@ -93,6 +97,10 @@ export default function AdminPage() {
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
         }
+      }
+      // 加载随机排序规则
+      if (rulesRes.rules) {
+        setRandomRules(rulesRes.rules);
       }
     } catch (err) {
       console.error('加载数据失败', err);
@@ -198,6 +206,55 @@ export default function AdminPage() {
 
   const handleRemovePassword = (index: number) => {
     setAdminPasswords(adminPasswords.filter((_, i) => i !== index));
+  };
+
+  // 执行随机排序
+  const handleRandomSort = async () => {
+    const from = parseInt(randomFrom);
+    const to = parseInt(randomTo);
+    
+    if (!from || !to || from < 1 || to < from) {
+      showToast('请输入有效的范围', 'error');
+      return;
+    }
+    
+    try {
+      const res = await fetch('/api/products/random-sort', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from, to }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        showToast(`已将第${from}-${to}个产品随机排序`);
+        setRandomFrom('');
+        setRandomTo('');
+        // 刷新产品列表
+        const productsRes = await fetch('/api/products').then(r => r.json());
+        if (productsRes.products) setProducts(productsRes.products);
+      } else {
+        showToast(data.error || '操作失败', 'error');
+      }
+    } catch {
+      showToast('操作失败', 'error');
+    }
+  };
+
+  // 删除随机排序规则
+  const handleDeleteRandomRule = async (ruleId: number) => {
+    const updatedRules = randomRules.filter(r => r.id !== ruleId);
+    try {
+      await fetch('/api/site-settings/random-sort-rules', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rules: updatedRules }),
+      });
+      setRandomRules(updatedRules);
+      showToast('规则已删除');
+    } catch {
+      showToast('删除失败', 'error');
+    }
   };
 
   const handleSaveSettings = async () => {
@@ -529,6 +586,64 @@ export default function AdminPage() {
                   添加
                 </button>
               </div>
+            </div>
+
+            {/* 随机排序功能 */}
+            <div className="bg-white rounded-xl p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-3">随机排序产品</label>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm text-gray-500">第</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={randomFrom}
+                  onChange={(e) => setRandomFrom(e.target.value)}
+                  placeholder="1"
+                  className="w-20 px-3 py-2 border border-gray-200 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6]"
+                />
+                <span className="text-sm text-gray-500">个</span>
+                <span className="text-sm text-gray-500 mx-2">至</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={randomTo}
+                  onChange={(e) => setRandomTo(e.target.value)}
+                  placeholder="10"
+                  className="w-20 px-3 py-2 border border-gray-200 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6]"
+                />
+                <span className="text-sm text-gray-500">个产品</span>
+              </div>
+              <button
+                onClick={handleRandomSort}
+                disabled={!randomFrom || !randomTo}
+                className="w-full py-2.5 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                执行随机排序
+              </button>
+              
+              {/* 已有的随机排序规则列表 */}
+              {randomRules.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">已执行的随机排序规则</label>
+                  <div className="space-y-2">
+                    {randomRules.map((rule) => (
+                      <div key={rule.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm text-gray-600">
+                          第 {rule.from} - {rule.to} 个产品
+                        </span>
+                        <button
+                          onClick={() => handleDeleteRandomRule(rule.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
