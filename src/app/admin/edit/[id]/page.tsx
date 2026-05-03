@@ -437,57 +437,63 @@ export default function EditProductPage() {
                     ))}
                   </div>
                   
-                  {/* Image Preview Grid with Reorder */}
-                  <div className="grid grid-cols-4 gap-2">
+                  {/* Image Preview Grid with Reorder - Larger thumbnails */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {images.map((img, index) => img && (
-                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                        <img src={img} alt={`图片 ${index + 1}`} className="w-full h-full object-cover" />
-                        {/* Index Badge */}
-                        <div className="absolute top-1 left-1 bg-teal-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium">
-                          {index + 1}
+                      <div key={index} className="relative rounded-xl overflow-hidden bg-gray-50 border-2 border-gray-200 shadow-sm">
+                        {/* Large Thumbnail */}
+                        <div className="aspect-[4/3] overflow-hidden">
+                          <img src={img} alt={`图片 ${index + 1}`} className="w-full h-full object-cover" />
                         </div>
-                        {/* Image Actions - Always Visible */}
-                        <div className="absolute top-1 right-1 flex gap-0.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (index > 0) {
-                                const newImages = [...images];
-                                [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
-                                setImages(newImages);
-                              }
-                            }}
-                            disabled={index === 0}
-                            className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold ${index === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                            title="上移"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (index < images.length - 1) {
-                                const newImages = [...images];
-                                [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
-                                setImages(newImages);
-                              }
-                            }}
-                            disabled={index === images.length - 1}
-                            className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold ${index === images.length - 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                            title="下移"
-                          >
-                            ↓
-                          </button>
+                        {/* Image Info Bar */}
+                        <div className="p-2 flex items-center justify-between bg-white border-t border-gray-100">
+                          <div className="flex items-center gap-2">
+                            <span className="bg-teal-500 text-white text-xs w-6 h-6 flex items-center justify-center rounded-full font-bold">
+                              {index + 1}
+                            </span>
+                            <span className="text-xs text-gray-500">图片{index + 1}</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (index > 0) {
+                                  const newImages = [...images];
+                                  [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
+                                  setImages(newImages);
+                                }
+                              }}
+                              disabled={index === 0}
+                              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${index === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                              title="上移"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (index < images.length - 1) {
+                                  const newImages = [...images];
+                                  [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
+                                  setImages(newImages);
+                                }
+                              }}
+                              disabled={index === images.length - 1}
+                              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${index === images.length - 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                              title="下移"
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(index)}
+                              className="w-8 h-8 bg-red-500 text-white flex items-center justify-center rounded-lg text-sm font-bold hover:bg-red-600 transition-colors"
+                              title="删除"
+                            >
+                              ×
+                            </button>
+                          </div>
                         </div>
-                        {/* Delete Button */}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(index)}
-                          className="absolute bottom-1 right-1 w-6 h-6 bg-red-500 text-white flex items-center justify-center rounded text-xs font-bold hover:bg-red-600"
-                          title="删除"
-                        >
-                          ×
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -525,20 +531,28 @@ export default function EditProductPage() {
                           <input type="file" accept="video/*" className="hidden" disabled={uploadingVideoIndex === index} onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              console.log('[视频上传] 选择文件:', file.name, '大小:', file.size);
                               setUploadingVideoIndex(index);
                               const formData = new FormData();
                               formData.append('file', file);
                               formData.append('type', 'videos');
                               try {
-                                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                                const res = await fetch('/api/upload', { 
+                                  method: 'POST', 
+                                  body: formData,
+                                  signal: AbortSignal.timeout(60000) // 60秒超时
+                                });
                                 const data = await res.json();
+                                console.log('[视频上传] 响应:', data);
                                 if (data.success && data.url) {
                                   handleVideoChange(index, data.url);
                                 } else {
-                                  alert(data.message || '上传失败');
+                                  alert('上传失败: ' + (data.message || '未知错误'));
                                 }
-                              } catch {
-                                alert('上传失败');
+                              } catch (err: unknown) {
+                                console.error('[视频上传] 错误:', err);
+                                const errorMessage = err instanceof Error ? err.message : '上传失败，请重试';
+                                alert(errorMessage);
                               } finally {
                                 setUploadingVideoIndex(null);
                               }

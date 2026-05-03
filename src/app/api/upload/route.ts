@@ -42,9 +42,11 @@ export async function POST(request: NextRequest) {
       });
 
     if (error) {
-      console.error('上传失败:', error);
+      console.error('[Upload] 上传失败:', error);
       return NextResponse.json({ success: false, message: `上传失败: ${error.message}` }, { status: 500 });
     }
+
+    console.log('[Upload] 上传成功:', filePath);
 
     // 获取公开URL
     const { data: urlData } = supabase.storage.from(bucketId).getPublicUrl(filePath);
