@@ -55,7 +55,7 @@ export default function AdminPage() {
         fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
       ]);
       
-      if (productsRes.data) setProducts(productsRes.data);
+      if (productsRes.products) setProducts(productsRes.products);
       if (categoriesRes.categories) setCategories(categoriesRes.categories);
       if (settingsRes.value) setSiteName(settingsRes.value);
     } catch (err) {
