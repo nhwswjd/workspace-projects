@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 - 清新蓝绿色 === */
+      --color-primary:              #14b8a6;
+      --color-primary-container:    #ccfbf1;
+      --color-on-primary:          #ffffff;
+      /* === 背景 / 表面 === */
+      --color-background:                 #fafafa;
+      --color-surface-container-lowest:   #ffffff;
+      --color-surface:                    #ffffff;
+      --color-surface-container:          #f5f5f5;
+      --color-surface-container-high:     #f0f0f0;
+      --color-surface-container-highest:  #ebebeb;
+      /* === 文字 === */
+      --color-on-surface:           #1a1a1a;
+      --color-on-surface-variant:   #666666;
+      /* === 功能色 === */
+      --color-success:  #22c55e;
+      --color-error:    #ef4444;
+      --color-warning:  #f59e0b;
+      /* === 边框 === */
+      --color-outline:          #e0e0e0;
+      --color-outline-variant:  #eeeeee;
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 1px 3px rgba(0,0,0,0.04);
+      --shadow-float:  0 4px 12px rgba(0,0,0,0.06);
+      --shadow-dialog: 0 16px 32px rgba(0,0,0,0.08);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <style>
+    body {
+      min-height: max(812px, 100dvh);
+      font-family: "Inter", "Noto Sans SC", system-ui, sans-serif;
+      background: #fafafa;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#14b8a6',
+            'primary-container': '#ccfbf1',
+            'on-primary': '#ffffff',
+            background: '#fafafa',
+            surface: '#ffffff',
+            'surface-container': '#f5f5f5',
+            'on-surface': '#1a1a1a',
+            'on-surface-variant': '#666666',
+            outline: '#e0e0e0',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-background text-on-surface">
+
+  <!-- 顶部 Header - 纯白背景 -->
+  <header class="sticky top-0 z-40 bg-background">
+    <div class="h-12 flex items-center justify-between px-4">
+      <!-- 左侧菜单图标 -->
+      <button id="btn-menu" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors">
+        <i data-lucide="menu-2" class="w-5 h-5 text-on-surface"></i>
+      </button>
+      <!-- 中间标题 -->
+      <h1 class="text-base font-semibold text-on-surface tracking-tight">管理后台</h1>
+      <!-- 右侧占位 -->
+      <div class="w-9"></div>
+    </div>
+  </header>
+
+  <!-- @main-content:start -->
+  <main class="overflow-y-auto pb-4">
+    
+    <!-- Tab切换区域 -->
+    <div class="sticky top-12 z-30 bg-background border-b border-outline-variant/30">
+      <div class="flex overflow-x-auto hide-scrollbar">
+        <button class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 border-primary text-primary whitespace-nowrap" data-tab="products">
+          产品管理
+        </button>
+        <button class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 border-transparent text-on-surface-variant whitespace-nowrap hover:text-on-surface" data-tab="categories">
+          分类管理
+        </button>
+        <button class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 border-transparent text-on-surface-variant whitespace-nowrap hover:text-on-surface" data-tab="settings">
+          网站设置
+        </button>
+        <button class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 border-transparent text-on-surface-variant whitespace-nowrap hover:text-on-surface" data-tab="backup">
+          数据备份
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab内容区域 -->
+    <div class="tab-contents">
+
+      <!-- 产品管理Tab -->
+      <div id="tab-products" class="tab-content active">
+        <!-- 搜索框 -->
+        <div class="px-4 pt-4">
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/50"></i>
+            <input id="search-products" type="text" placeholder="搜索产品名称/SKU" class="w-full bg-surface-container border-none rounded-xl pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"/>
+          </div>
+        </div>
+
+        <!-- 产品列表卡片 -->
+        <div class="px-4 pt-4 space-y-3">
+          <!-- 列表-产品1 -->
+          <div class="bg-surface rounded-xl shadow-card p-4" data-product-id="p001">
+            <div class="flex gap-3">
+              <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop" alt="智能手表" data-category="商业科技" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"/>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-on-surface truncate">智能手表 Pro</h3>
+                <p class="text-xs text-on-surface-variant mt-1">分类：数码设备</p>
+                <p class="text-xs text-on-surface-variant">SKU: SW-2024-001</p>
+                <p class="text-sm font-medium text-primary mt-2">¥1,299.00</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-3 pt-3 border-t border-outline-variant/20">
+              <button class="btn-edit-product flex-1 bg-surface-container text-on-surface-variant py-2 rounded-lg text-xs font-medium hover:bg-surface-container-high transition-colors" data-id="p001">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5 inline mr-1"></i>编辑
+              </button>
+              <button class="btn-delete-product flex-1 bg-error/10 text-error py-2 rounded-lg text-xs font-medium hover:bg-error/20 transition-colors" data-id="p001">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i>删除
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-产品2 -->
+          <div class="bg-surface rounded-xl shadow-card p-4" data-product-id="p002">
+            <div class="flex gap-3">
+              <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" alt="无线耳机" data-category="商业科技" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"/>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-on-surface truncate">无线降噪耳机</h3>
+                <p class="text-xs text-on-surface-variant mt-1">分类：数码设备</p>
+                <p class="text-xs text-on-surface-variant">SKU: HP-2024-002</p>
+                <p class="text-sm font-medium text-primary mt-2">¥599.00</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-3 pt-3 border-t border-outline-variant/20">
+              <button class="btn-edit-product flex-1 bg-surface-container text-on-surface-variant py-2 rounded-lg text-xs font-medium hover:bg-surface-container-high transition-colors" data-id="p002">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5 inline mr-1"></i>编辑
+              </button>
+              <button class="btn-delete-product flex-1 bg-error/10 text-error py-2 rounded-lg text-xs font-medium hover:bg-error/20 transition-colors" data-id="p002">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i>删除
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-产品3 -->
+          <div class="bg-surface rounded-xl shadow-card p-4" data-product-id="p003">
+            <div class="flex gap-3">
+              <img src="https://images.unsplash.com/photo-1491553895911-0055uj4039ed?w=200&h=200&fit=crop" alt="户外背包" data-category="运动体育" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"/>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-on-surface truncate">户外登山背包</h3>
+                <p class="text-xs text-on-surface-variant mt-1">分类：户外装备</p>
+                <p class="text-xs text-on-surface-variant">SKU: BG-2024-003</p>
+                <p class="text-sm font-medium text-primary mt-2">¥399.00</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-3 pt-3 border-t border-outline-variant/20">
+              <button class="btn-edit-product flex-1 bg-surface-container text-on-surface-variant py-2 rounded-lg text-xs font-medium hover:bg-surface-container-high transition-colors" data-id="p003">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5 inline mr-1"></i>编辑
+              </button>
+              <button class="btn-delete-product flex-1 bg-error/10 text-error py-2 rounded-lg text-xs font-medium hover:bg-error/20 transition-colors" data-id="p003">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i>删除
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-产品4 -->
+          <div class="bg-surface rounded-xl shadow-card p-4" data-product-id="p004">
+            <div class="flex gap-3">
+              <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=200&h=200&fit=crop" alt="复古相机" data-category="商业科技" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"/>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-on-surface truncate">复古胶片相机</h3>
+                <p class="text-xs text-on-surface-variant mt-1">分类：数码设备</p>
+                <p class="text-xs text-on-surface-variant">SKU: CM-2024-004</p>
+                <p class="text-sm font-medium text-primary mt-2">¥2,199.00</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-3 pt-3 border-t border-outline-variant/20">
+              <button class="btn-edit-product flex-1 bg-surface-container text-on-surface-variant py-2 rounded-lg text-xs font-medium hover:bg-surface-container-high transition-colors" data-id="p004">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5 inline mr-1"></i>编辑
+              </button>
+              <button class="btn-delete-product flex-1 bg-error/10 text-error py-2 rounded-lg text-xs font-medium hover:bg-error/20 transition-colors" data-id="p004">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i>删除
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-产品5 -->
+          <div class="bg-surface rounded-xl shadow-card p-4" data-product-id="p005">
+            <div class="flex gap-3">
+              <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop" alt="运动跑鞋" data-category="运动体育" class="w-20 h-20 rounded-lg object-cover flex-shrink-0"/>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-on-surface truncate">轻量跑步鞋</h3>
+                <p class="text-xs text-on-surface-variant mt-1">分类：运动装备</p>
+                <p class="text-xs text-on-surface-variant">SKU: SH-2024-005</p>
+                <p class="text-sm font-medium text-primary mt-2">¥499.00</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-3 pt-3 border-t border-outline-variant/20">
+              <button class="btn-edit-product flex-1 bg-surface-container text-on-surface-variant py-2 rounded-lg text-xs font-medium hover:bg-surface-container-high transition-colors" data-id="p005">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5 inline mr-1"></i>编辑
+              </button>
+              <button class="btn-delete-product flex-1 bg-error/10 text-error py-2 rounded-lg text-xs font-medium hover:bg-error/20 transition-colors" data-id="p005">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i>删除
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部添加产品按钮 -->
+        <div class="px-4 pt-4 pb-4">
+          <button id="btn-add-product" class="w-full bg-primary text-on-primary py-3.5 rounded-xl text-base font-semibold hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2">
+            <i data-lucide="plus" class="w-5 h-5"></i>添加产品
+          </button>
+        </div>
+      </div>
+
+      <!-- 分类管理Tab -->
+      <div id="tab-categories" class="tab-content">
+        <!-- 添加分类按钮 -->
+        <div class="px-4 pt-4">
+          <button id="btn-add-category" class="w-full bg-primary text-on-primary py-3 rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i>添加分类
+          </button>
+        </div>
+
+        <!-- 分类列表 -->
+        <div class="px-4 pt-4 space-y-2">
+          <!-- 列表-分类1 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 flex items-center justify-between" data-category-id="c001">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <i data-lucide="smartphone" class="w-5 h-5 text-primary"></i>
+              </div>
+              <span class="text-sm font-medium text-on-surface">数码设备</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn-edit-category w-9 h-9 flex items-center justify-center bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors" data-id="c001">
+                <i data-lucide="edit-2" class="w-4 h-4 text-on-surface-variant"></i>
+              </button>
+              <button class="btn-delete-category w-9 h-9 flex items-center justify-center bg-error/10 rounded-lg hover:bg-error/20 transition-colors" data-id="c001">
+                <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-分类2 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 flex items-center justify-between" data-category-id="c002">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
+                <i data-lucide="backpack" class="w-5 h-5 text-warning"></i>
+              </div>
+              <span class="text-sm font-medium text-on-surface">户外装备</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn-edit-category w-9 h-9 flex items-center justify-center bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors" data-id="c002">
+                <i data-lucide="edit-2" class="w-4 h-4 text-on-surface-variant"></i>
+              </button>
+              <button class="btn-delete-category w-9 h-9 flex items-center justify-center bg-error/10 rounded-lg hover:bg-error/20 transition-colors" data-id="c002">
+                <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-分类3 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 flex items-center justify-between" data-category-id="c003">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                <i data-lucide="shirt" class="w-5 h-5 text-success"></i>
+              </div>
+              <span class="text-sm font-medium text-on-surface">运动装备</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn-edit-category w-9 h-9 flex items-center justify-center bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors" data-id="c003">
+                <i data-lucide="edit-2" class="w-4 h-4 text-on-surface-variant"></i>
+              </button>
+              <button class="btn-delete-category w-9 h-9 flex items-center justify-center bg-error/10 rounded-lg hover:bg-error/20 transition-colors" data-id="c003">
+                <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-分类4 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 flex items-center justify-between" data-category-id="c004">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-error/10 rounded-lg flex items-center justify-center">
+                <i data-lucide="coffee" class="w-5 h-5 text-error"></i>
+              </div>
+              <span class="text-sm font-medium text-on-surface">生活家居</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn-edit-category w-9 h-9 flex items-center justify-center bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors" data-id="c004">
+                <i data-lucide="edit-2" class="w-4 h-4 text-on-surface-variant"></i>
+              </button>
+              <button class="btn-delete-category w-9 h-9 flex items-center justify-center bg-error/10 rounded-lg hover:bg-error/20 transition-colors" data-id="c004">
+                <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- 列表-分类5 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 flex items-center justify-between" data-category-id="c005">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <i data-lucide="book-open" class="w-5 h-5 text-primary"></i>
+              </div>
+              <span class="text-sm font-medium text-on-surface">图书文具</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn-edit-category w-9 h-9 flex items-center justify-center bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors" data-id="c005">
+                <i data-lucide="edit-2" class="w-4 h-4 text-on-surface-variant"></i>
+              </button>
+              <button class="btn-delete-category w-9 h-9 flex items-center justify-center bg-error/10 rounded-lg hover:bg-error/20 transition-colors" data-id="c005">
+                <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 网站设置Tab -->
+      <div id="tab-settings" class="tab-content">
+        <div class="px-4 pt-4 space-y-4">
+          <!-- 网站名称 -->
+          <div class="bg-surface rounded-xl shadow-card p-4">
+            <label class="block text-sm font-medium text-on-surface mb-2">网站名称</label>
+            <input id="input-site-name" type="text" value="江南风景好" placeholder="请输入网站名称" class="w-full bg-surface-container border-none rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"/>
+          </div>
+
+          <!-- 访问密码设置 -->
+          <div class="bg-surface rounded-xl shadow-card p-4">
+            <label class="block text-sm font-medium text-on-surface mb-2">访问密码</label>
+            <div class="relative">
+              <input id="input-password" type="password" value="admin123" placeholder="请输入访问密码" class="w-full bg-surface-container border-none rounded-xl px-4 py-3 pr-12 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"/>
+              <button id="btn-toggle-password" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant/50 hover:text-on-surface transition-colors">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <p class="text-xs text-on-surface-variant/70 mt-2">设置访问密码后，访问网站需输入密码</p>
+          </div>
+
+          <!-- 其他设置 -->
+          <div class="bg-surface rounded-xl shadow-card p-4">
+            <label class="block text-sm font-medium text-on-surface mb-2">网站描述</label>
+            <textarea id="input-description" rows="3" placeholder="请输入网站描述" class="w-full bg-surface-container border-none rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors resize-none">分享江南地区的美丽风景与文化特色</textarea>
+          </div>
+
+          <!-- 保存按钮 -->
+          <div class="pt-2">
+            <button id="btn-save-settings" class="w-full bg-primary text-on-primary py-3.5 rounded-xl text-base font-semibold hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2">
+              <i data-lucide="check" class="w-5 h-5"></i>保存设置
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据备份Tab -->
+      <div id="tab-backup" class="tab-content">
+        <div class="px-4 pt-4 space-y-4">
+          <!-- 备份状态 -->
+          <div class="bg-surface rounded-xl shadow-card p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-5 h-5 text-success"></i>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-on-surface">上次备份</p>
+                <p class="text-xs text-on-surface-variant">2024-01-15 14:30:22</p>
+              </div>
+            </div>
+            <div class="h-2 bg-surface-container rounded-full overflow-hidden">
+              <div class="h-full bg-success rounded-full" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <!-- 备份操作 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 space-y-3">
+            <h3 class="text-sm font-semibold text-on-surface">数据备份</h3>
+            <p class="text-xs text-on-surface-variant">创建数据库完整备份，包括产品信息、分类、用户数据等</p>
+            <button id="btn-backup" class="w-full bg-primary text-on-primary py-3 rounded-xl text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2">
+              <i data-lucide="download" class="w-4 h-4"></i>创建备份
+            </button>
+          </div>
+
+          <!-- 恢复操作 -->
+          <div class="bg-surface rounded-xl shadow-card p-4 space-y-3">
+            <h3 class="text-sm font-semibold text-on-surface">数据恢复</h3>
+            <p class="text-xs text-on-surface-variant">从备份文件恢复数据，将覆盖当前所有数据</p>
+            <button id="btn-restore" class="w-full bg-surface-container text-on-surface-variant py-3 rounded-xl text-sm font-semibold hover:bg-surface-container-high active:scale-[0.98] transition-all inline-flex items-center justify-center gap-2">
+              <i data-lucide="upload" class="w-4 h-4"></i>从备份恢复
+            </button>
+          </div>
+
+          <!-- 备份历史 -->
+          <div class="bg-surface rounded-xl shadow-card p-4">
+            <h3 class="text-sm font-semibold text-on-surface mb-3">备份历史</h3>
+            <div class="space-y-2">
+              <!-- 列表-备份1 -->
+              <div class="flex items-center justify-between py-2 border-b border-outline-variant/20 last:border-0">
+                <div>
+                  <p class="text-xs text-on-surface">backup_20240115_143022.sql</p>
+                  <p class="text-[10px] text-on-surface-variant">2024-01-15 14:30:22 | 2.4 MB</p>
+                </div>
+                <button class="btn-download-backup text-primary text-xs font-medium hover:opacity-80">下载</button>
+              </div>
+              <!-- 列表-备份2 -->
+              <div class="flex items-center justify-between py-2 border-b border-outline-variant/20 last:border-0">
+                <div>
+                  <p class="text-xs text-on-surface">backup_20240110_091545.sql</p>
+                  <p class="text-[10px] text-on-surface-variant">2024-01-10 09:15:45 | 2.3 MB</p>
+                </div>
+                <button class="btn-download-backup text-primary text-xs font-medium hover:opacity-80">下载</button>
+              </div>
+              <!-- 列表-备份3 -->
+              <div class="flex items-center justify-between py-2 border-b border-outline-variant/20 last:border-0">
+                <div>
+                  <p class="text-xs text-on-surface">backup_20240105_163020.sql</p>
+                  <p class="text-[10px] text-on-surface-variant">2024-01-05 16:30:20 | 2.1 MB</p>
+                </div>
+                <button class="btn-download-backup text-primary text-xs font-medium hover:opacity-80">下载</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+  <!-- @main-content:end -->
+
+  <!-- 通用模态框 -->
+  <div id="modal-confirm" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-surface rounded-2xl w-full max-w-sm p-6">
+      <h3 id="modal-title" class="text-lg font-semibold text-on-surface mb-2">确认操作</h3>
+      <p id="modal-message" class="text-sm text-on-surface-variant mb-6">确定要执行此操作吗？</p>
+      <div class="flex gap-3">
+        <button id="modal-cancel" class="flex-1 bg-surface-container text-on-surface-variant py-3 rounded-xl text-sm font-semibold hover:bg-surface-container-high transition-colors">取消</button>
+        <button id="modal-confirm-btn" class="flex-1 bg-error text-on-primary py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-colors">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast提示 -->
+  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-on-surface text-surface px-4 py-2 rounded-lg text-sm font-medium z-50 opacity-0 pointer-events-none transition-opacity"></div>
+
+  <script>
+    // 导航辅助函数
+    function navPush(route) {
+      console.log('[原型演示] PUSH 到: ' + route);
+      window.location.href = route;
+    }
+
+    function navReplace(route) {
+      console.log('[原型演示] REPLACE 为: ' + route);
+      window.location.replace(route);
+    }
+
+    function navReset(route) {
+      console.log('[原型演示] RESET 到: ' + route);
+      window.location.href = route;
+    }
+
+    function navBack() {
+      console.log('[原型演示] BACK 返回上一页');
+      if (window.history.length > 1) window.history.back();
+    }
+
+    // Toast提示
+    function showToast(message, duration) {
+      var $toast = $('#toast');
+      $toast.text(message).css('opacity', '1').css('pointer-events', 'auto');
+      setTimeout(function() {
+        $toast.css('opacity', '0').css('pointer-events', 'none');
+      }, duration || 2000);
+    }
+
+    // Modal相关
+    var modalCallback = null;
+
+    function showConfirmModal(title, message, callback) {
+      $('#modal-title').text(title);
+      $('#modal-message').text(message);
+      $('#modal-confirm').removeClass('hidden');
+      modalCallback = callback;
+    }
+
+    $(function() {
+      // 初始化Lucide图标
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+
+      // Tab切换
+      $('.tab-btn').on('click', function() {
+        var tab = $(this).data('tab');
+        
+        // 更新Tab样式
+        $('.tab-btn').removeClass('text-primary border-primary').addClass('text-on-surface-variant border-transparent');
+        $(this).removeClass('text-on-surface-variant border-transparent').addClass('text-primary border-primary');
+        
+        // 切换内容
+        $('.tab-content').removeClass('active');
+        $('#tab-' + tab).addClass('active');
+        
+        // 重新初始化图标
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      });
+
+      // 左侧菜单按钮
+      $('#btn-menu').on('click', function() {
+        showToast('菜单已打开', 1500);
+      });
+
+      // 产品管理 - 搜索功能
+      $('#search-products').on('input', function() {
+        var keyword = $(this).val().toLowerCase();
+        $('#tab-products .bg-surface.rounded-xl').each(function() {
+          var text = $(this).text().toLowerCase();
+          if (text.indexOf(keyword) > -1 || keyword === '') {
+            $(this).show();
+          } else {
+            $(this).hide();
+          }
+        });
+      });
+
+      // 添加产品按钮
+      $('#btn-add-product').on('click', function() {
+        showToast('添加产品功能', 1500);
+        // 后续应实现：
+        // 1. 打开添加产品表单页面或模态框
+        // 2. 包含产品名称、价格、分类、图片上传等字段
+        // 3. 提交后刷新产品列表
+      });
+
+      // 编辑产品按钮
+      $('.btn-edit-product').on('click', function() {
+        var id = $(this).data('id');
+        showToast('编辑产品: ' + id, 1500);
+        // 后续应实现：
+        // 1. 打开编辑产品表单页面或模态框
+        // 2. 填充当前产品的所有信息
+        // 3. 支持修改产品名称、价格、分类、图片等
+        // 4. 提交后更新列表中的产品信息
+      });
+
+      // 删除产品按钮
+      $('.btn-delete-product').on('click', function() {
+        var id = $(this).data('id');
+        var $card = $(this).closest('.bg-surface.rounded-xl');
+        showConfirmModal('删除产品', '确定要删除这个产品吗？此操作不可撤销。', function() {
+          $card.fadeOut(300, function() {
+            $(this).remove();
+          });
+          showToast('产品已删除', 1500);
+          // 后续应实现：
+          // 1. 调用后端API删除产品数据
+          // 2. 从DOM中移除对应的卡片元素
+        });
+        $('#modal-confirm-btn').removeClass('bg-error').addClass('bg-error');
+      });
+
+      // 添加分类按钮
+      $('#btn-add-category').on('click', function() {
+        showToast('添加分类功能', 1500);
+        // 后续应实现：
+        // 1. 打开添加分类表单或模态框
+        // 2. 包含分类名称、图标选择等字段
+        // 3. 提交后刷新分类列表
+      });
+
+      // 编辑分类按钮
+      $('.btn-edit-category').on('click', function() {
+        var id = $(this).data('id');
+        showToast('编辑分类: ' + id, 1500);
+        // 后续应实现：
+        // 1. 打开编辑分类表单或模态框
+        // 2. 填充当前分类信息
+        // 3. 支持修改分类名称、图标等
+        // 4. 提交后更新列表
+      });
+
+      // 删除分类按钮
+      $('.btn-delete-category').on('click', function() {
+        var id = $(this).data('id');
+        var $card = $(this).closest('.bg-surface.rounded-xl');
+        showConfirmModal('删除分类', '确定要删除这个分类吗？分类下的产品将被移至默认分类。', function() {
+          $card.fadeOut(300, function() {
+            $(this).remove();
+          });
+          showToast('分类已删除', 1500);
+          // 后续应实现：
+          // 1. 调用后端API删除分类
+          // 2. 将该分类下的产品转移到默认分类
+          // 3. 从DOM中移除对应卡片
+        });
+      });
+
+      // 密码显示/隐藏切换
+      var passwordVisible = false;
+      $('#btn-toggle-password').on('click', function() {
+        passwordVisible = !passwordVisible;
+        var $input = $('#input-password');
+        $input.attr('type', passwordVisible ? 'text' : 'password');
+        $(this).find('i').attr('data-lucide', passwordVisible ? 'eye-off' : 'eye');
+        lucide.createIcons();
+      });
+
+      // 保存设置按钮
+      $('#btn-save-settings').on('click', function() {
+        var siteName = $('#input-site-name').val();
+        var password = $('#input-password').val();
+        var description = $('#input-description').val();
+        
+        if (!siteName.trim()) {
+          showToast('请输入网站名称', 1500);
+          return;
+        }
+        
+        showToast('设置已保存', 1500);
+        // 后续应实现：
+        // 1. 调用后端API保存网站设置
+        // 2. 更新数据库中的配置信息
+        // 3. 返回成功状态后提示用户
+      });
+
+      // 创建备份按钮
+      $('#btn-backup').on('click', function() {
+        showToast('正在创建备份...', 2000);
+        // 后续应实现：
+        // 1. 调用后端API创建数据库备份
+        // 2. 生成SQL文件或压缩包
+        // 3. 保存到服务器指定目录
+        // 4. 更新备份历史列表
+        // 5. 显示备份完成状态和时间
+      });
+
+      // 恢复数据按钮
+      $('#btn-restore').on('click', function() {
+        showConfirmModal('数据恢复', '恢复数据将覆盖当前所有数据，确定要继续吗？', function() {
+          showToast('正在恢复数据...', 2000);
+          // 后续应实现：
+          // 1. 弹出文件选择框让用户选择备份文件
+          // 2. 解析备份文件内容
+          // 3. 执行数据恢复操作
+          // 4. 完成后刷新页面显示恢复后的数据
+        });
+        $('#modal-confirm-btn').removeClass('bg-error').addClass('bg-warning');
+      });
+
+      // 下载备份按钮
+      $('.btn-download-backup').on('click', function() {
+        var filename = $(this).closest('div').find('.text-xs.text-on-surface').text();
+        showToast('下载备份: ' + filename, 1500);
+        // 后续应实现：
+        // 1. 构造下载链接
+        // 2. 触发浏览器下载功能
+        // 3. 或调用API获取文件流进行下载
+      });
+
+      // Modal取消按钮
+      $('#modal-cancel').on('click', function() {
+        $('#modal-confirm').addClass('hidden');
+        modalCallback = null;
+      });
+
+      // Modal确认按钮
+      $('#modal-confirm-btn').on('click', function() {
+        $('#modal-confirm').addClass('hidden');
+        if (modalCallback) {
+          modalCallback();
+          modalCallback = null;
+        }
+      });
+
+      // 点击模态框背景关闭
+      $('#modal-confirm').on('click', function(e) {
+        if (e.target === this) {
+          $(this).addClass('hidden');
+          modalCallback = null;
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
