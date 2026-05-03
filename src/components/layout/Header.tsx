@@ -76,10 +76,10 @@ export function Header() {
   return (
     <>
       <header
-        className={`w-full transition-all duration-500 ${
+        className={`w-full transition-all duration-300 ${
           isScrolled
             ? 'bg-white shadow-sm'
-            : 'bg-emerald-50'
+            : 'bg-white'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -87,14 +87,8 @@ export function Header() {
             {/* Left: Empty space for balance */}
             <div className="flex-1"></div>
 
-            {/* Center: Brand - Art Font */}
-            <span 
-              className="text-[22px] md:text-xl tracking-[0.3em] font-bold italic"
-              style={{ 
-                fontFamily: '"Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif',
-                textShadow: '1px 1px 3px rgba(0,0,0,0.15)'
-              }}
-            >
+            {/* Center: Brand */}
+            <span className="text-lg md:text-xl font-medium tracking-wide text-foreground">
               {brandName}
             </span>
 

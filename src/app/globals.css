@@ -49,40 +49,61 @@
   --font-display: 'Cormorant Garamond', 'Noto Serif SC', Georgia, serif;
 }
 
-/* CSS Variables */
+/* CSS Variables - 极简清新风格 */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.985 0.002 247.858);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0.002 247.858);
-  --secondary: oklch(0.97 0.002 247.858);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0.002 247.858);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0.002 247.858);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0.004 247.858);
-  --input: oklch(0.922 0.004 247.858);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.002 247.858);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.858);
-  --sidebar-accent: oklch(0.97 0.002 247.858);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0.004 247.858);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
+  /* 背景色 - 浅灰白 */
+  --background: #fafafa;
+  --foreground: #1a1a1a;
+  /* 卡片 */
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  /* 主色 - 清新蓝绿 */
+  --primary: #14b8a6;
+  --primary-foreground: #ffffff;
+  /* 次要色 */
+  --secondary: #f5f5f5;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f5f5f5;
+  --muted-foreground: #666666;
+  --accent: #f5f5f5;
+  --accent-foreground: #1a1a1a;
+  /* 功能色 */
+  --destructive: #ef4444;
+  /* 边框 */
+  --border: #e0e0e0;
+  --input: #f5f5f5;
+  --ring: #14b8a6;
+  /* 图表色 */
+  --chart-1: #14b8a6;
+  --chart-2: #22c55e;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #ec4899;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #14b8a6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #1a1a1a;
+  --sidebar-border: #e0e0e0;
+  --sidebar-ring: #14b8a6;
+  /* 品牌色 */
+  --color-primary-container: #ccfbf1;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  /* 阴影 */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-float: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-dialog: 0 16px 32px rgba(0,0,0,0.08);
+  /* 圆角 */
+  --radius-full: 9999px;
+  /* 表面容器 */
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-high: #f0f0f0;
+  --color-surface-container-highest: #ebebeb;
 }
 
 /* Global styles */
@@ -107,23 +128,23 @@ body {
 
 /* Custom selection */
 ::selection {
-  background: oklch(0.9 0.02 247.858);
-  color: oklch(0.145 0 0);
+  background: #ccfbf1;
+  color: #1a1a1a;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: oklch(0.97 0.002 247.858);
+  background: #f5f5f5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.856 0.004 247.858);
-  border-radius: 4px;
+  background: #d4d4d4;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

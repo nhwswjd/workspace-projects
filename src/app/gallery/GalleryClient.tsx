@@ -78,10 +78,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </button>
       )}
 
-      {/* 移动端搜索框和分类导航 - 淡雅清新风格 */}
-      <div className="md:hidden">
+      {/* 移动端搜索框和分类导航 - 极简清新风格 */}
+      <div className="md:hidden bg-white">
         {/* 1. 搜索框区域 */}
-        <div className="bg-white px-4 pt-[19px] pb-2 mb-3">
+        <div className="px-4 py-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -89,24 +89,23 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               placeholder=""
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-20 h-[38px] bg-gray-50 border border-emerald-200 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
+              className="w-full pl-10 pr-12 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
             />
-            <button className="absolute right-0 top-1/2 -translate-y-1/2 w-14 h-9 px-3 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-xl text-base font-medium transition-colors flex items-center justify-center">
-              <Search className="w-4 h-4" />
+            <button className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-medium transition-colors flex items-center justify-center">
+              <Search className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
         {/* 2. 分类标签区域 */}
-        <div className="bg-white px-4 pt-4 pb-[19px]">
-          <div className="h-[6px] bg-white"></div>
+        <div className="px-4 pb-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-24 py-2 h-[38px] text-base font-medium rounded-full transition-all bg-yellow-200 ${
+              className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
                 selectedCategory === null
-                  ? 'bg-teal-600 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               全部
@@ -115,10 +114,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-16 h-[38px] text-base font-medium rounded-full transition-all ${
+                className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
                   selectedCategory === cat.id
-                    ? 'bg-teal-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {cat.name}
@@ -128,21 +127,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </div>
       </div>
 
-      {/* 3. 产品卡片区域 - 紧贴分类标签 */}
-      <main className="md:hidden px-3 py-3">
-        {/* 筛选提示 */}
-        {selectedCategory && (
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-base text-gray-500">共 {filteredProducts.length} 个产品</span>
-            <button
-              onClick={handleShowAll}
-              className="text-base text-emerald-600 hover:text-emerald-700"
-            >
-              清除筛选
-            </button>
-          </div>
-        )}
-
+      {/* 3. 产品卡片区域 - 极简清新风格 */}
+      <main className="md:hidden px-3 py-4 bg-[#fafafa]">
         {/* 产品网格 */}
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
@@ -150,7 +136,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <Link
                 key={product.id}
                 href={`/product/${product.id}`}
-                className="group block bg-white rounded-xl shadow-sm overflow-hidden"
+                className="group block bg-white rounded-xl overflow-hidden"
+                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
               >
                 {/* 图片容器 - 最大化展示 */}
                 <div className="relative bg-gray-100" style={{ aspectRatio: '3/4' }}>
@@ -170,32 +157,19 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   )}
                   {/* 精选标签 */}
                   {product.featured && (
-                    <span className="absolute top-2 right-2 bg-emerald-500/90 text-white text-base font-medium px-2 py-0.5 rounded-lg">
+                    <span className="absolute top-2 right-2 bg-primary/90 text-white text-xs font-medium px-2 py-0.5 rounded-md">
                       {product.featured}
                     </span>
                   )}
                 </div>
 
-                {/* 产品信息 - 紧凑 */}
-                <div className="px-2.5 py-2">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-base text-gray-500 font-medium whitespace-nowrap">{product.sku}</span>
-                    <h3 className="text-base text-gray-700 truncate flex-1 group-hover:text-emerald-600 transition-colors">
-                      {product.name}
-                    </h3>
-                  </div>
-                  {/* 标签 - 紧凑 */}
-                  {product.tags && product.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {product.tags.slice(0, 2).map((tag: string) => (
-                        <span
-                          key={tag}
-                          className="text-base text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                {/* 产品信息 - 极简 */}
+                <div className="px-2.5 py-2.5">
+                  <h3 className="text-sm text-gray-700 truncate group-hover:text-primary transition-colors">
+                    {product.name}
+                  </h3>
+                  {product.location && (
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{product.location}</p>
                   )}
                 </div>
               </Link>
