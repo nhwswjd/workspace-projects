@@ -91,8 +91,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-20 h-[46px] bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
             />
-            <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-medium transition-colors">
-              搜索
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-xl text-sm font-medium transition-colors flex items-center justify-center">
+              <Search className="w-4 h-4" />
             </button>
           </div>
         </div>
