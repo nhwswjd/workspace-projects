@@ -89,10 +89,10 @@ export function Header() {
 
             {/* Center: Brand - Art Font */}
             <span 
-              className="text-lg md:text-xl tracking-[0.3em] font-light italic"
+              className="text-lg md:text-xl tracking-[0.3em] font-bold italic"
               style={{ 
-                fontFamily: '"Georgia", "Times New Roman", serif',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
+                fontFamily: '"Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif',
+                textShadow: '1px 1px 3px rgba(0,0,0,0.15)'
               }}
             >
               {brandName}
