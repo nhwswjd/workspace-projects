@@ -251,12 +251,12 @@ export default function AdminPage() {
         fetch(`/api/products/${currentProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...currentProduct, sort_order: prevSort })
+          body: JSON.stringify({ ...currentProduct, sortOrder: prevSort })
         }),
         fetch(`/api/products/${prevProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...prevProduct, sort_order: currentSort })
+          body: JSON.stringify({ ...prevProduct, sortOrder: currentSort })
         })
       ]);
       
@@ -288,12 +288,12 @@ export default function AdminPage() {
         fetch(`/api/products/${currentProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...currentProduct, sort_order: nextSort })
+          body: JSON.stringify({ ...currentProduct, sortOrder: nextSort })
         }),
         fetch(`/api/products/${nextProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...nextProduct, sort_order: currentSort })
+          body: JSON.stringify({ ...nextProduct, sortOrder: currentSort })
         })
       ]);
       
