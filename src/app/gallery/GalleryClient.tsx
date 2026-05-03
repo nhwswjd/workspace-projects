@@ -67,43 +67,50 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   }, [searchQuery, selectedCategory, initialProducts]);
 
   return (
-    <div className="min-h-screen bg-orange-100">
+    <div className="min-h-screen bg-white">
       {/* Top按钮 - 回到顶部 */}
       {showTopButton && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 z-50 w-12 h-12 bg-stone-800 text-white rounded-lg shadow-lg flex items-center justify-center hover:bg-stone-700 transition-all"
+          className="fixed bottom-20 right-4 z-50 w-12 h-12 bg-emerald-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-emerald-700 transition-all"
         >
           <ArrowUp className="w-5 h-5" />
         </button>
       )}
 
-      {/* 移动端顶部两栏 */}
-      <div className="md:hidden px-4 pt-4 pb-2 space-y-3 bg-orange-100">
-        {/* 第一栏 - 搜索栏，比分类栏小，淡灰色背景 */}
-        <div className="bg-stone-200 rounded-full px-4 py-2 flex items-center gap-2">
-          <Search className="w-4 h-4 text-stone-400 ml-1 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="编号/名称/地址"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 py-2 text-sm bg-transparent border-none focus:ring-0 focus:outline-none focus:border-transparent shadow-none text-stone-900 placeholder:text-stone-400"
-          />
-          <button className="w-9 h-9 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-orange-500 transition-colors mr-1">
-            <Search className="w-4 h-4 text-white" />
-          </button>
+      {/* 移动端顶部区域 - 淡雅清新风格 */}
+      <div className="md:hidden">
+        {/* 1. 顶部品牌标题栏 */}
+        <div className="bg-white border-b border-gray-100">
+          <h1 className="text-center text-lg font-serif py-2 text-gray-700">江南风景好</h1>
         </div>
 
-        {/* 第二栏 - 分类栏，与电脑端一致，方框样式 */}
-        <div className="bg-orange-200 rounded-lg p-4">
-          <div className="flex flex-wrap gap-2 justify-start">
+        {/* 2. 搜索框区域 - 紧贴标题栏 */}
+        <div className="bg-white px-4 py-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="编号/名称/地址"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-20 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
+            />
+            <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-medium transition-colors">
+              搜索
+            </button>
+          </div>
+        </div>
+
+        {/* 3. 分类标签区域 - 紧贴搜索框 */}
+        <div className="bg-white px-4 py-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`px-4 py-2.5 text-sm font-medium border-2 transition-all ${
+              className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
                 selectedCategory === null
-                  ? 'bg-orange-500 text-white border-orange-500'
-                  : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >
               全部
@@ -112,10 +119,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`px-4 py-2.5 text-sm font-medium border-2 transition-all ${
+                className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
                   selectedCategory === cat.id
-                    ? 'bg-orange-500 text-white border-orange-500'
-                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
                 {cat.name}
@@ -124,6 +131,99 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           </div>
         </div>
       </div>
+
+      {/* 4. 产品卡片区域 - 紧贴分类标签 */}
+      <main className="md:hidden px-3 py-3">
+        {/* 筛选提示 */}
+        {selectedCategory && (
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-gray-500">共 {filteredProducts.length} 个产品</span>
+            <button
+              onClick={handleShowAll}
+              className="text-sm text-emerald-600 hover:text-emerald-700"
+            >
+              清除筛选
+            </button>
+          </div>
+        )}
+
+        {/* 产品网格 */}
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {filteredProducts.map((product) => (
+              <Link
+                key={product.id}
+                href={`/product/${product.id}`}
+                className="group block bg-white rounded-xl shadow-sm overflow-hidden"
+              >
+                {/* 图片容器 - 最大化展示 */}
+                <div className="relative bg-gray-100" style={{ aspectRatio: '3/4' }}>
+                  {product.coverImage ? (
+                    <Image
+                      src={product.coverImage}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                      sizes="50vw"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ImageIcon className="text-gray-300" size={32} />
+                    </div>
+                  )}
+                  {/* 精选标签 */}
+                  {product.featured && (
+                    <span className="absolute top-2 right-2 bg-emerald-500/90 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                      {product.featured}
+                    </span>
+                  )}
+                </div>
+
+                {/* 产品信息 - 紧凑 */}
+                <div className="px-2.5 py-2">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{product.sku}</span>
+                    <h3 className="text-sm text-gray-700 truncate flex-1 group-hover:text-emerald-600 transition-colors">
+                      {product.name}
+                    </h3>
+                  </div>
+                  {/* 标签 - 紧凑 */}
+                  {product.tags && product.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {product.tags.slice(0, 2).map((tag: string) => (
+                        <span
+                          key={tag}
+                          className="text-xs text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          /* 空状态 */
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-500 text-base">未找到相关产品</p>
+            <p className="text-gray-400 text-sm mt-1">尝试其他关键词或浏览全部分类</p>
+            <button
+              onClick={() => setSelectedCategory(null)}
+              className="mt-4 text-sm text-emerald-600 hover:text-emerald-700"
+            >
+              查看全部产品
+            </button>
+          </div>
+        )}
+      </main>
 
       {/* 桌面端搜索框和分类导航 - 保持原有样式 */}
       <div className="hidden md:block bg-stone-50">
@@ -174,8 +274,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </div>
       </div>
 
-      {/* 主内容区 - 左右1mm空间 */}
-      <main className="max-w-full mx-auto px-1 py-4 md:py-8">
+      {/* 桌面端主内容区 */}
+      <main className="hidden md:block max-w-full mx-auto px-1 py-4 md:py-8">
         {/* 筛选按钮 */}
         {selectedCategory && (
           <div className="flex items-center justify-end mb-5">
