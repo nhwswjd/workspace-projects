@@ -136,7 +136,7 @@ export function Header() {
               {/* Mobile: Menu button */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden p-2"
+                className="md:hidden p-2 rounded-lg bg-white/60 backdrop-blur-md border border-white/40 shadow-sm"
                 aria-label="打开菜单"
               >
                 <Menu className="w-7 h-7 stroke-[3] text-stone-800" />
