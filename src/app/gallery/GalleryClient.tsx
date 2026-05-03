@@ -81,7 +81,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
       {/* 移动端搜索框和分类导航 - 淡雅清新风格 */}
       <div className="md:hidden">
         {/* 1. 搜索框区域 */}
-        <div className="bg-white px-4 pt-[19px] pb-2">
+        <div className="bg-white px-4 pt-[19px] pb-2 mb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
