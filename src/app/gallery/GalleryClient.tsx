@@ -80,9 +80,9 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
       {/* 移动端顶部两栏 */}
       <div className="md:hidden px-4 pt-4 pb-2 space-y-3 bg-orange-100">
-        {/* 第一栏 - 搜索栏高度缩减80%，淡灰色背景 */}
-        <div className="bg-stone-200 rounded-full px-4 py-3 flex items-center gap-3">
-          <Search className="w-5 h-5 text-stone-400 ml-2 flex-shrink-0" />
+        {/* 第一栏 - 搜索栏，淡灰色背景 */}
+        <div className="bg-stone-200 rounded-full px-4 py-2.5 flex items-center gap-3">
+          <Search className="w-4 h-4 text-stone-400 ml-1 flex-shrink-0" />
           <input
             type="text"
             placeholder="编号/名称/地址"
@@ -90,17 +90,17 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 py-2 text-sm bg-transparent border-none focus:ring-0 focus:outline-none focus:border-transparent shadow-none text-stone-900 placeholder:text-stone-400"
           />
-          <button className="w-11 h-11 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-orange-500 transition-colors">
-            <Search className="w-5 h-5 text-white" />
+          <button className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-orange-500 transition-colors mr-1">
+            <Search className="w-4 h-4 text-white" />
           </button>
         </div>
 
-        {/* 第二栏 - 分类栏高度加倍，左对齐，黄色背景 */}
-        <div className="bg-orange-200 rounded-2xl p-12">
+        {/* 第二栏 - 分类栏，左对齐，黄色背景 */}
+        <div className="bg-orange-200 rounded-2xl p-4">
           <div className="flex flex-wrap gap-2 justify-start">
             <button
               onClick={handleShowAll}
-              className={`px-5 py-3 text-base font-medium rounded-full transition-all ${
+              className={`px-4 py-2.5 text-sm font-medium rounded-full transition-all ${
                 selectedCategory === null
                   ? 'bg-orange-500 text-white'
                   : 'bg-stone-100 text-stone-600'
@@ -112,7 +112,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`px-5 py-3 text-base font-medium rounded-full transition-all ${
+                className={`px-4 py-2.5 text-sm font-medium rounded-full transition-all ${
                   selectedCategory === cat.id
                     ? 'bg-orange-500 text-white'
                     : 'bg-stone-100 text-stone-600'
