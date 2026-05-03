@@ -152,10 +152,10 @@ export default function GalleryClient({
           <div className="flex gap-1 overflow-x-auto hide-scrollbar py-1">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-2 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+              className={`px-2 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border
                 ${selectedCategory === 'all' 
-                  ? 'bg-teal-500 text-white' 
-                  : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                  ? 'bg-teal-500 text-white border-teal-500' 
+                  : 'bg-white text-gray-600 hover:bg-gray-100 border-gray-300'}`}
             >
               全部
             </button>
@@ -163,10 +163,10 @@ export default function GalleryClient({
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-2 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+                className={`px-2 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border
                   ${selectedCategory === cat.id 
-                    ? 'bg-teal-500 text-white' 
-                    : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                    ? 'bg-teal-500 text-white border-teal-500' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100 border-gray-300'}`}
               >
                 {getCategoryDisplayName(cat.name)}
               </button>
