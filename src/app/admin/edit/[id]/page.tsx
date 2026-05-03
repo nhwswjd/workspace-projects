@@ -32,6 +32,35 @@ async function uploadToSupabase(file: File): Promise<string | null> {
   return urlData.publicUrl;
 }
 
+// 批量上传多张图片
+async function uploadMultipleToSupabase(files: File[]): Promise<string[]> {
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const urls: string[] = [];
+  
+  for (const file of files) {
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const ext = file.name.split('.').pop() || 'bin';
+    const fileName = `${timestamp}-${randomStr}.${ext}`;
+    
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(fileName, file, {
+        contentType: file.type,
+        upsert: true
+      });
+    
+    if (!error && data) {
+      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+      if (urlData.publicUrl) {
+        urls.push(urlData.publicUrl);
+      }
+    }
+  }
+  
+  return urls;
+}
+
 interface Category {
   id: string;
   name: string;
@@ -62,6 +91,7 @@ export default function EditProductPage() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
   const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
+  const [uploadingMultiple, setUploadingMultiple] = useState(false);
 
   useEffect(() => {
     // Load categories
@@ -409,9 +439,35 @@ export default function EditProductPage() {
                 <label className="text-sm font-medium text-gray-700">
                   图片列表 ({images.length}张)
                 </label>
-                <button type="button" onClick={handleAddImage} className="text-sm text-teal-600 font-medium">
-                  + 添加图片
-                </button>
+                <label className={`text-sm text-teal-600 font-medium cursor-pointer ${uploadingMultiple ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  {uploadingMultiple ? '上传中...' : '+ 批量上传图片'}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    multiple 
+                    className="hidden" 
+                    disabled={uploadingMultiple} 
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (files.length > 0) {
+                        setUploadingMultiple(true);
+                        try {
+                          const urls = await uploadMultipleToSupabase(files);
+                          if (urls.length > 0) {
+                            setImages([...images, ...urls]);
+                          }
+                          if (urls.length < files.length) {
+                            alert(`成功上传 ${urls.length} 张图片，${files.length - urls.length} 张上传失败`);
+                          }
+                        } catch {
+                          alert('上传失败');
+                        } finally {
+                          setUploadingMultiple(false);
+                        }
+                      }
+                    }} 
+                  />
+                </label>
               </div>
               
               {images.length > 0 && (
