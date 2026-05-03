@@ -175,8 +175,19 @@ export default function GalleryClient({
                     )}
                   </div>
                   <div className="p-2.5">
-                    <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{product.location}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      <span className="text-teal-600">{product.sku}</span> {product.name}
+                    </p>
+                    {product.tags && product.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {product.tags.slice(0, 3).map((tag: string, index: number) => (
+                          <span key={index} className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-400 mt-1">{product.location}</p>
                   </div>
                 </a>
               </div>
