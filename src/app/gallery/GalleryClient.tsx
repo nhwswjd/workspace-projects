@@ -33,7 +33,9 @@ export default function GalleryClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState(initialProducts);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const brandName = brandInfo?.name || '江南风景好';
 
@@ -57,6 +59,27 @@ export default function GalleryClient({
 
     setFilteredProducts(result.sort((a, b) => (a.sortOrder || 999) - (b.sortOrder || 999)));
   }, [selectedCategory, searchQuery, initialProducts]);
+
+  // 滚动监听 - 显示/隐藏返回顶部按钮
+  useEffect(() => {
+    const handleScroll = () => {
+      if (mainRef.current) {
+        setShowBackToTop(mainRef.current.scrollTop > 500);
+      }
+    };
+    
+    const mainElement = mainRef.current;
+    if (mainElement) {
+      mainElement.addEventListener('scroll', handleScroll);
+      return () => mainElement.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  const scrollToTop = () => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleSearch = () => {
     // 搜索逻辑已在 useEffect 中处理
@@ -82,7 +105,7 @@ export default function GalleryClient({
 
   return (
     <>
-      <main className="min-h-screen bg-gray-50 overflow-y-auto pb-4">
+      <main ref={mainRef} className="min-h-screen bg-gray-50 overflow-y-auto pb-4">
         {/* 搜索框 */}
         <div className="px-4 py-3">
           <div className="flex items-center gap-2">
@@ -198,6 +221,19 @@ export default function GalleryClient({
             <div className="text-center py-12 text-gray-400">
               <p>暂无相关产品</p>
             </div>
+          )}
+
+          {/* 返回顶部按钮 */}
+          {showBackToTop && (
+            <button
+              onClick={scrollToTop}
+              className="fixed bottom-6 right-6 w-12 h-12 bg-teal-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-teal-700 transition-all z-40"
+              aria-label="返回顶部"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            </button>
           )}
         </div>
       </main>
