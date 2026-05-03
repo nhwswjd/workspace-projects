@@ -89,7 +89,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               placeholder=""
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-20 h-[46px] bg-gray-50 border border-emerald-200 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
+              className="w-full pl-10 pr-20 h-[38px] bg-gray-50 border border-emerald-200 rounded-xl text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
             />
             <button className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-xl text-base font-medium transition-colors flex items-center justify-center">
               <Search className="w-4 h-4" />
@@ -102,7 +102,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 h-[46px] text-base font-medium rounded-full border-2 transition-all ${
+              className={`flex-shrink-0 px-4 h-[38px] text-base font-medium rounded-full border-2 transition-all ${
                 selectedCategory === null
                   ? 'border-emerald-600 bg-emerald-600 text-white'
                   : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
@@ -114,7 +114,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 h-[46px] text-base font-medium rounded-full border-2 transition-all ${
+                className={`flex-shrink-0 px-4 h-[38px] text-base font-medium rounded-full border-2 transition-all ${
                   selectedCategory === cat.id
                     ? 'border-emerald-600 bg-emerald-600 text-white'
                     : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
