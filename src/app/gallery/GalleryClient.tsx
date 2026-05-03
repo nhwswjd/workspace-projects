@@ -102,10 +102,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 h-[46px] text-sm font-medium rounded-full transition-all ${
+              className={`flex-shrink-0 px-4 h-[46px] text-sm font-medium rounded-full border-2 transition-all ${
                 selectedCategory === null
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  ? 'border-emerald-600 bg-emerald-600 text-white'
+                  : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
               }`}
             >
               全部
@@ -114,10 +114,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 h-[46px] text-sm font-medium rounded-full transition-all ${
+                className={`flex-shrink-0 px-4 h-[46px] text-sm font-medium rounded-full border-2 transition-all ${
                   selectedCategory === cat.id
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    ? 'border-emerald-600 bg-emerald-600 text-white'
+                    : 'border-emerald-200 bg-transparent text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50'
                 }`}
               >
                 {cat.name}
