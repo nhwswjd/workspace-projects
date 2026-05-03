@@ -78,15 +78,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </button>
       )}
 
-      {/* 移动端顶部区域 - 淡雅清新风格 */}
+      {/* 移动端搜索框和分类导航 - 淡雅清新风格 */}
       <div className="md:hidden">
-        {/* 1. 顶部品牌标题栏 */}
-        <div className="bg-white border-b border-gray-100">
-          <h1 className="text-center text-lg font-serif py-2 text-gray-700">江南风景好</h1>
-        </div>
-
-        {/* 2. 搜索框区域 - 紧贴标题栏 */}
-        <div className="bg-white px-4 py-2">
+        {/* 1. 搜索框区域 - 紧贴Header */}
+        <div className="bg-white px-4 pt-3 pb-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -102,8 +97,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           </div>
         </div>
 
-        {/* 3. 分类标签区域 - 紧贴搜索框 */}
-        <div className="bg-white px-4 py-2">
+        {/* 2. 分类标签区域 - 紧贴搜索框 */}
+        <div className="bg-white px-4 pb-3">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
@@ -132,7 +127,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </div>
       </div>
 
-      {/* 4. 产品卡片区域 - 紧贴分类标签 */}
+      {/* 3. 产品卡片区域 - 紧贴分类标签 */}
       <main className="md:hidden px-3 py-3">
         {/* 筛选提示 */}
         {selectedCategory && (
