@@ -103,7 +103,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex gap-6 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-16 h-[38px] text-base font-medium rounded-full transition-all bg-yellow-200 ${
+              className={`flex-shrink-0 px-24 py-2 h-[38px] text-base font-medium rounded-full transition-all bg-yellow-200 ${
                 selectedCategory === null
                   ? 'bg-teal-600 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
