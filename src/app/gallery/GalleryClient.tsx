@@ -152,7 +152,7 @@ export default function GalleryClient({
           <div className="flex gap-1 overflow-x-auto hide-scrollbar py-1">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-1.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+              className={`px-2 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
                 ${selectedCategory === 'all' 
                   ? 'bg-teal-500 text-white' 
                   : 'bg-white text-gray-600 hover:bg-gray-100'}`}
@@ -163,7 +163,7 @@ export default function GalleryClient({
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-1.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+                className={`px-2 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
                   ${selectedCategory === cat.id 
                     ? 'bg-teal-500 text-white' 
                     : 'bg-white text-gray-600 hover:bg-gray-100'}`}
