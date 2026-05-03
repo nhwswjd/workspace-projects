@@ -169,7 +169,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   )}
                   {/* 精选标签 */}
                   {product.featured && (
-                    <span className="absolute top-2 right-2 bg-emerald-500/90 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 right-2 bg-emerald-500/90 text-white text-base font-medium px-2 py-0.5 rounded-full">
                       {product.featured}
                     </span>
                   )}
@@ -178,7 +178,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 {/* 产品信息 - 紧凑 */}
                 <div className="px-2.5 py-2">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{product.sku}</span>
+                    <span className="text-base text-gray-500 font-medium whitespace-nowrap">{product.sku}</span>
                     <h3 className="text-sm text-gray-700 truncate flex-1 group-hover:text-emerald-600 transition-colors">
                       {product.name}
                     </h3>
@@ -189,7 +189,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                       {product.tags.slice(0, 2).map((tag: string) => (
                         <span
                           key={tag}
-                          className="text-xs text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded"
+                          className="text-base text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded"
                         >
                           {tag}
                         </span>
@@ -312,7 +312,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   )}
                   {/* 精选标签 - 右上角紧贴，无圆角 */}
                   {product.featured && (
-                    <span className="absolute top-0 right-0 bg-amber-500/95 text-white text-xs font-medium px-2.5 py-1.5">
+                    <span className="absolute top-0 right-0 bg-amber-500/95 text-white text-base font-medium px-2.5 py-1.5">
                       {product.featured}
                     </span>
                   )}
@@ -321,7 +321,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                 {/* 产品信息 */}
                 <div className="flex items-center gap-2 mb-2">
                   {/* 编号 - 红色 */}
-                  <span className="text-xs text-red-600 font-medium whitespace-nowrap">
+                  <span className="text-base text-red-600 font-medium whitespace-nowrap">
                     {product.sku}
                   </span>
                   <h3 className="font-medium text-stone-900 text-sm md:text-base group-hover:text-amber-600 transition-colors truncate">
@@ -334,7 +334,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
                   {product.tags && product.tags.slice(0, 3).map((tag: string) => (
                     <span
                       key={tag}
-                      className="text-xs text-stone-600 bg-white border border-stone-300 px-2 py-0.5"
+                      className="text-base text-stone-600 bg-white border border-stone-300 px-2 py-0.5"
                     >
                       {tag}
                     </span>
