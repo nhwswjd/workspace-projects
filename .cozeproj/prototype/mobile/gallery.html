@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/jquery/jquery-3.7.1.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/lucide/lucide-1.11.0.min.js"></script>
+  <script src="https://lf-code-agent.coze.cn/obj/x-ai-cn/cdn/tailwindcss/tailwindcss-browser-4.2.4.min.js"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      /* === 品牌色 - 清新蓝绿色 === */
+      --color-primary:              #14b8a6;
+      --color-primary-container:    #ccfbf1;
+      --color-on-primary:          #ffffff;
+      /* === 背景 / 表面 === */
+      --color-background:                 #fafafa;
+      --color-surface-container-lowest:   #ffffff;
+      --color-surface:                    #ffffff;
+      --color-surface-container:          #f5f5f5;
+      --color-surface-container-high:     #f0f0f0;
+      --color-surface-container-highest:  #ebebeb;
+      /* === 文字 === */
+      --color-on-surface:           #1a1a1a;
+      --color-on-surface-variant:   #666666;
+      /* === 功能色 === */
+      --color-success:  #22c55e;
+      --color-error:    #ef4444;
+      --color-warning:  #f59e0b;
+      /* === 边框 === */
+      --color-outline:          #e0e0e0;
+      --color-outline-variant:  #eeeeee;
+      /* === 圆角 === */
+      --radius-sm:   0.375rem;
+      --radius-md:   0.5rem;
+      --radius-lg:   0.75rem;
+      --radius-xl:   1rem;
+      --radius-2xl:  1.25rem;
+      --radius-full: 9999px;
+      /* === 阴影 === */
+      --shadow-card:   0 1px 3px rgba(0,0,0,0.04);
+      --shadow-float:  0 4px 12px rgba(0,0,0,0.06);
+      --shadow-dialog: 0 16px 32px rgba(0,0,0,0.08);
+      /* === 字体 === */
+      --font-sans: "Inter", "Noto Sans SC", system-ui, sans-serif;
+    }
+  </style>
+
+  <style>
+    body {
+      min-height: max(812px, 100dvh);
+      font-family: "Inter", "Noto Sans SC", system-ui, sans-serif;
+      background: #fafafa;
+    }
+    /* 隐藏滚动条但保持滚动功能 */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#14b8a6',
+            'primary-container': '#ccfbf1',
+            'on-primary': '#ffffff',
+            background: '#fafafa',
+            surface: '#ffffff',
+            'surface-container': '#f5f5f5',
+            'on-surface': '#1a1a1a',
+            'on-surface-variant': '#666666',
+            outline: '#e0e0e0',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-background text-on-surface">
+
+  <!-- 顶部 Header - 极简风格 -->
+  <header class="sticky top-0 z-40 bg-background/80 backdrop-blur-md">
+    <div class="h-12 flex items-center justify-between px-4">
+      <!-- 左侧菜单图标 -->
+      <button id="btn-menu" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container transition-colors active:bg-surface-container-high">
+        <i data-lucide="menu-2" class="w-5 h-5 text-on-surface"></i>
+      </button>
+      <!-- 中间标题 - 简洁无衬线 -->
+      <h1 class="text-base font-semibold text-on-surface tracking-tight">江南风景好</h1>
+      <!-- 右侧占位 -->
+      <div class="w-9"></div>
+    </div>
+  </header>
+
+  <!-- @main-content:start -->
+  <main class="overflow-y-auto pb-4">
+
+    <!-- 搜索框区域 -->
+    <div class="px-4 pt-3 pb-4">
+      <div class="flex items-center gap-2">
+        <!-- 搜索图标 -->
+        <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+          <i data-lucide="search" class="w-5 h-5 text-on-surface-variant"></i>
+        </div>
+        <!-- 搜索输入框 -->
+        <input id="input-search" type="text" placeholder="搜索江南美景..." 
+               class="flex-1 h-10 bg-surface-container rounded-full px-4 text-sm text-on-surface placeholder:text-on-surface-variant/60 border-none outline-none focus:ring-2 focus:ring-primary/30 transition-all" />
+        <!-- 搜索按钮 -->
+        <button id="btn-search" class="flex-shrink-0 h-10 px-5 bg-primary text-on-primary rounded-full text-sm font-medium hover:bg-primary/90 active:scale-[0.97] transition-all">
+          搜索
+        </button>
+      </div>
+    </div>
+
+    <!-- 分类标签 - 横向滚动 -->
+    <div class="px-4 pb-4">
+      <div id="category-scroll" class="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+        <!-- 列表-全部标签 -->
+        <button data-category="all" class="category-tag flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium bg-primary text-on-primary transition-all">
+          全部
+        </button>
+        <!-- 列表-山水标签 -->
+        <button data-category="landscape" class="category-tag flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all">
+          山水风光
+        </button>
+        <!-- 列表-古镇标签 -->
+        <button data-category="ancient" class="category-tag flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all">
+          古镇水乡
+        </button>
+        <!-- 列表-花卉标签 -->
+        <button data-category="flowers" class="category-tag flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all">
+          花卉植物
+        </button>
+        <!-- 列表-建筑标签 -->
+        <button data-category="architecture" class="category-tag flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all">
+          园林建筑
+        </button>
+        <!-- 列表-日落标签 -->
+        <button data-category="sunset" class="category-tag flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all">
+          日落晚霞
+        </button>
+        <!-- 列表-夜景标签 -->
+        <button data-category="night" class="category-tag flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-all">
+          夜景灯光
+        </button>
+      </div>
+    </div>
+
+    <!-- 相册网格 - 两列瀑布流 -->
+    <div id="gallery-grid" class="px-4">
+      <div class="flex gap-3">
+        <!-- 左列 -->
+        <div class="flex-1 flex flex-col gap-3">
+          <!-- 列表-相册卡片1：西湖断桥 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-1" data-category="landscape">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1599571234909-29ed5d1321d6?w=400&h=500&fit=crop" 
+                   alt="西湖断桥残雪" data-category="自然风景"
+                   class="w-full object-cover" style="height: 200px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">西湖断桥残雪</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">冬日西湖</p>
+            </div>
+          </div>
+          <!-- 列表-相册卡片3：苏州拙政园 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-3" data-category="architecture">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1590725140246-20acdee442be?w=400&h=350&fit=crop" 
+                   alt="苏州拙政园亭台" data-category="建筑城市"
+                   class="w-full object-cover" style="height: 160px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">苏州拙政园</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">江南园林</p>
+            </div>
+          </div>
+          <!-- 列表-相册卡片5：乌镇夜景 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-5" data-category="night">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400&h=450&fit=crop" 
+                   alt="乌镇夜景灯火" data-category="建筑城市"
+                   class="w-full object-cover" style="height: 180px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">乌镇夜景灯火</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">水乡夜色</p>
+            </div>
+          </div>
+          <!-- 列表-相册卡片7：莫干山竹林 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-7" data-category="landscape">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1583241800698-e8ab01830a07?w=400&h=500&fit=crop" 
+                   alt="莫干山竹林小径" data-category="自然风景"
+                   class="w-full object-cover" style="height: 220px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">莫干山竹林</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">避暑圣地</p>
+            </div>
+          </div>
+        </div>
+        <!-- 右列 -->
+        <div class="flex-1 flex flex-col gap-3">
+          <!-- 列表-相册卡片2：周庄水乡 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-2" data-category="ancient">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1537531383496-f4749b8032cf?w=400&h=380&fit=crop" 
+                   alt="周庄水乡小桥" data-category="建筑城市"
+                   class="w-full object-cover" style="height: 170px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">周庄水乡</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">小桥流水</p>
+            </div>
+          </div>
+          <!-- 列表-相册卡片4：西湖荷花 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-4" data-category="flowers">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1550159930-40066082a4fc?w=400&h=420&fit=crop" 
+                   alt="西湖曲院荷花" data-category="自然风景"
+                   class="w-full object-cover" style="height: 190px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">曲院风荷</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">夏日荷花</p>
+            </div>
+          </div>
+          <!-- 列表-相册卡片6：雷峰塔日落 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-6" data-category="sunset">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop" 
+                   alt="雷峰塔夕阳西下" data-category="自然风景"
+                   class="w-full object-cover" style="height: 210px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">雷峰夕照</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">夕阳西下</p>
+            </div>
+          </div>
+          <!-- 列表-相册卡片8：南浔古镇 -->
+          <div class="gallery-card bg-surface rounded-xl overflow-hidden shadow-card" data-id="photo-8" data-category="ancient">
+            <div class="relative">
+              <img src="https://images.unsplash.com/photo-1545893835-abaa50cbe628?w=400&h=350&fit=crop" 
+                   alt="南浔古镇街景" data-category="建筑城市"
+                   class="w-full object-cover" style="height: 150px;" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            </div>
+            <div class="p-3">
+              <h3 class="text-sm font-medium text-on-surface truncate">南浔古镇</h3>
+              <p class="text-xs text-on-surface-variant mt-0.5">百年古镇</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <!-- @main-content:end -->
+
+  <script>
+    // 导航函数定义
+    function navPush(route) {
+      console.log('[原型演示] PUSH 到: ' + route);
+      window.location.href = route;
+    }
+
+    function navReplace(route) {
+      console.log('[原型演示] REPLACE 为: ' + route);
+      window.location.replace(route);
+    }
+
+    function navReset(route) {
+      console.log('[原型演示] RESET 到: ' + route);
+      window.location.href = route;
+    }
+
+    function navBack() {
+      console.log('[原型演示] BACK 返回上一页');
+      if (window.history.length > 1) window.history.back();
+    }
+
+    $(function() {
+      // 菜单按钮点击
+      $('#btn-menu').on('click', function() {
+        console.log('点击菜单按钮');
+        // 应弹出侧边菜单抽屉
+      });
+
+      // 搜索按钮点击
+      $('#btn-search').on('click', function() {
+        const keyword = $('#input-search').val().trim();
+        if (keyword) {
+          console.log('搜索关键词:', keyword);
+          // 应执行搜索并更新相册列表
+          alert('搜索: ' + keyword);
+        } else {
+          console.log('请输入搜索关键词');
+        }
+      });
+
+      // 搜索框回车搜索
+      $('#input-search').on('keypress', function(e) {
+        if (e.which === 13) {
+          $('#btn-search').click();
+        }
+      });
+
+      // 分类标签切换
+      $('#category-scroll').on('click', '.category-tag', function() {
+        const $this = $(this);
+        const category = $this.data('category');
+        
+        // 更新标签激活状态
+        $('.category-tag').each(function() {
+          const $tag = $(this);
+          if ($tag.data('category') === category) {
+            $tag.removeClass('bg-surface-container text-on-surface-variant hover:bg-surface-container-high')
+                .addClass('bg-primary text-on-primary');
+          } else {
+            $tag.removeClass('bg-primary text-on-primary')
+                .addClass('bg-surface-container text-on-surface-variant hover:bg-surface-container-high');
+          }
+        });
+
+        console.log('切换分类:', category);
+        // 应根据分类筛选相册并更新列表
+      });
+
+      // 相册卡片点击
+      $('.gallery-card').on('click', function() {
+        const photoId = $(this).data('id');
+        const title = $(this).find('h3').text();
+        console.log('查看相册详情:', photoId, title);
+        // 应跳转到相册详情页
+        // navPush('detail.html?id=' + photoId);
+      });
+    });
+  </script>
+
+  <script>lucide.createIcons();</script>
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+{
+  "elements": [
+    {
+      "type": "html",
+      "options": {
+        "path": ".cozeproj/prototype/mobile/gallery.html"
+      },
+      "title": "产品列表",
+      "size": "mobile"
+    }
+  ]
+}
