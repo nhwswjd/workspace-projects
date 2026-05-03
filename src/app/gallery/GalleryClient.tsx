@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Search, X, Heart, Share2, ChevronLeft, MoreVertical, ShoppingBag } from 'lucide-react';
+import { Search, X, Heart, Share2, ChevronLeft, MoreVertical, ShoppingBag, Image as ImageIcon } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -173,13 +173,19 @@ export default function GalleryClient({
                   style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
                 >
                   <div className="relative" style={{ paddingBottom: '133.33%' }}>
-                    <Image
-                      src={product.cover_image}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 50vw, 33vw"
-                    />
+                    {product.cover_image ? (
+                      <Image
+                        src={product.cover_image}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-gray-300" />
+                      </div>
+                    )}
                     {product.featured && (
                       <span className="absolute top-2 left-2 bg-teal-500 text-white text-xs px-2 py-0.5 rounded-full">
                         精选

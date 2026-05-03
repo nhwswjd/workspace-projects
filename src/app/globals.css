@@ -55,7 +55,7 @@ body {
   scrollbar-width: none;
 }
 
-/* 瀑布流两列布局 */
+/* 瀑布流自适应布局 - 移动端2列，PC端4列 */
 .waterfall-grid {
   column-count: 2;
   column-gap: 0.75rem;
@@ -63,6 +63,17 @@ body {
 .waterfall-item {
   break-inside: avoid;
   margin-bottom: 0.75rem;
+}
+/* PC端自适应 */
+@media (min-width: 768px) {
+  .waterfall-grid {
+    column-count: 3;
+  }
+}
+@media (min-width: 1024px) {
+  .waterfall-grid {
+    column-count: 4;
+  }
 }
 
 /* 确保图片不会变形 */
