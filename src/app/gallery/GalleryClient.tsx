@@ -95,15 +95,15 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           </button>
         </div>
 
-        {/* 第二栏 - 分类栏，比搜索栏大，左对齐，黄色背景 */}
-        <div className="bg-orange-200 rounded-2xl p-4">
+        {/* 第二栏 - 分类栏，与电脑端一致，方框样式 */}
+        <div className="bg-orange-200 rounded-lg p-4">
           <div className="flex flex-wrap gap-2 justify-start">
             <button
               onClick={handleShowAll}
-              className={`px-4 py-2.5 text-sm font-medium rounded-full transition-all ${
+              className={`px-4 py-2.5 text-sm font-medium border-2 transition-all ${
                 selectedCategory === null
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-stone-100 text-stone-600'
+                  ? 'bg-orange-500 text-white border-orange-500'
+                  : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
               }`}
             >
               全部
@@ -112,10 +112,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`px-4 py-2.5 text-sm font-medium rounded-full transition-all ${
+                className={`px-4 py-2.5 text-sm font-medium border-2 transition-all ${
                   selectedCategory === cat.id
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-stone-100 text-stone-600'
+                    ? 'bg-orange-500 text-white border-orange-500'
+                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
                 }`}
               >
                 {cat.name}
