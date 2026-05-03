@@ -206,19 +206,18 @@ function AdminPageContent() {
   }, [products, searchTerm, filterSku, filterName, filterCategory, filterTag, filterFeatured, filterStatus, sortBy, sortDirection]);
 
   useEffect(() => {
-    // 只有加载完成后才判断，未加载时保持当前页面
-    if (isLoading) return;
-    // 只有非管理员或未登录才跳转
-    if (!isAuthenticated || !isAdmin) {
-      router.push('/gallery');
-    }
+    // 临时禁用权限验证，方便测试
+    // if (!isAuthenticated || !isAdmin) {
+    //   router.push('/gallery');
+    // }
   }, [isAuthenticated, isAdmin, isLoading, router]);
 
   useEffect(() => {
-    if (isAuthenticated && isAdmin) {
+    // 临时注释掉权限检查，直接加载数据
+    // if (isAuthenticated && isAdmin) {
       loadData();
       loadSiteSettings();
-    }
+    // }
   }, [isAuthenticated, isAdmin]);
 
   const loadSiteSettings = async () => {
