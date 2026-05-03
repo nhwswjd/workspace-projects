@@ -122,7 +122,7 @@ export default function GalleryClient({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="搜索你喜欢的风景"
-                className="w-full bg-gray-100 border-none rounded-full pl-10 pr-4 py-2.5 text-sm
+                className="w-full bg-gray-100 border border-teal-200 rounded-full pl-10 pr-4 py-2.5 text-sm
                          text-gray-900 placeholder:text-gray-400/50
                          focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors"
               />
