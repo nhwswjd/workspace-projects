@@ -49,15 +49,17 @@ export default function AdminPage() {
 
   const loadData = async () => {
     try {
-      const [productsRes, categoriesRes, settingsRes] = await Promise.all([
+      const [productsRes, categoriesRes, brandRes, passwordRes] = await Promise.all([
         fetch('/api/products').then(r => r.json()),
         fetch('/api/categories').then(r => r.json()),
         fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
+        fetch('/api/site-settings/admin_password').then(r => r.json()).catch(() => ({ value: '' })),
       ]);
       
       if (productsRes.products) setProducts(productsRes.products);
       if (categoriesRes.categories) setCategories(categoriesRes.categories);
-      if (settingsRes.value) setSiteName(settingsRes.value);
+      if (brandRes.value) setSiteName(brandRes.value);
+      if (passwordRes.value) setAdminPassword(passwordRes.value);
     } catch (err) {
       console.error('加载数据失败', err);
     } finally {

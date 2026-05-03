@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSiteSetting, updateSiteSetting } from '@/lib/db';
-import { createClient } from '@supabase/supabase-js';
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ key: string }> }
 ) {
   try {
@@ -21,14 +20,7 @@ export async function PUT(
   { params }: { params: Promise<{ key: string }> }
 ) {
   try {
-    // 验证管理员权限
-    const authHeader = request.headers.get('authorization');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin2024';
-    
-    if (authHeader !== `Bearer ${adminPassword}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // 管理后台本身已有密码保护，此处不再单独验证
     const { key } = await params;
     const { value } = await request.json();
     

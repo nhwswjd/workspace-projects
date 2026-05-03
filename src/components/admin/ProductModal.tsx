@@ -79,21 +79,20 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
     const url = ENV_SUPABASE_URL || DEFAULT_SUPABASE_URL;
     const key = ENV_SUPABASE_KEY || DEFAULT_SUPABASE_ANON_KEY;
     
-    // 更新调试信息
-    const info = `URL: ${url ? 'SET (' + url.substring(0, 30) + '...)' : 'EMPTY'}, KEY: ${key ? 'SET' : 'EMPTY'}`;
-    setDebugInfo(info);
-    
     if (url && key) {
       console.log('[ProductModal] Creating Supabase client with URL:', url.substring(0, 30) + '...');
       return createClient(url, key);
     }
     
     console.error('[ProductModal] Cannot create Supabase client: URL or KEY is empty');
-    console.error('[ProductModal] ENV_URL:', ENV_SUPABASE_URL ? 'SET' : 'EMPTY');
-    console.error('[ProductModal] ENV_KEY:', ENV_SUPABASE_KEY ? 'SET' : 'EMPTY');
-    console.error('[ProductModal] DEFAULT_URL:', DEFAULT_SUPABASE_URL ? 'SET' : 'EMPTY');
-    console.error('[ProductModal] DEFAULT_KEY:', DEFAULT_SUPABASE_ANON_KEY ? 'SET' : 'EMPTY');
     return null;
+  }, []);
+  
+  // 调试信息更新到 useEffect
+  useEffect(() => {
+    const url = ENV_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+    const key = ENV_SUPABASE_KEY || DEFAULT_SUPABASE_ANON_KEY;
+    setDebugInfo(`URL: ${url ? 'SET (' + url.substring(0, 30) + '...)' : 'EMPTY'}, KEY: ${key ? 'SET' : 'EMPTY'}`);
   }, []);
 
   useEffect(() => {
