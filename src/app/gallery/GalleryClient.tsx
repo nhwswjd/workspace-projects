@@ -80,8 +80,8 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
 
       {/* 移动端搜索框和分类导航 - 淡雅清新风格 */}
       <div className="md:hidden">
-        {/* 1. 搜索框区域 - 紧贴Header */}
-        <div className="bg-white px-4 py-[19px]">
+        {/* 1. 搜索框区域 */}
+        <div className="bg-white px-4 pt-[19px] pb-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -98,7 +98,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </div>
 
         {/* 2. 分类标签区域 */}
-        <div className="bg-white px-4 py-[19px]">
+        <div className="bg-white px-4 pt-2 pb-[19px]">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}

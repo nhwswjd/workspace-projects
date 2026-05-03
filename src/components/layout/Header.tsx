@@ -84,21 +84,17 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-[58px] md:h-12">
-            {/* Left: Back button + Search */}
-            <div className="flex items-center gap-2 flex-1">
-              {isSubPage && (
-                <button
-                  onClick={() => router.back()}
-                  className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  <span>返回</span>
-                </button>
-              )}
-            </div>
+            {/* Left: Empty space for balance */}
+            <div className="flex-1"></div>
 
-            {/* Center: Brand */}
-            <span className="font-display text-lg md:text-xl tracking-widest font-bold">
+            {/* Center: Brand - Art Font */}
+            <span 
+              className="text-lg md:text-xl tracking-[0.3em] font-light italic"
+              style={{ 
+                fontFamily: '"Georgia", "Times New Roman", serif',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.1)'
+              }}
+            >
               {brandName}
             </span>
 
