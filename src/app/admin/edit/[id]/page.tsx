@@ -19,6 +19,8 @@ export default function EditProductPage() {
   const [categoryId, setCategoryId] = useState('');
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('');
+  const [tags, setTags] = useState('');
+  const [hidden, setHidden] = useState(false);
   const [featured, setFeatured] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [images, setImages] = useState<string[]>([]);
@@ -49,6 +51,8 @@ export default function EditProductPage() {
             setCategoryId(p.category_id || '');
             setCategory(p.category || '');
             setLocation(p.location || '');
+            setTags(Array.isArray(p.tags) ? p.tags.join('，') : (p.tags || ''));
+            setHidden(p.hidden || false);
             setFeatured(p.featured || '');
             
             // Handle cover image - might be string or object
@@ -134,6 +138,8 @@ export default function EditProductPage() {
           category_id: categoryId,
           location,
           featured: featured || null,
+          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          hidden: hidden || false,
           cover_image: coverImage || null,
           images: images.filter(Boolean),
           videos: videos.filter(Boolean)
@@ -265,6 +271,31 @@ export default function EditProductPage() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 placeholder="如: 杭州市西湖区"
               />
+            </div>
+
+            {/* 标签 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">标签（多个用逗号分隔）</label>
+              <input
+                type="text"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                placeholder="如: 风景,古镇,日出"
+              />
+            </div>
+
+            {/* 隐藏 */}
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hidden}
+                  onChange={(e) => setHidden(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                />
+                <span className="text-sm font-medium text-gray-700">隐藏（访客不可见）</span>
+              </label>
             </div>
 
             <div>

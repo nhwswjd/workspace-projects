@@ -20,6 +20,7 @@ export default function NewProductPage() {
     cover_image: '',
     images: [] as string[],
     videos: [] as string[],
+    hidden: false,
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [newImage, setNewImage] = useState('');
@@ -172,6 +173,27 @@ export default function NewProductPage() {
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6] resize-none"
                 placeholder="产品描述"
               />
+            </div>
+
+            {/* 隐藏设置 */}
+            <div className="flex items-center justify-between py-3 border-t border-gray-100">
+              <div>
+                <label className="text-sm font-medium text-gray-700">隐藏产品</label>
+                <p className="text-xs text-gray-500">隐藏后访客将看不到此产品</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, hidden: !formData.hidden })}
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  formData.hidden ? 'bg-[#14b8a6]' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    formData.hidden ? 'translate-x-6' : ''
+                  }`}
+                />
+              </button>
             </div>
           </div>
         </div>
