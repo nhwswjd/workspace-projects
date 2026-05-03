@@ -78,34 +78,39 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         </button>
       )}
 
-      {/* 移动端搜索框和分类导航 - 极简清新风格 */}
-      <div className="md:hidden bg-white">
-        {/* 1. 搜索框区域 */}
-        <div className="px-4 py-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* 移动端内容 - 极简清新瀑布流 */}
+      <div className="md:hidden bg-[#fafafa] min-h-screen">
+        {/* 搜索框区域 - 原型样式 */}
+        <div className="px-4 pt-3 pb-4 bg-white">
+          <div className="flex items-center gap-2">
+            {/* 搜索图标 */}
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+              <Search className="w-5 h-5 text-[#6B7280]" />
+            </div>
+            {/* 搜索输入框 */}
             <input
               type="text"
-              placeholder=""
+              placeholder="搜索江南美景..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-12 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              className="flex-1 h-10 bg-[#f5f5f5] rounded-full px-4 text-sm text-[#1f2937] placeholder:text-[#9ca3af] border-none outline-none focus:ring-2 focus:ring-[#14b8a6]/30 transition-all"
             />
-            <button className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-primary text-white hover:bg-primary/90 rounded-lg text-xs font-medium transition-colors flex items-center justify-center">
-              <Search className="w-3.5 h-3.5" />
+            {/* 搜索按钮 */}
+            <button className="flex-shrink-0 h-10 px-5 bg-[#14b8a6] text-white rounded-full text-sm font-medium hover:bg-[#14b8a6]/90 active:scale-[0.97] transition-all">
+              搜索
             </button>
           </div>
         </div>
 
-        {/* 2. 分类标签区域 */}
-        <div className="px-4 pb-3">
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {/* 分类标签区域 - 横向滚动胶囊 */}
+        <div className="px-4 pb-4 bg-white">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
+              className={`flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium transition-all ${
                 selectedCategory === null
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#14b8a6] text-white'
+                  : 'bg-[#f5f5f5] text-[#6b7280] hover:bg-[#e5e5e5]'
               }`}
             >
               全部
@@ -114,10 +119,10 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
+                className={`flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium transition-all ${
                   selectedCategory === cat.id
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-[#14b8a6] text-white'
+                    : 'bg-[#f5f5f5] text-[#6b7280] hover:bg-[#e5e5e5]'
                 }`}
               >
                 {cat.name}
@@ -125,75 +130,90 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
             ))}
           </div>
         </div>
-      </div>
 
-      {/* 3. 产品卡片区域 - 极简清新风格 */}
-      <main className="md:hidden px-3 py-4 bg-[#fafafa]">
-        {/* 产品网格 */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredProducts.map((product) => (
-              <Link
-                key={product.id}
-                href={`/product/${product.id}`}
-                className="group block bg-white rounded-xl overflow-hidden"
-                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-              >
-                {/* 图片容器 - 最大化展示 */}
-                <div className="relative bg-gray-100" style={{ aspectRatio: '3/4' }}>
-                  {product.coverImage ? (
-                    <Image
-                      src={product.coverImage}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                      sizes="50vw"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <ImageIcon className="text-gray-300" size={32} />
-                    </div>
-                  )}
-                  {/* 精选标签 */}
-                  {product.featured && (
-                    <span className="absolute top-2 right-2 bg-primary/90 text-white text-xs font-medium px-2 py-0.5 rounded-md">
-                      {product.featured}
-                    </span>
-                  )}
-                </div>
-
-                {/* 产品信息 - 极简 */}
-                <div className="px-2.5 py-2.5">
-                  <h3 className="text-sm text-gray-700 truncate group-hover:text-primary transition-colors">
-                    {product.name}
-                  </h3>
-                  {product.location && (
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{product.location}</p>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          /* 空状态 */
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-gray-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+        {/* 相册网格 - 两列瀑布流 */}
+        <div className="px-4 pb-4">
+          <div className="flex gap-3">
+            {/* 左列 */}
+            <div className="flex-1 flex flex-col gap-3">
+              {filteredProducts.filter((_, i) => i % 2 === 0).map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/product/${product.id}`}
+                  className="bg-white rounded-xl overflow-hidden"
+                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                >
+                  <div className="relative">
+                    {product.coverImage ? (
+                      <Image
+                        src={product.coverImage}
+                        alt={product.name}
+                        width={400}
+                        height={250}
+                        className="w-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: '150px' }}>
+                        <ImageIcon className="text-gray-300" size={32} />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+                    {product.featured && (
+                      <span className="absolute top-2 right-2 bg-[#14b8a6]/90 text-white text-xs font-medium px-2 py-0.5 rounded-md">
+                        {product.featured}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-sm font-medium text-[#1f2937] truncate">{product.name}</h3>
+                    <p className="text-xs text-[#9ca3af] mt-0.5">{product.category}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
-            <p className="text-gray-500 text-base">未找到相关产品</p>
-            <p className="text-gray-400 text-base mt-1">尝试其他关键词或浏览全部分类</p>
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className="mt-4 text-base text-emerald-600 hover:text-emerald-700"
-            >
-              查看全部产品
-            </button>
+            {/* 右列 */}
+            <div className="flex-1 flex flex-col gap-3">
+              {filteredProducts.filter((_, i) => i % 2 === 1).map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/product/${product.id}`}
+                  className="bg-white rounded-xl overflow-hidden"
+                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+                >
+                  <div className="relative">
+                    {product.coverImage ? (
+                      <Image
+                        src={product.coverImage}
+                        alt={product.name}
+                        width={400}
+                        height={250}
+                        className="w-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: '150px' }}>
+                        <ImageIcon className="text-gray-300" size={32} />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+                    {product.featured && (
+                      <span className="absolute top-2 right-2 bg-[#14b8a6]/90 text-white text-xs font-medium px-2 py-0.5 rounded-md">
+                        {product.featured}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-sm font-medium text-[#1f2937] truncate">{product.name}</h3>
+                    <p className="text-xs text-[#9ca3af] mt-0.5">{product.category}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        )}
-      </main>
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12 text-gray-400">暂无相关产品</div>
+          )}
+        </div>
+      </div>
 
       {/* 桌面端搜索框和分类导航 - 保持原有样式 */}
       <div className="hidden md:block bg-stone-50">
