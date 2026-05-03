@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // 增加API路由的body大小限制，支持大视频上传
+  experimental: {
+    bodySizeLimit: '100mb', // 支持最大100MB的请求体
+  },
   images: {
     remotePatterns: [
       {
