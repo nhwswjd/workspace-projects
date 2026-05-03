@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: '无效的文件类型' }, { status: 400 });
     }
 
-    const bucketId = type === 'images' ? 'product-images' : 'product-videos';
+    // 统一使用 product-images bucket，视频和图片都存在这里
+    const bucketId = 'product-images';
     
     // 生成唯一文件名
     const ext = file.name.split('.').pop() || '';
