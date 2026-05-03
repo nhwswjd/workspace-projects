@@ -245,7 +245,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-5 py-3 text-base font-medium border-2 transition-all duration-200 ${
+              className={`flex-shrink-0 px-10 py-3 text-base font-medium border-2 transition-all duration-200 ${
                 selectedCategory === null
                   ? 'bg-stone-800 text-white border-stone-800'
                   : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
@@ -257,7 +257,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-5 py-3 text-base font-medium border-2 transition-all duration-200 ${
+                className={`flex-shrink-0 px-10 py-3 text-base font-medium border-2 transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? 'bg-stone-800 text-white border-stone-800'
                     : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
