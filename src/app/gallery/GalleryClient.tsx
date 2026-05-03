@@ -113,7 +113,7 @@ export default function GalleryClient({
     <>
       <main ref={mainRef} className="min-h-screen bg-gray-50 overflow-y-auto pb-4">
         {/* 搜索框 */}
-        <div className="px-4 pt-1.5">
+        <div className="px-1.5 pt-1.5">
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400/50" />
@@ -139,7 +139,7 @@ export default function GalleryClient({
             </div>
             <button 
               onClick={handleSearch}
-              className="bg-teal-500 text-white px-4 py-2.5 rounded-full text-sm font-medium
+              className="bg-teal-500 text-white px-1.5 py-2.5 rounded-full text-sm font-medium
                        hover:bg-teal-600 active:scale-[0.98] transition-all"
             >
               搜索
@@ -148,11 +148,11 @@ export default function GalleryClient({
         </div>
 
         {/* 分类标签 */}
-        <div className="px-4 pb-1.5">
+        <div className="px-1.5 pb-1.5">
           <div className="flex gap-2 overflow-x-auto hide-scrollbar py-1">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+              className={`px-1.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
                 ${selectedCategory === 'all' 
                   ? 'bg-teal-500 text-white' 
                   : 'bg-white text-gray-600 hover:bg-gray-100'}`}
@@ -163,7 +163,7 @@ export default function GalleryClient({
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+                className={`px-1.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
                   ${selectedCategory === cat.id 
                     ? 'bg-teal-500 text-white' 
                     : 'bg-white text-gray-600 hover:bg-gray-100'}`}
@@ -175,7 +175,7 @@ export default function GalleryClient({
         </div>
 
         {/* 横向网格 */}
-        <div className="px-4">
+        <div className="px-1.5">
           <div className="grid-layout">
             {filteredProducts.map((product) => (
               <div key={product.id} className="grid-item">
@@ -255,11 +255,11 @@ export default function GalleryClient({
               <h2 className="font-semibold text-gray-900">{brandName}</h2>
             </div>
             <nav className="p-2">
-              <a href="/gallery" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-teal-50 text-teal-600">
+              <a href="/gallery" className="flex items-center gap-3 px-1.5 py-3 rounded-lg bg-teal-50 text-teal-600">
                 <ShoppingBag className="w-5 h-5" />
                 <span>产品广场</span>
               </a>
-              <a href="/admin" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 text-gray-700">
+              <a href="/admin" className="flex items-center gap-3 px-1.5 py-3 rounded-lg hover:bg-gray-100 text-gray-700">
                 <ShoppingBag className="w-5 h-5" />
                 <span>管理后台</span>
               </a>
