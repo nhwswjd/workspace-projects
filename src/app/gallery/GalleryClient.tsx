@@ -174,13 +174,11 @@ export default function GalleryClient({
                 >
                   <div className="relative" style={{ paddingBottom: '133.33%' }}>
                     {product.cover_image ? (
-                      <Image
+                      <img
                         src={product.cover_image}
                         alt={product.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        unoptimized
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
