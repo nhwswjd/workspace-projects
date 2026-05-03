@@ -55,7 +55,7 @@ export default function GalleryClient({
       );
     }
 
-    setFilteredProducts(result);
+    setFilteredProducts(result.sort((a, b) => (a.sortOrder || 999) - (b.sortOrder || 999)));
   }, [selectedCategory, searchQuery, initialProducts]);
 
   const handleSearch = () => {
