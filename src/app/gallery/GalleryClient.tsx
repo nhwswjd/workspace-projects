@@ -145,11 +145,11 @@ export default function GalleryClient({
           </div>
         </div>
 
-        {/* 瀑布流网格 */}
+        {/* 横向网格 */}
         <div className="px-4">
-          <div className="waterfall-grid">
+          <div className="grid-layout">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="waterfall-item">
+              <div key={product.id} className="grid-item">
                 <a 
                   href={`/product/${product.id}`}
                   className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
