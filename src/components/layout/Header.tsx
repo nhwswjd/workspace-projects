@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   siteName?: string;
@@ -11,22 +11,20 @@ interface HeaderProps {
 export function Header({ siteName }: HeaderProps) {
   const [siteTitle, setSiteTitle] = useState(siteName || 'ATELIER');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    async function fetchSiteName() {
-      try {
-        const res = await fetch('/api/site-settings/brand_name');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.value) {
-            setSiteTitle(data.value);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch site name:', error);
-      }
-    }
-    fetchSiteName();
+    // 检查登录状态
+    const checkLogin = () => {
+      const token = localStorage.getItem('authToken');
+      const tokenData = localStorage.getItem('authTokenData');
+      setIsLoggedIn(!!(token || tokenData));
+    };
+    checkLogin();
+    
+    // 监听登录状态变化
+    window.addEventListener('storage', checkLogin);
+    return () => window.removeEventListener('storage', checkLogin);
   }, []);
 
   return (
@@ -70,6 +68,21 @@ export function Header({ siteName }: HeaderProps) {
           >
             管理后台
           </Link>
+          {isLoggedIn && (
+            <button
+              onClick={() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('authTokenData');
+                setIsLoggedIn(false);
+                setShowMobileMenu(false);
+                window.location.href = '/';
+              }}
+              className="flex items-center gap-2 w-full text-left px-4 py-3 text-red-600 hover:bg-gray-50"
+            >
+              <LogOut className="w-4 h-4" />
+              退出登录
+            </button>
+          )}
         </nav>
       )}
     </header>
