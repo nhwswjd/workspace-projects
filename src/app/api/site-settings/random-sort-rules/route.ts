@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.COZE_SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+import { getSupabaseClient } from '@/storage/database/supabase-client';
 
 export async function GET() {
   try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({ error: '数据库连接失败' }, { status: 500 });
+    }
     const { data, error } = await supabase
       .from('site_settings')
       .select('value')
@@ -27,6 +26,10 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({ error: '数据库连接失败' }, { status: 500 });
+    }
     const { rules } = await request.json();
     
     // 先删除旧规则
