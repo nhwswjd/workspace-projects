@@ -2,6 +2,35 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+
+// Supabase配置 - 直接在前端使用
+const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
+
+// 直接上传到Supabase Storage
+async function uploadToSupabase(file: File): Promise<string | null> {
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  const ext = file.name.split('.').pop() || 'bin';
+  const fileName = `${timestamp}-${randomStr}.${ext}`;
+  
+  const { data, error } = await supabase.storage
+    .from('product-images')
+    .upload(fileName, file, {
+      contentType: file.type,
+      upsert: true
+    });
+  
+  if (error) {
+    console.error('上传失败:', error);
+    return null;
+  }
+  
+  const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+  return urlData.publicUrl;
+}
 
 interface Category {
   id: string;
@@ -351,16 +380,12 @@ export default function EditProductPage() {
                     const file = e.target.files?.[0];
                     if (file) {
                       setUploadingCover(true);
-                      const formData = new FormData();
-                      formData.append('file', file);
-                      formData.append('type', 'images');
                       try {
-                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                        const data = await res.json();
-                        if (data.success && data.url) {
-                          setCoverImage(data.url);
+                        const url = await uploadToSupabase(file);
+                        if (url) {
+                          setCoverImage(url);
                         } else {
-                          alert(data.message || '上传失败');
+                          alert('上传失败');
                         }
                       } catch {
                         alert('上传失败');
@@ -409,16 +434,12 @@ export default function EditProductPage() {
                             const file = e.target.files?.[0];
                             if (file) {
                               setUploadingImageIndex(index);
-                              const formData = new FormData();
-                              formData.append('file', file);
-                              formData.append('type', 'images');
                               try {
-                                const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                                const data = await res.json();
-                                if (data.success && data.url) {
-                                  handleImageChange(index, data.url);
+                                const url = await uploadToSupabase(file);
+                                if (url) {
+                                  handleImageChange(index, url);
                                 } else {
-                                  alert(data.message || '上传失败');
+                                  alert('上传失败');
                                 }
                               } catch {
                                 alert('上传失败');
@@ -528,29 +549,21 @@ export default function EditProductPage() {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
-                          <input type="file" accept="video/*" className="hidden" disabled={uploadingVideoIndex === index} onChange={(e) => {
+                          <input type="file" accept="video/*" className="hidden" disabled={uploadingVideoIndex === index} onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             setUploadingVideoIndex(index);
-                            const formData = new FormData();
-                            formData.append('file', file);
-                            // 使用大文件上传端点
-                            fetch('/api/upload-large', { method: 'POST', body: formData })
-                              .then(response => {
-                                if (!response.ok) {
-                                  throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-                                }
-                                return response.json();
-                              })
-                              .then(data => {
-                                if (data.success && data.url) {
-                                  handleVideoChange(index, data.url);
-                                } else {
-                                  alert('上传失败: ' + (data.message || '未知错误'));
-                                }
-                              })
-                              .catch(err => alert('上传失败: ' + err.message))
-                              .finally(() => setUploadingVideoIndex(null));
+                            try {
+                              const url = await uploadToSupabase(file);
+                              if (url) {
+                                handleVideoChange(index, url);
+                              } else {
+                                alert('上传失败');
+                              }
+                            } catch (err: any) {
+                              alert('上传失败: ' + err.message);
+                            }
+                            setUploadingVideoIndex(null);
                           }} />
                         </label>
                         <button type="button" onClick={() => handleRemoveVideo(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
