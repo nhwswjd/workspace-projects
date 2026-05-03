@@ -83,6 +83,18 @@ export default function ProductClient({ product }: ProductClientProps) {
 
   return (
     <div className="min-h-screen bg-white pb-8 relative">
+      {/* 顶部操作栏 */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-stone-100 px-3 py-2 flex items-center justify-between">
+        <Link href="/gallery" className="p-2 hover:bg-stone-100 rounded-lg transition-colors">
+          <ArrowLeft className="w-5 h-5 text-stone-700" />
+        </Link>
+        <div className="flex items-center gap-1">
+          <Link href={`/admin/edit/${product.id}`} className="p-2 hover:bg-stone-100 rounded-lg transition-colors">
+            <span className="text-sm text-stone-600">编辑</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Top按钮 - 始终在页面上方 */}
       {showBackToTop && (
         <button
