@@ -53,7 +53,9 @@ export default function GalleryClient({
       result = result.filter(p =>
         p.name.toLowerCase().includes(query) ||
         p.sku.toLowerCase().includes(query) ||
-        p.location.toLowerCase().includes(query)
+        (p.location && p.location.toLowerCase().includes(query)) ||
+        (p.description && p.description.toLowerCase().includes(query)) ||
+        (p.tags && p.tags.some((tag: string) => tag.toLowerCase().includes(query)))
       );
     }
 
@@ -121,7 +123,7 @@ export default function GalleryClient({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="搜索你喜欢的风景"
+                placeholder=""
                 className="w-full bg-gray-100 border border-teal-200 rounded-full pl-10 pr-4 py-2.5 text-sm
                          text-gray-900 placeholder:text-gray-400/50
                          focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors"
