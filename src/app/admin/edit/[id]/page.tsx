@@ -30,6 +30,9 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
+  const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
 
   useEffect(() => {
     // Load categories
@@ -339,20 +342,31 @@ export default function EditProductPage() {
                   className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   placeholder="封面图片URL"
                 />
-                <label className="px-4 py-3 bg-teal-50 text-teal-600 font-medium rounded-xl cursor-pointer hover:bg-teal-100 flex items-center">
-                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <label className={`px-4 py-3 bg-teal-50 text-teal-600 font-medium rounded-xl cursor-pointer hover:bg-teal-100 flex items-center ${uploadingCover ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  <svg className="w-5 h-5 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  上传
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                  {uploadingCover ? '上传中...' : '上传'}
+                  <input type="file" accept="image/*" className="hidden" disabled={uploadingCover} onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      // For demo, convert to data URL
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        setCoverImage(e.target?.result as string);
-                      };
-                      reader.readAsDataURL(file);
+                      setUploadingCover(true);
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      formData.append('type', 'images');
+                      try {
+                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                        const data = await res.json();
+                        if (data.success && data.url) {
+                          setCoverImage(data.url);
+                        } else {
+                          alert(data.message || '上传失败');
+                        }
+                      } catch {
+                        alert('上传失败');
+                      } finally {
+                        setUploadingCover(false);
+                      }
                     }
                   }} />
                 </label>
@@ -387,18 +401,30 @@ export default function EditProductPage() {
                           className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                           placeholder="图片URL"
                         />
-                        <label className="p-2 bg-gray-100 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-200">
+                        <label className={`p-2 bg-gray-100 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-200 ${uploadingImageIndex === index ? 'opacity-50' : ''}`}>
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          <input type="file" accept="image/*" className="hidden" disabled={uploadingImageIndex === index} onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (e) => {
-                                handleImageChange(index, e.target?.result as string);
-                              };
-                              reader.readAsDataURL(file);
+                              setUploadingImageIndex(index);
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              formData.append('type', 'images');
+                              try {
+                                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                                const data = await res.json();
+                                if (data.success && data.url) {
+                                  handleImageChange(index, data.url);
+                                } else {
+                                  alert(data.message || '上传失败');
+                                }
+                              } catch {
+                                alert('上传失败');
+                              } finally {
+                                setUploadingImageIndex(null);
+                              }
                             }
                           }} />
                         </label>
@@ -458,18 +484,30 @@ export default function EditProductPage() {
                           className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                           placeholder="视频URL"
                         />
-                        <label className="p-2 bg-gray-100 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-200">
+                        <label className={`p-2 bg-gray-100 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-200 ${uploadingVideoIndex === index ? 'opacity-50' : ''}`}>
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
-                          <input type="file" accept="video/*" className="hidden" onChange={(e) => {
+                          <input type="file" accept="video/*" className="hidden" disabled={uploadingVideoIndex === index} onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (e) => {
-                                handleVideoChange(index, e.target?.result as string);
-                              };
-                              reader.readAsDataURL(file);
+                              setUploadingVideoIndex(index);
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              formData.append('type', 'videos');
+                              try {
+                                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                                const data = await res.json();
+                                if (data.success && data.url) {
+                                  handleVideoChange(index, data.url);
+                                } else {
+                                  alert(data.message || '上传失败');
+                                }
+                              } catch {
+                                alert('上传失败');
+                              } finally {
+                                setUploadingVideoIndex(null);
+                              }
                             }
                           }} />
                         </label>
