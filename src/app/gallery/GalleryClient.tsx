@@ -64,7 +64,7 @@ export default function GalleryClient({
   useEffect(() => {
     const handleScroll = () => {
       if (mainRef.current) {
-        setShowBackToTop(mainRef.current.scrollTop > 500);
+        setShowBackToTop(mainRef.current.scrollTop > 100);
       }
     };
     
