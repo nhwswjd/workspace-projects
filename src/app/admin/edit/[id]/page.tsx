@@ -437,13 +437,17 @@ export default function EditProductPage() {
                     ))}
                   </div>
                   
-                  {/* Image Preview Grid */}
+                  {/* Image Preview Grid with Reorder */}
                   <div className="grid grid-cols-4 gap-2">
                     {images.map((img, index) => img && (
-                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 group">
+                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                         <img src={img} alt={`图片 ${index + 1}`} className="w-full h-full object-cover" />
-                        {/* Image Actions */}
-                        <div className="absolute top-0 right-0 flex gap-1 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* Index Badge */}
+                        <div className="absolute top-1 left-1 bg-teal-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-medium">
+                          {index + 1}
+                        </div>
+                        {/* Image Actions - Always Visible */}
+                        <div className="absolute top-1 right-1 flex gap-0.5">
                           <button
                             type="button"
                             onClick={() => {
@@ -454,12 +458,10 @@ export default function EditProductPage() {
                               }
                             }}
                             disabled={index === 0}
-                            className={`p-1 rounded ${index === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                            className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold ${index === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                             title="上移"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                            </svg>
+                            ↑
                           </button>
                           <button
                             type="button"
@@ -471,26 +473,21 @@ export default function EditProductPage() {
                               }
                             }}
                             disabled={index === images.length - 1}
-                            className={`p-1 rounded ${index === images.length - 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                            className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold ${index === images.length - 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
                             title="下移"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(index)}
-                            className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            ↓
                           </button>
                         </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center">
-                          {index + 1}
-                        </div>
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute bottom-1 right-1 w-6 h-6 bg-red-500 text-white flex items-center justify-center rounded text-xs font-bold hover:bg-red-600"
+                          title="删除"
+                        >
+                          ×
+                        </button>
                       </div>
                     ))}
                   </div>
