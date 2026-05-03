@@ -22,6 +22,7 @@ export default function EditProductPage() {
   const [tags, setTags] = useState('');
   const [hidden, setHidden] = useState(false);
   const [featured, setFeatured] = useState('');
+  const [sortOrder, setSortOrder] = useState(0);
   const [coverImage, setCoverImage] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
@@ -54,6 +55,7 @@ export default function EditProductPage() {
             setTags(Array.isArray(p.tags) ? p.tags.join('，') : (p.tags || ''));
             setHidden(p.hidden || false);
             setFeatured(p.featured || '');
+            setSortOrder(p.sort_order || 0);
             
             // Handle cover image - might be string or object
             if (p.cover_image) {
