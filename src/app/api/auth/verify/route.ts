@@ -1,15 +1,37 @@
 import { NextResponse } from 'next/server';
-import { adminPassword, validPasswords } from '@/lib/products';
-import { createClient } from '@supabase/supabase-js';
+import { validPasswords } from '@/lib/products';
+import { getSupabaseAdmin } from '@/lib/db';
 
-// 硬编码默认值
-const DEFAULT_SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
-
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
-  return createClient(url, key);
+// 从数据库获取管理员密码列表
+async function getAdminPasswords(): Promise<string[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return ['admin2024']; // 默认密码
+  }
+  
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'admin_password')
+    .single();
+  
+  if (error || !data?.value) {
+    return ['admin2024']; // 默认密码
+  }
+  
+  try {
+    const value = data.value;
+    if (value.startsWith('[')) {
+      return JSON.parse(value);
+    } else if (value.includes(',')) {
+      return value.split(',').filter(Boolean);
+    } else if (value) {
+      return [value];
+    }
+    return ['admin2024'];
+  } catch {
+    return ['admin2024'];
+  }
 }
 
 export async function POST(request: Request) {
@@ -23,7 +45,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password === adminPassword) {
+    // 获取管理员密码列表并验证
+    const adminPasswords = await getAdminPasswords();
+    if (adminPasswords.includes(password)) {
       return NextResponse.json({ 
         success: true,
         isAdmin: true,
@@ -31,7 +55,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 首先检查代码中定义的后备密码
+    // 检查代码中定义的后备密码
     if (validPasswords.includes(password)) {
       return NextResponse.json({ 
         success: true,
@@ -41,19 +65,21 @@ export async function POST(request: Request) {
     }
 
     // 从数据库获取访客密码列表
-    const supabase = getSupabase();
-    const { data: visitorPasswords, error } = await supabase
-      .from('visitor_passwords')
-      .select('password');
-    
-    if (!error && visitorPasswords && visitorPasswords.length > 0) {
-      const validPasswords = visitorPasswords.map(p => p.password);
-      if (validPasswords.includes(password)) {
-        return NextResponse.json({ 
-          success: true,
-          isAdmin: false,
-          categoryPermission: null
-        });
+    const supabaseAdmin = getSupabaseAdmin();
+    if (supabaseAdmin) {
+      const { data: visitorPasswords, error } = await supabaseAdmin
+        .from('visitor_passwords')
+        .select('password');
+      
+      if (!error && visitorPasswords && visitorPasswords.length > 0) {
+        const validVisitorPasswords = visitorPasswords.map(p => p.password);
+        if (validVisitorPasswords.includes(password)) {
+          return NextResponse.json({ 
+            success: true,
+            isAdmin: false,
+            categoryPermission: null
+          });
+        }
       }
     }
 
