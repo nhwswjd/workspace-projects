@@ -41,6 +41,8 @@ export default function AdminPage() {
   const [siteName, setSiteName] = useState('江南风景好');
   const [adminPasswords, setAdminPasswords] = useState<string[]>([]);
   const [newPassword, setNewPassword] = useState('');
+  const [visitorPasswords, setVisitorPasswords] = useState<string[]>([]);
+  const [newVisitorPassword, setNewVisitorPassword] = useState('');
   const [randomRules, setRandomRules] = useState<{ id: number; from: number; to: number; createdAt: string }[]>([]);
   const [randomFrom, setRandomFrom] = useState('');
   const [randomTo, setRandomTo] = useState('');
@@ -48,23 +50,48 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
+    checkAdminAndLoad();
   }, []);
+
+  const checkAdminAndLoad = async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      window.location.href = '/';
+      return;
+    }
+    try {
+      const verifyRes = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success || !verifyData.isAdmin) {
+        window.location.href = '/';
+        return;
+      }
+    } catch {
+      window.location.href = '/';
+      return;
+    }
+    loadData();
+  };
 
   const loadData = async () => {
     try {
-      const [productsRes, categoriesRes, brandRes, passwordRes, rulesRes] = await Promise.all([
+      const [productsRes, categoriesRes, brandRes, passwordRes, visitorPwdRes, rulesRes] = await Promise.all([
         fetch('/api/products').then(r => r.json()),
         fetch('/api/categories').then(r => r.json()),
         fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
         fetch('/api/site-settings/admin_password').then(r => r.json()).catch(() => ({ value: '' })),
+        fetch('/api/site-settings/visitor_password').then(r => r.json()).catch(() => ({ value: '' })),
         fetch('/api/site-settings/random-sort-rules').then(r => r.json()).catch(() => ({ rules: [] })),
       ]);
       
       if (productsRes.products) setProducts(productsRes.products);
       if (categoriesRes.categories) setCategories(categoriesRes.categories);
       if (brandRes.value) setSiteName(brandRes.value);
-      // 密码可能是逗号分隔的字符串、JSON数组或双重转义的JSON
+      // 管理员密码可能是逗号分隔的字符串、JSON数组或双重转义的JSON
       if (passwordRes.value) {
         const pwdValue = passwordRes.value;
         let passwords: string[] = [];
@@ -96,6 +123,27 @@ export default function AdminPage() {
         
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
+        }
+      }
+      // 加载访客密码
+      if (visitorPwdRes.value) {
+        const vPwdValue = visitorPwdRes.value;
+        let visitorPasswords: string[] = [];
+        try {
+          visitorPasswords = JSON.parse(vPwdValue);
+          if (!Array.isArray(visitorPasswords)) visitorPasswords = [];
+        } catch {
+          if (vPwdValue.includes('[')) {
+            const fixed = vPwdValue.replace(/\\"/g, '"');
+            try { visitorPasswords = JSON.parse(fixed); } catch { visitorPasswords = []; }
+          } else if (vPwdValue.includes(',')) {
+            visitorPasswords = vPwdValue.split(',').filter(Boolean);
+          } else if (vPwdValue) {
+            visitorPasswords = [vPwdValue];
+          }
+        }
+        if (visitorPasswords.length > 0) {
+          setVisitorPasswords(visitorPasswords);
         }
       }
       // 加载随机排序规则
@@ -208,6 +256,17 @@ export default function AdminPage() {
     setAdminPasswords(adminPasswords.filter((_, i) => i !== index));
   };
 
+  const handleAddVisitorPassword = () => {
+    if (newVisitorPassword.trim()) {
+      setVisitorPasswords([...visitorPasswords, newVisitorPassword.trim()]);
+      setNewVisitorPassword('');
+    }
+  };
+
+  const handleRemoveVisitorPassword = (index: number) => {
+    setVisitorPasswords(visitorPasswords.filter((_, i) => i !== index));
+  };
+
   // 执行随机排序
   const handleRandomSort = async () => {
     const from = parseInt(randomFrom);
@@ -269,6 +328,11 @@ export default function AdminPage() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ value: JSON.stringify(adminPasswords) }),
+        }),
+        fetch('/api/site-settings/visitor_password', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: JSON.stringify(visitorPasswords) }),
         }),
       ]);
       showToast('设置已保存');
