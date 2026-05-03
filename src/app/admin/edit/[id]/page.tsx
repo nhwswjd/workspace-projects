@@ -528,35 +528,29 @@ export default function EditProductPage() {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
-                          <input type="file" accept="video/*" className="hidden" disabled={uploadingVideoIndex === index} onChange={async (e) => {
+                          <input type="file" accept="video/*" className="hidden" disabled={uploadingVideoIndex === index} onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) {
-                              console.log('[视频上传] 选择文件:', file.name, '大小:', file.size);
-                              setUploadingVideoIndex(index);
-                              const formData = new FormData();
-                              formData.append('file', file);
-                              formData.append('type', 'videos');
-                              try {
-                                const res = await fetch('/api/upload', { 
-                                  method: 'POST', 
-                                  body: formData,
-                                  signal: AbortSignal.timeout(60000) // 60秒超时
-                                });
-                                const data = await res.json();
-                                console.log('[视频上传] 响应:', data);
+                            if (!file) return;
+                            setUploadingVideoIndex(index);
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            formData.append('type', 'videos');
+                            fetch('/api/upload', { method: 'POST', body: formData })
+                              .then(response => {
+                                if (!response.ok) {
+                                  throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                                }
+                                return response.json();
+                              })
+                              .then(data => {
                                 if (data.success && data.url) {
                                   handleVideoChange(index, data.url);
                                 } else {
                                   alert('上传失败: ' + (data.message || '未知错误'));
                                 }
-                              } catch (err: unknown) {
-                                console.error('[视频上传] 错误:', err);
-                                const errorMessage = err instanceof Error ? err.message : '上传失败，请重试';
-                                alert(errorMessage);
-                              } finally {
-                                setUploadingVideoIndex(null);
-                              }
-                            }
+                              })
+                              .catch(err => alert('上传失败: ' + err.message))
+                              .finally(() => setUploadingVideoIndex(null));
                           }} />
                         </label>
                         <button type="button" onClick={() => handleRemoveVideo(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">

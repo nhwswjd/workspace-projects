@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/storage/database/supabase-client';
 
 export async function POST(request: NextRequest) {
+  console.log('[Upload API] 收到请求, content-type:', request.headers.get('content-type'));
   try {
     const supabase = getSupabaseClient();
     
     if (!supabase) {
+      console.log('[Upload API] Supabase未配置');
       return NextResponse.json({ success: false, message: 'Storage not configured' }, { status: 500 });
     }
     
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const type = formData.get('type') as string; // 'images' or 'videos'
+
+    console.log('[Upload API] 文件:', file?.name, '大小:', file?.size, '类型:', type);
 
     if (!file) {
       return NextResponse.json({ success: false, message: '未选择文件' }, { status: 400 });
