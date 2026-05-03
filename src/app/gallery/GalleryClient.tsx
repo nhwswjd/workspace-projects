@@ -100,7 +100,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
         {/* 2. 分类标签区域 */}
         <div className="bg-white px-4 pt-4 pb-[19px]">
           <div className="h-[6px] bg-white"></div>
-          <div className="flex gap-6 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
               className={`flex-shrink-0 px-24 py-2 h-[38px] text-base font-medium rounded-full transition-all bg-yellow-200 ${
