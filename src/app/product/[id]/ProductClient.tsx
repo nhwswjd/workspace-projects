@@ -118,7 +118,7 @@ export default function ProductClient({ product }: ProductClientProps) {
 
 
       {/* 产品信息 */}
-      <div className="px-4 py-4">
+      <div className="px-1.5 py-4">
         <h1 className="text-xl font-bold text-stone-900">{product.name}</h1>
 
         {/* 图片区域 - 竖向排列 */}
