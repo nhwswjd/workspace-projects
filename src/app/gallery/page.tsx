@@ -16,6 +16,7 @@ export default async function GalleryPage() {
       <GalleryClient 
         initialCategories={allCategories}
         initialProducts={allProducts}
+        brandInfo={null}
       />
     </Suspense>
   );

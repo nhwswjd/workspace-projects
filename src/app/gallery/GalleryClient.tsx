@@ -1,362 +1,231 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ArrowUp, ImageIcon, Search } from 'lucide-react';
-import { Product, Category } from '@/types';
-import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { useSearch } from '@/contexts/SearchContext';
+import { Search, X, Heart, Share2, ChevronLeft, MoreVertical, ShoppingBag } from 'lucide-react';
 
-interface GalleryClientProps {
-  initialCategories: Category[];
-  initialProducts: Product[];
+interface Product {
+  id: string;
+  sku: string;
+  name: string;
+  category: string;
+  category_id: string;
+  cover_image: string;
+  featured?: string | null;
+  location: string;
 }
 
-export default function GalleryClient({ initialCategories, initialProducts }: GalleryClientProps) {
-  const { searchQuery, setSearchQuery } = useSearch();
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showTopButton, setShowTopButton] = useState(false);
+interface Category {
+  id: string;
+  name: string;
+}
 
-  // 监听滚动显示Top按钮
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowTopButton(window.scrollY > 300);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+export default function GalleryClient({ 
+  initialProducts, 
+  initialCategories, 
+  brandInfo 
+}: { 
+  initialProducts: any[]; 
+  initialCategories: any[];
+  brandInfo: { name: string } | null;
+}) {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState(initialProducts);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // 回到顶部
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // 点击"全部"按钮 - 清空搜搜并显示所有产品
-  const handleShowAll = () => {
-    setSearchQuery('');
-    setSelectedCategory(null);
-  };
-
-  // 点击分类按钮 - 清空搜搜并只显示该分类
-  const handleSelectCategory = (categoryId: string) => {
-    setSearchQuery('');
-    setSelectedCategory(categoryId);
-  };
+  const brandName = brandInfo?.name || '江南风景好';
 
   useEffect(() => {
-    let filtered = initialProducts;
+    let result = initialProducts;
 
-    // 先按分类筛选
-    if (selectedCategory) {
-      filtered = filtered.filter(p => p.categoryId === selectedCategory);
-    }
-
-    // 再按搜搜关键词筛选
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.sku.toLowerCase().includes(query) ||
-        p.category.toLowerCase().includes(query) ||
-        (p.tags && p.tags.some((tag: string) => tag.toLowerCase().includes(query)))
+    if (selectedCategory !== 'all') {
+      result = result.filter(p => 
+        p.category.toLowerCase().includes(selectedCategory.toLowerCase())
       );
     }
 
-    setFilteredProducts(filtered);
-  }, [searchQuery, selectedCategory, initialProducts]);
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(query) ||
+        p.sku.toLowerCase().includes(query) ||
+        p.location.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredProducts(result);
+  }, [selectedCategory, searchQuery, initialProducts]);
+
+  const handleSearch = () => {
+    // 搜索逻辑已在 useEffect 中处理
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    searchRef.current?.focus();
+  };
+
+  const getCategoryDisplayName = (category: string) => {
+    const mapping: Record<string, string> = {
+      'all': '全部',
+      'shanghai': '上海',
+      'beijing': '北京',
+      'nanjing': '南京',
+      'zhongbei': '中北',
+      'dongnan': '东南',
+      'zhongxi': '中西'
+    };
+    return mapping[category.toLowerCase()] || category;
+  };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Top按钮 - 回到顶部 */}
-      {showTopButton && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-20 right-4 z-50 w-12 h-12 bg-emerald-600 text-white rounded-lg shadow-lg flex items-center justify-center hover:bg-emerald-700 transition-all"
-        >
-          <ArrowUp className="w-5 h-5" />
-        </button>
-      )}
+    <>
+      {/* 顶部 Header - 极简风格 */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div className="h-12 flex items-center justify-between px-4">
+          {/* 左侧菜单图标 */}
+          <button 
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <MoreVertical className="w-5 h-5 text-gray-900" />
+          </button>
+          {/* 中间标题 */}
+          <h1 className="text-base font-semibold text-gray-900 tracking-tight">{brandName}</h1>
+          {/* 右侧占位 */}
+          <div className="w-9"></div>
+        </div>
+      </header>
 
-      {/* 移动端内容 - 极简清新瀑布流 */}
-      <div className="md:hidden bg-[#fafafa] min-h-screen">
-        {/* 搜索框区域 - 原型样式 */}
-        <div className="px-4 pt-3 pb-4 bg-white">
+      <main className="min-h-screen bg-gray-50 overflow-y-auto pb-4">
+        {/* 搜索框 */}
+        <div className="px-4 py-3">
           <div className="flex items-center gap-2">
-            {/* 搜索图标 */}
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
-              <Search className="w-5 h-5 text-[#6B7280]" />
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400/50" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="搜索你喜欢的风景"
+                className="w-full bg-gray-100 border-none rounded-full pl-10 pr-4 py-2.5 text-sm
+                         text-gray-900 placeholder:text-gray-400/50
+                         focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                >
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              )}
             </div>
-            {/* 搜索输入框 */}
-            <input
-              type="text"
-              placeholder="搜索江南美景..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 h-10 bg-[#f5f5f5] rounded-full px-4 text-sm text-[#1f2937] placeholder:text-[#9ca3af] border-none outline-none focus:ring-2 focus:ring-[#14b8a6]/30 transition-all"
-            />
-            {/* 搜索按钮 */}
-            <button className="flex-shrink-0 h-10 px-5 bg-[#14b8a6] text-white rounded-full text-sm font-medium hover:bg-[#14b8a6]/90 active:scale-[0.97] transition-all">
+            <button 
+              onClick={handleSearch}
+              className="bg-teal-500 text-white px-4 py-2.5 rounded-full text-sm font-medium
+                       hover:bg-teal-600 active:scale-[0.98] transition-all"
+            >
               搜索
             </button>
           </div>
         </div>
 
-        {/* 分类标签区域 - 横向滚动胶囊 */}
-        <div className="px-4 pb-4 bg-white">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {/* 分类标签 */}
+        <div className="px-4 pb-3">
+          <div className="flex gap-2 overflow-x-auto hide-scrollbar py-1">
             <button
-              onClick={handleShowAll}
-              className={`flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium transition-all ${
-                selectedCategory === null
-                  ? 'bg-[#14b8a6] text-white'
-                  : 'bg-[#f5f5f5] text-[#6b7280] hover:bg-[#e5e5e5]'
-              }`}
+              onClick={() => setSelectedCategory('all')}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+                ${selectedCategory === 'all' 
+                  ? 'bg-teal-500 text-white' 
+                  : 'bg-white text-gray-600 hover:bg-gray-100'}`}
             >
               全部
             </button>
             {initialCategories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 h-8 px-4 rounded-full text-sm font-medium transition-all ${
-                  selectedCategory === cat.id
-                    ? 'bg-[#14b8a6] text-white'
-                    : 'bg-[#f5f5f5] text-[#6b7280] hover:bg-[#e5e5e5]'
-                }`}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all
+                  ${selectedCategory === cat.id 
+                    ? 'bg-teal-500 text-white' 
+                    : 'bg-white text-gray-600 hover:bg-gray-100'}`}
               >
-                {cat.name}
+                {getCategoryDisplayName(cat.name)}
               </button>
             ))}
           </div>
         </div>
 
-        {/* 相册网格 - 两列瀑布流 */}
-        <div className="px-4 pb-4">
-          <div className="flex gap-3">
-            {/* 左列 */}
-            <div className="flex-1 flex flex-col gap-3">
-              {filteredProducts.filter((_, i) => i % 2 === 0).map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
-                  className="bg-white rounded-xl overflow-hidden"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-                >
-                  <div className="relative">
-                    {product.coverImage ? (
-                      <Image
-                        src={product.coverImage}
-                        alt={product.name}
-                        width={400}
-                        height={250}
-                        className="w-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: '150px' }}>
-                        <ImageIcon className="text-gray-300" size={32} />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                    {product.featured && (
-                      <span className="absolute top-2 right-2 bg-[#14b8a6]/90 text-white text-xs font-medium px-2 py-0.5 rounded-md">
-                        {product.featured}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-sm font-medium text-[#1f2937] truncate">{product.name}</h3>
-                    <p className="text-xs text-[#9ca3af] mt-0.5">{product.category}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            {/* 右列 */}
-            <div className="flex-1 flex flex-col gap-3">
-              {filteredProducts.filter((_, i) => i % 2 === 1).map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.id}`}
-                  className="bg-white rounded-xl overflow-hidden"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
-                >
-                  <div className="relative">
-                    {product.coverImage ? (
-                      <Image
-                        src={product.coverImage}
-                        alt={product.name}
-                        width={400}
-                        height={250}
-                        className="w-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full bg-gray-100 flex items-center justify-center" style={{ height: '150px' }}>
-                        <ImageIcon className="text-gray-300" size={32} />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                    {product.featured && (
-                      <span className="absolute top-2 right-2 bg-[#14b8a6]/90 text-white text-xs font-medium px-2 py-0.5 rounded-md">
-                        {product.featured}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="text-sm font-medium text-[#1f2937] truncate">{product.name}</h3>
-                    <p className="text-xs text-[#9ca3af] mt-0.5">{product.category}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-12 text-gray-400">暂无相关产品</div>
-          )}
-        </div>
-      </div>
-
-      {/* 桌面端搜索框和分类导航 - 保持原有样式 */}
-      <div className="hidden md:block bg-stone-50">
-        <div className="w-2/5 mx-auto px-2 py-6">
-          <div className="flex items-center gap-1">
-            <input
-              type="text"
-              placeholder="编号/名称/地址"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-3 md:py-2 text-base md:text-base bg-stone-100 border border-stone-300 focus:outline-none focus:border-stone-500 placeholder:text-stone-400"
-            />
-            <button className="px-4 py-3 md:py-2 text-base md:text-base font-medium bg-stone-800 text-white hover:bg-stone-700 transition-colors whitespace-nowrap min-w-[60px] md:min-w-[50px]">
-              搜索
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 桌面端分类导航 */}
-      <div className="hidden md:block bg-white border-b border-stone-200">
-        <div className="w-full px-4 py-8">
-          <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
-            <button
-              onClick={handleShowAll}
-              className={`flex-shrink-0 px-10 py-3 text-base font-medium border-2 transition-all duration-200 ${
-                selectedCategory === null
-                  ? 'bg-stone-800 text-white border-stone-800'
-                  : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
-              }`}
-            >
-              全部
-            </button>
-            {initialCategories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-10 py-3 text-base font-medium border-2 transition-all duration-200 ${
-                  selectedCategory === cat.id
-                    ? 'bg-stone-800 text-white border-stone-800'
-                    : 'bg-white text-stone-600 border-stone-300 hover:border-stone-500'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 桌面端主内容区 */}
-      <main className="hidden md:block max-w-full mx-auto px-1 py-4 md:py-8">
-        {/* 筛选按钮 */}
-        {selectedCategory && (
-          <div className="flex items-center justify-end mb-5">
-            <button
-              onClick={handleShowAll}
-              className="text-base text-amber-600 hover:text-amber-700"
-            >
-              清除筛选
-            </button>
-          </div>
-        )}
-
-        {/* 产品网格 - 响应式布局，充分利用宽度 */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+        {/* 瀑布流网格 */}
+        <div className="px-4">
+          <div className="waterfall-grid">
             {filteredProducts.map((product) => (
-              <Link
-                key={product.id}
-                href={`/product/${product.id}`}
-                className="group block"
-              >
-                {/* 图片容器 - 无圆角，左右1mm空间 */}
-                <div className="relative bg-stone-200 overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-shadow duration-300"
-                  style={{ aspectRatio: '3/4' }}
+              <div key={product.id} className="waterfall-item">
+                <a 
+                  href={`/product/${product.id}`}
+                  className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
+                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
                 >
-                  {product.coverImage ? (
+                  <div className="relative" style={{ paddingBottom: '133.33%' }}>
                     <Image
-                      src={product.coverImage}
+                      src={product.cover_image}
                       alt={product.name}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      loading="lazy"
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, 33vw"
                     />
-                  ) : (
-                    <div className="absolute inset-0 bg-stone-200 flex items-center justify-center">
-                      <ImageIcon className="text-stone-400" size={32} />
-                    </div>
-                  )}
-                  {/* 精选标签 - 右上角紧贴，无圆角 */}
-                  {product.featured && (
-                    <span className="absolute top-0 right-0 bg-amber-500/95 text-white text-base font-medium px-2.5 py-1.5">
-                      {product.featured}
-                    </span>
-                  )}
-                </div>
-
-                {/* 产品信息 */}
-                <div className="flex items-center gap-2 mb-2">
-                  {/* 编号 - 红色 */}
-                  <span className="text-base text-red-600 font-medium whitespace-nowrap">
-                    {product.sku}
-                  </span>
-                  <h3 className="font-medium text-stone-900 text-base md:text-base group-hover:text-amber-600 transition-colors truncate">
-                    {product.name}
-                  </h3>
-                </div>
-
-                {/* 标签 - 方框样式 */}
-                <div className="flex flex-wrap gap-1.5">
-                  {product.tags && product.tags.slice(0, 3).map((tag: string) => (
-                    <span
-                      key={tag}
-                      className="text-base text-stone-600 bg-white border border-stone-300 px-2 py-0.5"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </Link>
+                    {product.featured && (
+                      <span className="absolute top-2 left-2 bg-teal-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        精选
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{product.location}</p>
+                  </div>
+                </a>
+              </div>
             ))}
           </div>
-        ) : (
-          /* 空状态 */
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-lg bg-stone-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <p>暂无相关产品</p>
             </div>
-            <p className="text-stone-500 text-base">未找到相关产品</p>
-            <p className="text-stone-400 text-base mt-1">尝试其他关键词或浏览全部分类</p>
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className="mt-4 text-base text-amber-600 hover:text-amber-700"
-            >
-              查看全部产品
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </main>
-    </div>
+
+      {/* 移动端菜单 */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setShowMobileMenu(false)}>
+          <div 
+            className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-gray-100">
+              <h2 className="font-semibold text-gray-900">{brandName}</h2>
+            </div>
+            <nav className="p-2">
+              <a href="/gallery" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-teal-50 text-teal-600">
+                <ShoppingBag className="w-5 h-5" />
+                <span>产品广场</span>
+              </a>
+              <a href="/admin" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 text-gray-700">
+                <ShoppingBag className="w-5 h-5" />
+                <span>管理后台</span>
+              </a>
+            </nav>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
