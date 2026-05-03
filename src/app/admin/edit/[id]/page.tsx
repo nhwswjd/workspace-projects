@@ -578,10 +578,10 @@ export default function EditProductPage() {
                   {/* Video Preview Grid */}
                   <div className="grid grid-cols-2 gap-2">
                     {videos.map((video, index) => video && (
-                      <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                      <div key={index} className="relative bg-gray-100 rounded-lg overflow-hidden border border-gray-200" style={{minHeight: '150px'}}>
                         <video 
                           src={video} 
-                          className="w-full h-full" 
+                          className="w-full h-auto max-h-48 object-contain" 
                           controls 
                           preload="metadata"
                         />
