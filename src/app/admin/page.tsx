@@ -175,20 +175,15 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
       {/* Tabs - 替代Header */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-100">
-        <div className="h-14 px-4 flex items-center justify-between">
-          <div className="w-10" />
-          <h1 className="text-lg font-bold text-gray-800">{siteName}</h1>
-          <div className="w-10" />
-        </div>
-        <div className="flex border-b border-gray-100 overflow-x-auto">
+      {/* Tab导航 */}
+        <div className="flex border-b border-gray-100 overflow-x-auto bg-white sticky top-0 z-40">
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setActiveTab(tab.id as any)}
               className={`flex-shrink-0 px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'text-[#14b8a6] border-b-2 border-[#14b8a6]'
+                  ? 'text-teal-600 border-b-2 border-teal-600'
                   : 'text-gray-500'
               }`}
             >
@@ -196,10 +191,8 @@ export default function AdminPage() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Content */}
-      <main className="p-4 pb-24">
+        {/* Content */}
+        <main className="p-4 pb-24">
         {/* 产品管理 */}
         {activeTab === 'products' && (
           <>
