@@ -83,7 +83,7 @@ export function Header() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[58px] md:h-12">
+          <div className="flex items-center justify-between h-[52px] md:h-12">
             {/* Left: Empty space for balance */}
             <div className="flex-1"></div>
 
