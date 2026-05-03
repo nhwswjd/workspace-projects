@@ -67,7 +67,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
   }, [searchQuery, selectedCategory, initialProducts]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-emerald-50">
       {/* Top按钮 - 回到顶部 */}
       {showTopButton && (
         <button
