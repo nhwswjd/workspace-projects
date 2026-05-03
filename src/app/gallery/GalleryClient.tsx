@@ -111,7 +111,7 @@ export default function GalleryClient({
     <>
       <main ref={mainRef} className="min-h-screen bg-gray-50 overflow-y-auto pb-4">
         {/* 搜索框 */}
-        <div className="px-4 py-3">
+        <div className="px-4 pt-1.5">
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400/50" />
