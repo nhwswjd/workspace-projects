@@ -17,6 +17,13 @@ export default function ProductClient({ product }: ProductClientProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // 检查管理员权限
+    const adminData = localStorage.getItem('atelier_is_admin');
+    setIsAdmin(adminData === 'true');
+  }, []);
 
   // 递归查找URL
   function getVideoUrl(data: unknown): string {
@@ -89,9 +96,11 @@ export default function ProductClient({ product }: ProductClientProps) {
           <ArrowLeft className="w-5 h-5 text-stone-700" />
         </Link>
         <div className="flex items-center gap-1">
-          <Link href={`/admin/edit/${product.id}`} className="p-2 hover:bg-stone-100 rounded-lg transition-colors">
-            <span className="text-sm text-stone-600">编辑</span>
-          </Link>
+          {isAdmin && (
+            <Link href={`/admin/edit/${product.id}`} className="p-2 hover:bg-stone-100 rounded-lg transition-colors">
+              <span className="text-sm text-stone-600">编辑</span>
+            </Link>
+          )}
         </div>
       </div>
 

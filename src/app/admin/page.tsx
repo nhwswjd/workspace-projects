@@ -49,7 +49,7 @@ export default function AdminPage() {
   const [randomTo, setRandomTo] = useState('');
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [loading, setLoading] = useState(true);
-  const { isAuthenticated, isAdmin, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -63,25 +63,39 @@ export default function AdminPage() {
     if (!authLoading && isAuthenticated && isAdmin) {
       loadData();
     }
-  }, [authLoading, isAuthenticated, isAdmin]);
+  }, [authLoading, isAuthenticated, isAdmin, isSuperAdmin]);
 
   const loadData = async () => {
     try {
-      const [productsRes, categoriesRes, brandRes, passwordRes, visitorPwdRes, rulesRes] = await Promise.all([
+      // 根据权限决定是否加载管理员密码
+      const requests: Promise<any>[] = [
         fetch('/api/products').then(r => r.json()),
         fetch('/api/categories').then(r => r.json()),
         fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
-        fetch('/api/site-settings/admin_password').then(r => r.json()).catch(() => ({ value: '' })),
         fetch('/api/site-settings/visitor_password').then(r => r.json()).catch(() => ({ value: '' })),
         fetch('/api/site-settings/random-sort-rules').then(r => r.json()).catch(() => ({ rules: [] })),
-      ]);
+      ];
+      
+      // 只有超级管理员才加载管理员密码
+      if (isSuperAdmin) {
+        requests.push(fetch('/api/site-settings/admin_password').then(r => r.json()).catch(() => ({ value: '' })));
+      }
+      
+      const results = await Promise.all(requests);
+      
+      const productsRes = results[0];
+      const categoriesRes = results[1];
+      const brandRes = results[2];
+      const visitorPwdRes = results[3];
+      const rulesRes = results[4];
       
       if (productsRes.products) setProducts(productsRes.products);
       if (categoriesRes.categories) setCategories(categoriesRes.categories);
       if (brandRes.value) setSiteName(brandRes.value);
-      // 管理员密码可能是逗号分隔的字符串、JSON数组或双重转义的JSON
-      if (passwordRes.value) {
-        const pwdValue = passwordRes.value;
+      
+      // 只有超级管理员才解析管理员密码
+      if (isSuperAdmin && results[5]?.value) {
+        const pwdValue = results[5].value;
         let passwords: string[] = [];
         
         // 尝试解析为数组
@@ -306,23 +320,35 @@ export default function AdminPage() {
 
   const handleSaveSettings = async () => {
     try {
-      await Promise.all([
+      const requests: Promise<Response>[] = [
         fetch('/api/site-settings/brand_name', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ value: siteName }),
         }),
-        fetch('/api/site-settings/admin_password', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ value: JSON.stringify(adminPasswords) }),
-        }),
+      ];
+      
+      // 超级管理员可以保存所有密码
+      if (isSuperAdmin) {
+        requests.push(
+          fetch('/api/site-settings/admin_password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value: JSON.stringify(adminPasswords) }),
+          })
+        );
+      }
+      
+      // 超级管理员和管理员都可以保存访客密码
+      requests.push(
         fetch('/api/site-settings/visitor_password', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ value: JSON.stringify(visitorPasswords) }),
-        }),
-      ]);
+        })
+      );
+      
+      await Promise.all(requests);
       showToast('设置已保存');
     } catch (err) {
       showToast('保存失败', 'error');
@@ -596,58 +622,73 @@ export default function AdminPage() {
               />
             </div>
 
-            {/* 管理员密码管理 */}
-            <div className="bg-white rounded-xl p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">管理员密码</label>
-              <p className="text-xs text-gray-400 mb-3">管理员密码可以进入管理后台和查看产品</p>
-              
-              {/* 已有密码列表 */}
-              {adminPasswords.length > 0 && (
-                <div className="space-y-2 mb-3">
-                  {adminPasswords.map((pwd, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="flex-1 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm font-mono">
-                        {pwd}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemovePassword(index)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
+            {/* 超级管理员可管理所有密码 */}
+            {isSuperAdmin && (
+              <div className="bg-white rounded-xl p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">超级管理员密码</label>
+                <p className="text-xs text-purple-600 mb-3">超级管理员(admin2026)可管理所有密码</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-3 py-2.5 bg-purple-50 border border-purple-200 rounded-lg text-sm font-mono">
+                    admin2026
+                  </div>
                 </div>
-              )}
-              
-              {/* 新增密码输入 */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddPassword()}
-                  placeholder="输入新管理员密码"
-                  className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6]"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddPassword}
-                  disabled={!newPassword.trim()}
-                  className="px-4 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  添加
-                </button>
               </div>
-            </div>
+            )}
 
-            {/* 访客密码管理 */}
+            {/* 管理员密码管理 - 仅超级管理员可见 */}
+            {isSuperAdmin && (
+              <div className="bg-white rounded-xl p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">管理员密码</label>
+                <p className="text-xs text-amber-600 mb-3">管理员密码可进入管理后台和查看产品</p>
+                
+                {/* 已有密码列表 */}
+                {adminPasswords.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {adminPasswords.map((pwd, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="flex-1 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm font-mono">
+                          {pwd}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePassword(index)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* 新增密码输入 */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddPassword()}
+                    placeholder="输入新管理员密码"
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6]"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddPassword}
+                    disabled={!newPassword.trim()}
+                    className="px-4 py-2.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    添加
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 访客密码管理 - 超级管理员和管理员都可访问 */}
             <div className="bg-white rounded-xl p-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">访客密码</label>
-              <p className="text-xs text-gray-400 mb-3">访客密码只能查看产品，无法进入管理后台</p>
+              <p className="text-xs text-blue-600 mb-3">访客密码只能查看产品，无法进入管理后台</p>
               
               {/* 已有密码列表 */}
               {visitorPasswords.length > 0 && (

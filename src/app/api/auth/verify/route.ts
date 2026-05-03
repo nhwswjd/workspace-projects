@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { validPasswords } from '@/lib/products';
 import { getSupabaseAdmin } from '@/lib/db';
 
+// 超级管理员密码
+const SUPER_ADMIN_PASSWORD = 'admin2026';
+
 // 从数据库获取管理员密码列表
 async function getAdminPasswords(): Promise<string[]> {
   const supabase = getSupabaseAdmin();
@@ -45,12 +48,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // 检查超级管理员密码
+    if (password === SUPER_ADMIN_PASSWORD) {
+      return NextResponse.json({ 
+        success: true,
+        isAdmin: true,
+        isSuperAdmin: true,
+        categoryPermission: null
+      });
+    }
+
     // 获取管理员密码列表并验证
     const adminPasswords = await getAdminPasswords();
     if (adminPasswords.includes(password)) {
       return NextResponse.json({ 
         success: true,
         isAdmin: true,
+        isSuperAdmin: false,
         categoryPermission: null
       });
     }
@@ -60,6 +74,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ 
         success: true,
         isAdmin: false,
+        isSuperAdmin: false,
         categoryPermission: null
       });
     }
@@ -88,6 +103,7 @@ export async function POST(request: Request) {
           return NextResponse.json({ 
             success: true,
             isAdmin: false,
+            isSuperAdmin: false,
             categoryPermission: null
           });
         }

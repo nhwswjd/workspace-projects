@@ -12,12 +12,15 @@ export function Header({ siteName }: HeaderProps) {
   const [siteTitle, setSiteTitle] = useState(siteName || 'ATELIER');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // 检查登录状态
+    // 检查登录状态和管理员权限
     const checkLogin = () => {
       const authData = localStorage.getItem('atelier_authenticated');
+      const adminData = localStorage.getItem('atelier_is_admin');
       setIsLoggedIn(!!authData);
+      setIsAdmin(adminData === 'true');
     };
     checkLogin();
     
@@ -70,19 +73,23 @@ export function Header({ siteName }: HeaderProps) {
           >
             相册广场
           </Link>
-          <Link
-            href="/admin"
-            className="block px-4 py-3 text-gray-700 hover:bg-gray-50"
-            onClick={() => setShowMobileMenu(false)}
-          >
-            管理后台
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="block px-4 py-3 text-gray-700 hover:bg-gray-50"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              管理后台
+            </Link>
+          )}
           {isLoggedIn && (
             <button
               onClick={() => {
                 localStorage.removeItem('atelier_authenticated');
                 localStorage.removeItem('atelier_is_admin');
+                localStorage.removeItem('atelier_is_super_admin');
                 setIsLoggedIn(false);
+                setIsAdmin(false);
                 setShowMobileMenu(false);
                 window.location.href = '/';
               }}
@@ -103,7 +110,7 @@ export function Header({ siteName }: HeaderProps) {
         >
           相册广场
         </Link>
-        {isLoggedIn && (
+        {isAdmin && (
           <Link
             href="/admin"
             className="ml-2 px-3 py-1.5 text-sm text-gray-700 hover:text-teal-600 rounded-md hover:bg-white"
@@ -115,7 +122,10 @@ export function Header({ siteName }: HeaderProps) {
           <button
             onClick={() => {
               localStorage.removeItem('atelier_authenticated');
+              localStorage.removeItem('atelier_is_admin');
+              localStorage.removeItem('atelier_is_super_admin');
               setIsLoggedIn(false);
+              setIsAdmin(false);
               window.location.href = '/';
             }}
             className="ml-auto px-3 py-1.5 text-sm text-red-600 hover:text-red-700 rounded-md hover:bg-white flex items-center gap-1.5"

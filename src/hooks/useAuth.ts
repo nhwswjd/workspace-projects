@@ -5,26 +5,30 @@ import { useState, useEffect, useCallback } from 'react';
 const AUTH_KEY = 'atelier_authenticated';
 const CATEGORY_KEY = 'atelier_category_permission';
 const ADMIN_KEY = 'atelier_is_admin';
+const SUPER_ADMIN_KEY = 'atelier_is_super_admin';
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [categoryPermission, setCategoryPermission] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(AUTH_KEY);
     const storedCategory = localStorage.getItem(CATEGORY_KEY);
     const storedAdmin = localStorage.getItem(ADMIN_KEY);
+    const storedSuperAdmin = localStorage.getItem(SUPER_ADMIN_KEY);
     if (stored === 'true') {
       setIsAuthenticated(true);
       setCategoryPermission(storedCategory);
       setIsAdmin(storedAdmin === 'true');
+      setIsSuperAdmin(storedSuperAdmin === 'true');
     }
     setIsLoading(false);
   }, []);
 
-  const checkPassword = useCallback(async (password: string): Promise<{ success: boolean; isAdmin?: boolean }> => {
+  const checkPassword = useCallback(async (password: string): Promise<{ success: boolean; isAdmin?: boolean; isSuperAdmin?: boolean }> => {
     try {
       const response = await fetch('/api/auth/verify', {
         method: 'POST',
@@ -44,6 +48,14 @@ export function useAuth() {
           localStorage.removeItem(ADMIN_KEY);
           setIsAdmin(false);
         }
+        // 存储超级管理员标识
+        if (data.isSuperAdmin) {
+          localStorage.setItem(SUPER_ADMIN_KEY, 'true');
+          setIsSuperAdmin(true);
+        } else {
+          localStorage.removeItem(SUPER_ADMIN_KEY);
+          setIsSuperAdmin(false);
+        }
         // 存储分类权限
         if (data.categoryPermission) {
           localStorage.setItem(CATEGORY_KEY, data.categoryPermission);
@@ -53,7 +65,7 @@ export function useAuth() {
           setCategoryPermission(null);
         }
         setIsAuthenticated(true);
-        return { success: true, isAdmin: data.isAdmin };
+        return { success: true, isAdmin: data.isAdmin, isSuperAdmin: data.isSuperAdmin };
       }
       return { success: false };
     } catch {
@@ -65,8 +77,10 @@ export function useAuth() {
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(CATEGORY_KEY);
     localStorage.removeItem(ADMIN_KEY);
+    localStorage.removeItem(SUPER_ADMIN_KEY);
     setIsAuthenticated(false);
     setIsAdmin(false);
+    setIsSuperAdmin(false);
     setCategoryPermission(null);
     
     // 如果需要，导航到首页
@@ -82,5 +96,5 @@ export function useAuth() {
     return false;
   }, [isAuthenticated, categoryPermission]);
 
-  return { isAuthenticated, isLoading, isAdmin, checkPassword, logout, categoryPermission, hasCategoryAccess };
+  return { isAuthenticated, isLoading, isAdmin, isSuperAdmin, checkPassword, logout, categoryPermission, hasCategoryAccess };
 }
