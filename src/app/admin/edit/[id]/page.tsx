@@ -199,8 +199,8 @@ export default function EditProductPage() {
       </header>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto pb-32">
-        <div className="p-4 space-y-5">
+      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto pb-32">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-5">
           {/* Basic Info */}
           <div className="space-y-4">
             <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">基本信息</h2>

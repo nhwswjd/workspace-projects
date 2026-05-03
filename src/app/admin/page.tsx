@@ -108,10 +108,10 @@ export default function AdminPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="pb-24">
+      {/* Main Content - PC端最大宽度限制 */}
+      <main className="pb-24 max-w-5xl mx-auto">
         {/* Tab 切换 */}
-        <div className="px-4 pt-4">
+        <div className="px-4 pt-4 flex justify-center">
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('product')}
@@ -136,11 +136,11 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* 产品列表 */}
+        {/* 产品列表 - PC端网格布局 */}
         {activeTab === 'product' && (
-          <div className="px-4 pt-4 space-y-3">
+          <div className="px-4 pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {products.map(product => (
-              <div key={product.id} className="bg-white rounded-xl p-3 flex gap-3 shadow-sm">
+              <div key={product.id} className="bg-white rounded-xl p-3 flex gap-3 shadow-sm h-fit">
                 <div className="w-20 h-20 bg-neutral-100 rounded-lg overflow-hidden flex-shrink-0">
                   {product.coverImage ? (
                     <img 
@@ -182,7 +182,7 @@ export default function AdminPage() {
 
         {/* 分类列表 */}
         {activeTab === 'category' && (
-          <div className="px-4 pt-4 space-y-3">
+          <div className="px-4 sm:px-6 lg:px-8 pt-4 space-y-3 max-w-6xl mx-auto">
             {categories.map(category => (
               <div key={category.id} className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-center justify-between">
