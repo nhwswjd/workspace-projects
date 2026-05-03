@@ -59,19 +59,38 @@ export default function AdminPage() {
       if (productsRes.products) setProducts(productsRes.products);
       if (categoriesRes.categories) setCategories(categoriesRes.categories);
       if (brandRes.value) setSiteName(brandRes.value);
-      // 密码可能是逗号分隔的字符串或JSON数组
+      // 密码可能是逗号分隔的字符串、JSON数组或双重转义的JSON
       if (passwordRes.value) {
-        try {
-          const pwdValue = passwordRes.value;
-          if (pwdValue.startsWith('[')) {
-            setAdminPasswords(JSON.parse(pwdValue));
-          } else if (pwdValue.includes(',')) {
-            setAdminPasswords(pwdValue.split(',').filter(Boolean));
-          } else if (pwdValue) {
-            setAdminPasswords([pwdValue]);
+        const pwdValue = passwordRes.value;
+        let passwords: string[] = [];
+        
+        // 尝试解析为数组
+        if (pwdValue.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(pwdValue);
+            if (Array.isArray(parsed)) {
+              passwords = parsed;
+            }
+          } catch {
+            // 双重转义的情况，尝试修复
+            try {
+              const fixed = pwdValue.replace(/\\"/g, '"');
+              const parsed = JSON.parse(fixed);
+              if (Array.isArray(parsed)) {
+                passwords = parsed;
+              }
+            } catch {
+              passwords = [pwdValue];
+            }
           }
-        } catch {
-          setAdminPasswords([passwordRes.value]);
+        } else if (pwdValue.includes(',')) {
+          passwords = pwdValue.split(',').filter(Boolean);
+        } else if (pwdValue) {
+          passwords = [pwdValue];
+        }
+        
+        if (passwords.length > 0) {
+          setAdminPasswords(passwords);
         }
       }
     } catch (err) {
