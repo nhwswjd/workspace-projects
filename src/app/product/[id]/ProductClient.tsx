@@ -1,23 +1,18 @@
 "use client";
 
-type Product = any;
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Home, Upload, LogOut, ArrowUp } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
+type Product = any;
 
 interface ProductClientProps {
   product: Product;
 }
 
 export default function ProductClient({ product }: ProductClientProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isVideoVertical, setIsVideoVertical] = useState(true);
-  const [showMenu, setShowMenu] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
@@ -33,28 +28,16 @@ export default function ProductClient({ product }: ProductClientProps) {
     setIsAdmin(adminData === 'true');
   }, [router]);
 
-  // 递归查找URL
-  function getVideoUrl(data: unknown): string {
-    if (!data) return "";
-    if (typeof data === "string") return data;
-    if (typeof data === "object") {
+  // 获取视频URL - 简化逻辑
+  const getVideoUrl = (data: unknown): string => {
+    if (!data) return '';
+    if (typeof data === 'string') return data;
+    if (typeof data === 'object') {
       const obj = data as Record<string, unknown>;
-      // 直接是URL字符串
-      if (obj.url && typeof obj.url === "string") return obj.url;
-      // 递归查找
-      for (const key of Object.keys(obj)) {
-        const value = obj[key];
-        if (typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"))) {
-          return value;
-        }
-        if (typeof value === "object" && value !== null) {
-          const result = getVideoUrl(value);
-          if (result) return result;
-        }
-      }
+      if (obj.url && typeof obj.url === 'string') return obj.url;
     }
-    return "";
-  }
+    return '';
+  };
 
   // 监听滚动显示/隐藏Top按钮
   useEffect(() => {
@@ -71,30 +54,10 @@ export default function ProductClient({ product }: ProductClientProps) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // 处理视频点击
-  const handleVideoClick = (video: HTMLVideoElement) => {
-    if (video.paused) {
-      video.play();
-      setIsPlaying(true);
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  // 切换视频时重置播放状态
-  useEffect(() => {
-    setIsPlaying(false);
-  }, [currentVideoIndex]);
-
   const allImages = [
     product.coverImage,
     ...(product.images as string[] || []),
   ].filter(Boolean);
-
-  // 根据当前视频索引获取视频数据
-  const videoData = (product.videos as unknown[])?.[currentVideoIndex] as Record<string, unknown> | undefined;
-  const videoUrl = getVideoUrl(videoData);
 
   return (
     <div className="min-h-screen bg-white pb-8 relative">
@@ -150,9 +113,8 @@ export default function ProductClient({ product }: ProductClientProps) {
         {/* 视频区域 - 竖向排列 */}
         {product.videos && product.videos.length > 0 && (
           <div>
-            {product.videos.map((_: unknown, index: number) => {
-              const vd = (product.videos as unknown[])?.[index];
-              const vUrl = getVideoUrl(vd);
+            {(product.videos as unknown[]).map((video, index) => {
+              const vUrl = getVideoUrl(video);
               if (!vUrl) return null;
               return (
                 <div key={`video-${index}`} className="relative bg-black mb-4">

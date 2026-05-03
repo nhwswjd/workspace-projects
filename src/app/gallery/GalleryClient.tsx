@@ -100,10 +100,6 @@ export default function GalleryClient({
     mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSearch = () => {
-    // 搜索逻辑已在 useEffect 中处理
-  };
-
   const clearSearch = () => {
     setSearchQuery('');
     searchRef.current?.focus();
@@ -135,7 +131,7 @@ export default function GalleryClient({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => e.key === 'Enter' && setSearchQuery((e.target as HTMLInputElement).value)}
                 placeholder=""
                 className="w-full bg-gray-100 border border-teal-200 rounded-full pl-10 pr-4 py-2.5 text-sm
                          text-gray-900 placeholder:text-gray-400/50
@@ -151,7 +147,7 @@ export default function GalleryClient({
               )}
             </div>
             <button 
-              onClick={handleSearch}
+              onClick={() => searchRef.current?.focus()}
               className="bg-teal-500 text-white px-1.5 py-2.5 rounded-full text-sm font-medium
                        hover:bg-teal-600 active:scale-[0.98] transition-all"
             >

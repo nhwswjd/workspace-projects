@@ -29,6 +29,25 @@ interface Category {
   sort_order?: number;
 }
 
+// 解析密码字符串为数组
+const parsePasswords = (value: string): string[] => {
+  if (!value) return [];
+  if (value.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+      // 处理双重转义
+      const fixed = value.replace(/\\"/g, '"');
+      const reParsed = JSON.parse(fixed);
+      return Array.isArray(reParsed) ? reParsed : [];
+    } catch {
+      return [];
+    }
+  }
+  if (value.includes(',')) return value.split(',').filter(Boolean);
+  return value ? [value] : [];
+};
+
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'settings' | 'backup'>('products');
   const [products, setProducts] = useState<Product[]>([]);
@@ -95,57 +114,16 @@ export default function AdminPage() {
       
       // 只有超级管理员才解析管理员密码
       if (isSuperAdmin && results[5]?.value) {
-        const pwdValue = results[5].value;
-        let passwords: string[] = [];
-        
-        // 尝试解析为数组
-        if (pwdValue.startsWith('[')) {
-          try {
-            const parsed = JSON.parse(pwdValue);
-            if (Array.isArray(parsed)) {
-              passwords = parsed;
-            }
-          } catch {
-            // 双重转义的情况，尝试修复
-            try {
-              const fixed = pwdValue.replace(/\\"/g, '"');
-              const parsed = JSON.parse(fixed);
-              if (Array.isArray(parsed)) {
-                passwords = parsed;
-              }
-            } catch {
-              passwords = [pwdValue];
-            }
-          }
-        } else if (pwdValue.includes(',')) {
-          passwords = pwdValue.split(',').filter(Boolean);
-        } else if (pwdValue) {
-          passwords = [pwdValue];
-        }
-        
+        const passwords = parsePasswords(results[5].value);
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
         }
       }
       // 加载访客密码
       if (visitorPwdRes.value) {
-        const vPwdValue = visitorPwdRes.value;
-        let visitorPasswords: string[] = [];
-        try {
-          visitorPasswords = JSON.parse(vPwdValue);
-          if (!Array.isArray(visitorPasswords)) visitorPasswords = [];
-        } catch {
-          if (vPwdValue.includes('[')) {
-            const fixed = vPwdValue.replace(/\\"/g, '"');
-            try { visitorPasswords = JSON.parse(fixed); } catch { visitorPasswords = []; }
-          } else if (vPwdValue.includes(',')) {
-            visitorPasswords = vPwdValue.split(',').filter(Boolean);
-          } else if (vPwdValue) {
-            visitorPasswords = [vPwdValue];
-          }
-        }
-        if (visitorPasswords.length > 0) {
-          setVisitorPasswords(visitorPasswords);
+        const passwords = parsePasswords(visitorPwdRes.value);
+        if (passwords.length > 0) {
+          setVisitorPasswords(passwords);
         }
       }
       // 加载随机排序规则

@@ -4,24 +4,26 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase配置 - 直接在前端使用
+// Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
 
-// 直接上传到Supabase Storage
-async function uploadToSupabase(file: File): Promise<string | null> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 生成文件名
+const generateFileName = (file: File): string => {
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 8);
   const ext = file.name.split('.').pop() || 'bin';
-  const fileName = `${timestamp}-${randomStr}.${ext}`;
+  return `${timestamp}-${randomStr}.${ext}`;
+};
+
+// 上传单个文件到Supabase
+const uploadFile = async (file: File): Promise<string | null> => {
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const fileName = generateFileName(file);
   
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('product-images')
-    .upload(fileName, file, {
-      contentType: file.type,
-      upsert: true
-    });
+    .upload(fileName, file, { contentType: file.type, upsert: true });
   
   if (error) {
     console.error('上传失败:', error);
@@ -30,34 +32,20 @@ async function uploadToSupabase(file: File): Promise<string | null> {
   
   const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
   return urlData.publicUrl;
+};
+
+// 上传到Supabase Storage - 单张
+async function uploadToSupabase(file: File): Promise<string | null> {
+  return uploadFile(file);
 }
 
 // 批量上传多张图片
 async function uploadMultipleToSupabase(files: File[]): Promise<string[]> {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const urls: string[] = [];
-  
   for (const file of files) {
-    const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 8);
-    const ext = file.name.split('.').pop() || 'bin';
-    const fileName = `${timestamp}-${randomStr}.${ext}`;
-    
-    const { data, error } = await supabase.storage
-      .from('product-images')
-      .upload(fileName, file, {
-        contentType: file.type,
-        upsert: true
-      });
-    
-    if (!error && data) {
-      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
-      if (urlData.publicUrl) {
-        urls.push(urlData.publicUrl);
-      }
-    }
+    const url = await uploadFile(file);
+    if (url) urls.push(url);
   }
-  
   return urls;
 }
 
