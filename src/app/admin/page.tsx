@@ -33,8 +33,8 @@ export default function AdminPage() {
     fetch('/api/products')
       .then(res => res.json())
       .then(data => {
-        if (data.success && data.data) {
-          setProducts(data.data.map((p: any) => ({
+        if (data.success && data.products) {
+          setProducts(data.products.map((p: any) => ({
             id: p.id,
             sku: p.sku,
             name: p.name,
