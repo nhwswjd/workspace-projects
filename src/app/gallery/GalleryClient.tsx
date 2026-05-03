@@ -10,7 +10,7 @@ interface Product {
   name: string;
   category: string;
   category_id: string;
-  cover_image: string;
+  coverImage: string;
   featured?: string | null;
   location: string;
 }
@@ -173,9 +173,9 @@ export default function GalleryClient({
                   style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
                 >
                   <div className="relative" style={{ paddingBottom: '133.33%' }}>
-                    {product.cover_image ? (
+                    {product.coverImage ? (
                       <img
-                        src={product.cover_image}
+                        src={product.coverImage}
                         alt={product.name}
                         className="absolute inset-0 w-full h-full object-cover"
                         loading="lazy"
