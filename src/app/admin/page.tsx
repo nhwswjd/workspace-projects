@@ -415,16 +415,33 @@ export default function AdminPage() {
         )}
       </main>
 
-      {/* 底部添加按钮 */}
+      {/* 底部添加按钮 - 手机端圆形按钮，PC端文字按钮 */}
       {activeTab === 'products' && (
         <a
           href="/admin/new"
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#14b8a6] text-white rounded-full shadow-lg flex items-center justify-center hover:bg-[#14b8a6]/90 transition-colors z-40"
+          className="fixed bottom-6 right-6 md:relative md:bottom-auto md:right-auto flex items-center gap-2 px-4 py-3 md:py-2 bg-[#14b8a6] text-white md:rounded-lg rounded-full shadow-lg hover:bg-[#14b8a6]/90 transition-colors z-40"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
+          <span className="hidden md:inline">+ 添加产品</span>
         </a>
+      )}
+
+      {activeTab === 'categories' && (
+        <button
+          onClick={() => {
+            setEditingCategory(null);
+            setCategoryName('');
+            setShowCategoryModal(true);
+          }}
+          className="fixed bottom-6 right-6 md:relative md:bottom-auto md:right-auto flex items-center gap-2 px-4 py-3 md:py-2 bg-[#14b8a6] text-white md:rounded-lg rounded-full shadow-lg hover:bg-[#14b8a6]/90 transition-colors z-40"
+        >
+          <svg className="w-6 h-6 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="hidden md:inline">+ 添加分类</span>
+        </button>
       )}
 
       {/* 删除确认模态框 */}
