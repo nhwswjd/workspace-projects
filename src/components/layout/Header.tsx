@@ -80,8 +80,7 @@ export function Header({ siteName }: HeaderProps) {
           {isLoggedIn && (
             <button
               onClick={() => {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('authTokenData');
+                localStorage.removeItem('atelier_authenticated');
                 setIsLoggedIn(false);
                 setShowMobileMenu(false);
                 window.location.href = '/';
@@ -94,6 +93,37 @@ export function Header({ siteName }: HeaderProps) {
           )}
         </nav>
       )}
+
+      {/* PC端导航栏 */}
+      <nav className="hidden md:flex items-center px-4 py-2 bg-gray-50 border-b border-gray-200">
+        <Link
+          href="/gallery"
+          className="px-3 py-1.5 text-sm text-gray-700 hover:text-teal-600 rounded-md hover:bg-white"
+        >
+          相册广场
+        </Link>
+        {isLoggedIn && (
+          <Link
+            href="/admin"
+            className="ml-2 px-3 py-1.5 text-sm text-gray-700 hover:text-teal-600 rounded-md hover:bg-white"
+          >
+            管理后台
+          </Link>
+        )}
+        {isLoggedIn && (
+          <button
+            onClick={() => {
+              localStorage.removeItem('atelier_authenticated');
+              setIsLoggedIn(false);
+              window.location.href = '/';
+            }}
+            className="ml-auto px-3 py-1.5 text-sm text-red-600 hover:text-red-700 rounded-md hover:bg-white flex items-center gap-1.5"
+          >
+            <LogOut className="w-4 h-4" />
+            退出登录
+          </button>
+        )}
+      </nav>
     </header>
   );
 }
