@@ -16,15 +16,24 @@ export function Header({ siteName }: HeaderProps) {
   useEffect(() => {
     // 检查登录状态
     const checkLogin = () => {
-      const token = localStorage.getItem('authToken');
-      const tokenData = localStorage.getItem('authTokenData');
-      setIsLoggedIn(!!(token || tokenData));
+      const authData = localStorage.getItem('atelier_authenticated');
+      setIsLoggedIn(!!authData);
     };
     checkLogin();
     
-    // 监听登录状态变化
+    // 监听登录状态变化和页面切换
     window.addEventListener('storage', checkLogin);
-    return () => window.removeEventListener('storage', checkLogin);
+    // 每次页面可见时也检查
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkLogin();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('storage', checkLogin);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   return (
