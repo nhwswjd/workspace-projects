@@ -89,7 +89,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               placeholder="编号/名称/地址"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-20 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
+              className="w-full pl-10 pr-20 py-[18px] bg-gray-50 border border-gray-200 rounded-xl text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-200/50 focus:border-emerald-300"
             />
             <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-medium transition-colors">
               搜索
@@ -102,7 +102,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={handleShowAll}
-              className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
+              className={`flex-shrink-0 px-4 py-[18px] text-sm font-medium rounded-full transition-all ${
                 selectedCategory === null
                   ? 'bg-emerald-600 text-white'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -114,7 +114,7 @@ export default function GalleryClient({ initialCategories, initialProducts }: Ga
               <button
                 key={cat.id}
                 onClick={() => handleSelectCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
+                className={`flex-shrink-0 px-4 py-[18px] text-sm font-medium rounded-full transition-all ${
                   selectedCategory === cat.id
                     ? 'bg-emerald-600 text-white'
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
