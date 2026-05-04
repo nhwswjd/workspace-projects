@@ -544,7 +544,7 @@ export default function AdminPage() {
                       )}
                     </a>
                     {product.featured && (
-                      <span className="absolute top-2 right-2 px-2 py-1 bg-[#14b8a6] text-white text-xs rounded-full">
+                      <span className="absolute top-0 right-0 px-2 py-1 bg-[#14b8a6] text-white text-xs rounded-bl-lg">
                         {product.featured}
                       </span>
                     )}

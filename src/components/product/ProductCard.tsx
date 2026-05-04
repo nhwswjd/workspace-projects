@@ -45,7 +45,7 @@ export default function ProductCard({ product, showCategory = true }: ProductCar
           
           {/* Featured标签 - 右上角 */}
           {tagInfo && (
-            <div className="absolute top-2 right-2 z-10">
+            <div className="absolute top-0 right-0 z-10">
               <span className={`${tagInfo.color} text-white text-xs px-2 py-1 rounded-full shadow-sm`}>
                 {tagInfo.text}
               </span>
