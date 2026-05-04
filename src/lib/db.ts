@@ -74,6 +74,7 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
       sortOrder: (p.sort_order as number) || 0,
+      notes: (p.notes as string) || '',
     })) as unknown as Product[];
     
     // 合并静态数据和数据库数据
