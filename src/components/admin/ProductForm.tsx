@@ -146,8 +146,8 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const handleRemoveImage = (index: number) => {
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
-    // 如果删除的是封面图片或第一张图片，更新封面
-    if (coverImage === images[index] || index === 0) {
+    // 如果删除的是封面图片，用新的第一张作为封面
+    if (coverImage === images[index]) {
       setCoverImage(newImages[0] || '');
     }
   };
@@ -579,10 +579,6 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                                 const newImages = [...images];
                                 [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
                                 setImages(newImages);
-                                // 如果移动的是封面，更新封面
-                                if (coverImage === img) {
-                                  setCoverImage(newImages[index]);
-                                }
                               }
                             }}
                             disabled={index === 0}
@@ -600,9 +596,6 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                                 const newImages = [...images];
                                 [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
                                 setImages(newImages);
-                                if (coverImage === img) {
-                                  setCoverImage(newImages[index]);
-                                }
                               }
                             }}
                             disabled={index === images.length - 1}
