@@ -2,54 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
+import { ArrowLeft, Upload, X, Image, Video, Plus, Check } from 'lucide-react';
 
-// Supabase配置
-const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
-
-// 生成文件名
-const generateFileName = (file: File): string => {
-  const timestamp = Date.now();
-  const randomStr = Math.random().toString(36).substring(2, 8);
-  const ext = file.name.split('.').pop() || 'bin';
-  return `${timestamp}-${randomStr}.${ext}`;
-};
-
-// 上传单个文件到Supabase
-const uploadFile = async (file: File): Promise<string | null> => {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const fileName = generateFileName(file);
-  
-  const { error } = await supabase.storage
-    .from('product-images')
-    .upload(fileName, file, { contentType: file.type, upsert: true });
-  
-  if (error) {
-    console.error('上传失败:', error);
-    return null;
-  }
-  
-  const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
-  return urlData.publicUrl;
-};
-
-// 上传到Supabase Storage - 单张
-async function uploadToSupabase(file: File): Promise<string | null> {
-  return uploadFile(file);
-}
-
-// 批量上传多张图片
-async function uploadMultipleToSupabase(files: File[]): Promise<string[]> {
-  const urls: string[] = [];
-  for (const file of files) {
-    const url = await uploadFile(file);
-    if (url) urls.push(url);
-  }
-  return urls;
-}
-
-interface Category {
+interface Tag {
   id: string;
   name: string;
 }
@@ -61,32 +17,24 @@ export default function EditProductPage() {
 
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
-  const [description, setDescription] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('');
   const [tags, setTags] = useState('');
-  const [hidden, setHidden] = useState(false);
-  const [featured, setFeatured] = useState('');
-  const [sortOrder, setSortOrder] = useState(0);
-  const [coverImage, setCoverImage] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
-  const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
-  const [uploadingMultiple, setUploadingMultiple] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
+
+  // Generate unique session ID for uploads
+  const sessionId = useState(() => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`)[0];
 
   useEffect(() => {
-    // Load categories
-    fetch('/api/categories')
+    // Load tags
+    fetch('/api/tags')
       .then(res => res.json())
       .then(data => {
-        if (data.categories) setCategories(data.categories);
+        if (data.tags) setAllTags(data.tags);
       });
 
     // Load product
@@ -98,84 +46,130 @@ export default function EditProductPage() {
             const p = data.product;
             setName(p.name || '');
             setSku(p.sku || '');
-            setDescription(p.description || '');
-            setCategoryId(p.category_id || '');
-            setCategory(p.category || '');
-            setLocation(p.location || '');
-            setTags(Array.isArray(p.tags) ? p.tags.join('，') : (p.tags || ''));
-            setHidden(p.hidden || false);
-            setFeatured(p.featured || '');
-            setSortOrder(p.sort_order || 0);
-            
-            // Handle cover image - might be string or object
+            setTags(p.tags?.join('，') || '');
+
+            // Handle images - merge cover and images
+            const imgList: string[] = [];
             if (p.cover_image) {
-              if (typeof p.cover_image === 'string') {
-                setCoverImage(p.cover_image);
-              } else if (p.cover_image?.url) {
-                setCoverImage(p.cover_image.url);
-              }
+              const coverUrl = typeof p.cover_image === 'string' ? p.cover_image : p.cover_image?.url;
+              if (coverUrl) imgList.push(coverUrl);
             }
-            
-            // Handle images array
-            if (p.images) {
-              const imgArray = Array.isArray(p.images) 
-                ? p.images.map((img: any) => typeof img === 'string' ? img : img?.url || '')
-                : [];
-              setImages(imgArray.filter(Boolean));
+            if (p.images && Array.isArray(p.images)) {
+              p.images.forEach((img: any) => {
+                const url = typeof img === 'string' ? img : img?.url;
+                if (url && !imgList.includes(url)) imgList.push(url);
+              });
             }
-            
-            // Handle videos array - properly extract video URLs
+            setImages(imgList);
+
+            // Handle videos
             if (p.videos) {
+              let vidList: string[] = [];
               if (typeof p.videos === 'string') {
-                try {
-                  const parsed = JSON.parse(p.videos);
-                  setVideos(Array.isArray(parsed) ? parsed.map((v: any) => typeof v === 'string' ? v : v?.url || '').filter(Boolean) : []);
-                } catch {
-                  setVideos([]);
-                }
+                try { vidList = JSON.parse(p.videos); } catch {}
               } else if (Array.isArray(p.videos)) {
-                setVideos(p.videos.map((v: any) => typeof v === 'string' ? v : v?.url || '').filter(Boolean));
-              } else {
-                setVideos([]);
+                vidList = p.videos;
               }
+              setVideos(vidList.map((v: any) => typeof v === 'string' ? v : v?.url || '').filter(Boolean));
             }
+
+            // Extract tag IDs from tag names
+            const tagNames = Array.isArray(p.tags) ? p.tags : [];
+            const matchedIds = allTags.filter(t => tagNames.includes(t.name)).map(t => t.id);
+            setSelectedTagIds(matchedIds);
           }
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
+        });
     }
   }, [id]);
 
-  const handleAddImage = () => {
-    setImages([...images, '']);
+  // Upload multiple images
+  const handleUploadImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImages(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    formData.append('sessionId', sessionId);
+
+    try {
+      const res = await fetch('/api/upload-multiple', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.urls) {
+        setImages(prev => [...prev, ...data.urls]);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+    }
+    setUploadingImages(false);
+    e.target.value = '';
   };
 
-  const handleImageChange = (index: number, value: string) => {
-    const newImages = [...images];
-    newImages[index] = value;
-    setImages(newImages);
+  // Upload multiple videos
+  const handleUploadVideos = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingVideos(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    formData.append('sessionId', sessionId);
+
+    try {
+      const res = await fetch('/api/upload-multiple', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.urls) {
+        setVideos(prev => [...prev, ...data.urls]);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+    }
+    setUploadingVideos(false);
+    e.target.value = '';
   };
 
   const handleRemoveImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleAddVideo = () => {
-    setVideos([...videos, '']);
-  };
-
-  const handleVideoChange = (index: number, value: string) => {
-    const newVideos = [...videos];
-    newVideos[index] = value;
-    setVideos(newVideos);
-  };
-
   const handleRemoveVideo = (index: number) => {
     setVideos(videos.filter((_, i) => i !== index));
   };
 
+  // Toggle tag selection
+  const toggleTag = (tagId: string, tagName: string) => {
+    if (selectedTagIds.includes(tagId)) {
+      setSelectedTagIds(selectedTagIds.filter(id => id !== tagId));
+      // Remove from tags string
+      const currentTags = tags.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+      setTags(currentTags.filter(t => t !== tagName).join('，'));
+    } else {
+      setSelectedTagIds([...selectedTagIds, tagId]);
+      // Add to tags string
+      const currentTags = tags.split(/[,，]/).map(t => t.trim()).filter(Boolean);
+      if (!currentTags.includes(tagName)) {
+        setTags([...currentTags, tagName].join('，'));
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!sku.trim()) {
+      alert('请输入编号');
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -183,479 +177,204 @@ export default function EditProductPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          sku,
-          sort_order: sortOrder,
-          description,
-          category,
-          category_id: categoryId,
-          location,
-          featured: featured || null,
-          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-          hidden: hidden || false,
-          cover_image: coverImage || null,
-          images: images.filter(Boolean),
+          name: name || null,
+          sku: sku.trim(),
+          tags: tags.split(/[,，]/).map(t => t.trim()).filter(Boolean),
+          cover_image: images[0] || null,
+          images: images.slice(1),
           videos: videos.filter(Boolean)
         })
       });
 
       if (res.ok) {
-        alert('保存成功');
         router.push('/admin');
       } else {
         alert('保存失败');
       }
-    } catch {
+    } catch (err) {
+      console.error('Save failed:', err);
       alert('保存失败');
-    } finally {
-      setSaving(false);
     }
+    setSaving(false);
   };
 
-  const handleDelete = async () => {
-    if (!confirm('确定要删除这个产品吗？')) return;
-    setDeleting(true);
-
-    try {
-      const res = await fetch(`/api/products/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (res.ok) {
-        alert('删除成功');
-        router.push('/admin');
-      } else {
-        alert('删除失败');
-      }
-    } catch {
-      alert('删除失败');
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-500">加载中...</div>
-      </div>
-    );
+  if (!id) {
+    return <div className="p-4">无效的产品ID</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="flex items-center justify-between px-4 h-[52px]">
-          <button onClick={() => router.push('/admin')} className="p-2 -ml-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-base font-medium">编辑产品</h1>
-          <div className="w-9" />
-        </div>
-      </header>
+      <div className="bg-white border-b px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
+        <Link href="/admin" className="p-2 hover:bg-gray-100 rounded">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <h1 className="text-lg font-medium">编辑产品</h1>
+      </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto pb-32">
-        <div className="p-4 sm:p-6 lg:p-8 space-y-5">
-          {/* Basic Info */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">基本信息</h2>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">排序（数值越小越靠前）</label>
-              <input
-                type="number"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="0"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">SKU编号</label>
-              <input
-                type="text"
-                value={sku}
-                onChange={(e) => setSku(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="如: ZJ-001"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">产品名称</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="如: 西湖断桥"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">产品描述</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
-                placeholder="描述产品的特点..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">分类</label>
-              <select
-                value={categoryId}
-                onChange={(e) => {
-                  setCategoryId(e.target.value);
-                  const cat = categories.find(c => c.id === e.target.value);
-                  if (cat) setCategory(cat.name);
-                }}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
-              >
-                <option value="">选择分类</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">地点</label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="如: 杭州市西湖区"
-              />
-            </div>
-
-            {/* 标签 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">标签（多个用逗号分隔）</label>
-              <input
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="如: 风景,古镇,日出"
-              />
-            </div>
-
-            {/* 隐藏 */}
-            <div>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hidden}
-                  onChange={(e) => setHidden(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <span className="text-sm font-medium text-gray-700">隐藏（访客不可见）</span>
-              </label>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">精选标签</label>
-              <input
-                type="text"
-                value={featured}
-                onChange={(e) => setFeatured(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="如: 精选产品（留空则不显示）"
-              />
-            </div>
-          </div>
-
-          {/* Media Section */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">媒体文件</h2>
-
-            {/* Cover Image */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">封面图片</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={coverImage}
-                  onChange={(e) => setCoverImage(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  placeholder="封面图片URL"
-                />
-                <label className={`px-4 py-3 bg-teal-50 text-teal-600 font-medium rounded-xl cursor-pointer hover:bg-teal-100 flex items-center ${uploadingCover ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  <svg className="w-5 h-5 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  {uploadingCover ? '上传中...' : '上传'}
-                  <input type="file" accept="image/*" className="hidden" disabled={uploadingCover} onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setUploadingCover(true);
-                      try {
-                        const url = await uploadToSupabase(file);
-                        if (url) {
-                          setCoverImage(url);
-                        } else {
-                          alert('上传失败');
-                        }
-                      } catch {
-                        alert('上传失败');
-                      } finally {
-                        setUploadingCover(false);
-                      }
-                    }
-                  }} />
-                </label>
-              </div>
-              {coverImage && (
-                <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
-                  <img src={coverImage} alt="封面预览" className="w-full h-48 object-contain" />
-                </div>
-              )}
-            </div>
-
-            {/* Images List */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">
-                  图片列表 ({images.length}张)
-                </label>
-                <label className={`text-sm text-teal-600 font-medium cursor-pointer ${uploadingMultiple ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  {uploadingMultiple ? '上传中...' : '+ 批量上传图片'}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    multiple 
-                    className="hidden" 
-                    disabled={uploadingMultiple} 
-                    onChange={async (e) => {
-                      const files = Array.from(e.target.files || []);
-                      if (files.length > 0) {
-                        setUploadingMultiple(true);
-                        try {
-                          const urls = await uploadMultipleToSupabase(files);
-                          if (urls.length > 0) {
-                            setImages([...images, ...urls]);
-                          }
-                          if (urls.length < files.length) {
-                            alert(`成功上传 ${urls.length} 张图片，${files.length - urls.length} 张上传失败`);
-                          }
-                        } catch {
-                          alert('上传失败');
-                        } finally {
-                          setUploadingMultiple(false);
-                        }
-                      }
-                    }} 
-                  />
-                </label>
-              </div>
-              
-              {images.length > 0 && (
-                <>
-                  <div className="space-y-2 mb-3">
-                    {images.map((img, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={img}
-                          onChange={(e) => handleImageChange(index, e.target.value)}
-                          className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          placeholder="图片URL"
-                        />
-                        <label className={`p-2 bg-gray-100 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-200 ${uploadingImageIndex === index ? 'opacity-50' : ''}`}>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <input type="file" accept="image/*" className="hidden" disabled={uploadingImageIndex === index} onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              setUploadingImageIndex(index);
-                              try {
-                                const url = await uploadToSupabase(file);
-                                if (url) {
-                                  handleImageChange(index, url);
-                                } else {
-                                  alert('上传失败');
-                                }
-                              } catch {
-                                alert('上传失败');
-                              } finally {
-                                setUploadingImageIndex(null);
-                              }
-                            }
-                          }} />
-                        </label>
-                        <button type="button" onClick={() => handleRemoveImage(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Image Preview Grid with Reorder - Larger thumbnails */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {images.map((img, index) => img && (
-                      <div key={index} className="relative rounded-xl overflow-hidden bg-gray-50 border-2 border-gray-200 shadow-sm">
-                        {/* Large Thumbnail */}
-                        <div className="aspect-[4/3] overflow-hidden">
-                          <img src={img} alt={`图片 ${index + 1}`} className="w-full h-full object-cover" />
-                        </div>
-                        {/* Image Info Bar */}
-                        <div className="p-2 flex items-center justify-between bg-white border-t border-gray-100">
-                          <div className="flex items-center gap-2">
-                            <span className="bg-teal-500 text-white text-xs w-6 h-6 flex items-center justify-center rounded-full font-bold">
-                              {index + 1}
-                            </span>
-                            <span className="text-xs text-gray-500">图片{index + 1}</span>
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (index > 0) {
-                                  const newImages = [...images];
-                                  [newImages[index - 1], newImages[index]] = [newImages[index], newImages[index - 1]];
-                                  setImages(newImages);
-                                }
-                              }}
-                              disabled={index === 0}
-                              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${index === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                              title="上移"
-                            >
-                              ↑
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (index < images.length - 1) {
-                                  const newImages = [...images];
-                                  [newImages[index], newImages[index + 1]] = [newImages[index + 1], newImages[index]];
-                                  setImages(newImages);
-                                }
-                              }}
-                              disabled={index === images.length - 1}
-                              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${index === images.length - 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                              title="下移"
-                            >
-                              ↓
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveImage(index)}
-                              className="w-8 h-8 bg-red-500 text-white flex items-center justify-center rounded-lg text-sm font-bold hover:bg-red-600 transition-colors"
-                              title="删除"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Videos List */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-700">
-                  视频列表 ({videos.length}个)
-                </label>
-                <button type="button" onClick={handleAddVideo} className="text-sm text-teal-600 font-medium">
-                  + 添加视频
-                </button>
-              </div>
-              
-              {videos.length > 0 && (
-                <>
-                  <div className="space-y-2 mb-3">
-                    {videos.map((video, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={video}
-                          onChange={(e) => handleVideoChange(index, e.target.value)}
-                          className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          placeholder="视频URL"
-                        />
-                        <label className={`p-2 bg-gray-100 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-200 ${uploadingVideoIndex === index ? 'opacity-50' : ''}`}>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                          <input type="file" accept="video/*" className="hidden" disabled={uploadingVideoIndex === index} onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            setUploadingVideoIndex(index);
-                            try {
-                              const url = await uploadToSupabase(file);
-                              if (url) {
-                                handleVideoChange(index, url);
-                              } else {
-                                alert('上传失败');
-                              }
-                            } catch (err: any) {
-                              alert('上传失败: ' + err.message);
-                            }
-                            setUploadingVideoIndex(null);
-                          }} />
-                        </label>
-                        <button type="button" onClick={() => handleRemoveVideo(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Video Preview Grid */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {videos.map((video, index) => video && (
-                      <div key={index} className="relative bg-gray-100 rounded-lg overflow-hidden border border-gray-200" style={{minHeight: '150px'}}>
-                        <video 
-                          src={video} 
-                          className="w-full h-auto max-h-48 object-contain" 
-                          controls 
-                          preload="metadata"
-                        />
-                        <div className="absolute top-0 left-0 bg-teal-600 text-white text-xs px-2 py-0.5 rounded-br">
-                          视频 {index + 1}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Delete Button */}
-          <div className="pt-4 border-t border-gray-200">
-            <button type="button" onClick={handleDelete} className="w-full py-3 bg-red-50 text-red-600 font-medium rounded-xl">
-              删除产品
-            </button>
-          </div>
+      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-4 space-y-6">
+        {/* 编号 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            编号 <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="输入编号"
+          />
         </div>
 
-        {/* Bottom Actions */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
+        {/* 名称 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">名称</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="可选"
+          />
+        </div>
+
+        {/* 标签 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">标签</label>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {allTags.map(tag => (
+              <button
+                key={tag.id}
+                type="button"
+                onClick={() => toggleTag(tag.id, tag.name)}
+                className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+                  selectedTagIds.includes(tag.id)
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                }`}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            placeholder="选标签或手动输入，逗号分隔"
+          />
+        </div>
+
+        {/* 产品图片 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            产品图片 {images.length > 0 && <span className="text-gray-400 font-normal">(第1张为封面)</span>}
+          </label>
+          
+          {/* Upload button */}
+          <label className="flex items-center justify-center gap-2 w-full py-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleUploadImages}
+              className="hidden"
+              disabled={uploadingImages}
+            />
+            {uploadingImages ? (
+              <span className="text-gray-500">上传中...</span>
+            ) : (
+              <>
+                <Upload className="w-5 h-5 text-gray-400" />
+                <span className="text-gray-500">点击选择多张图片</span>
+              </>
+            )}
+          </label>
+
+          {/* Image grid */}
+          {images.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {images.map((url, index) => (
+                <div key={index} className="relative aspect-square bg-gray-100 rounded overflow-hidden group">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  {index === 0 && (
+                    <span className="absolute bottom-1 left-1 px-1 py-0.5 bg-blue-500 text-white text-xs rounded">封面</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 产品视频 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">产品视频</label>
+          
+          {/* Upload button */}
+          <label className="flex items-center justify-center gap-2 w-full py-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition-colors">
+            <input
+              type="file"
+              accept="video/*"
+              multiple
+              onChange={handleUploadVideos}
+              className="hidden"
+              disabled={uploadingVideos}
+            />
+            {uploadingVideos ? (
+              <span className="text-gray-500">上传中...</span>
+            ) : (
+              <>
+                <Video className="w-5 h-5 text-gray-400" />
+                <span className="text-gray-500">点击选择多个视频</span>
+              </>
+            )}
+          </label>
+
+          {/* Video list */}
+          {videos.length > 0 && (
+            <div className="space-y-2 mt-3">
+              {videos.map((url, index) => (
+                <div key={index} className="flex items-center gap-2 p-2 bg-gray-100 rounded">
+                  <Video className="w-4 h-4 text-gray-500" />
+                  <span className="flex-1 text-sm text-gray-600 truncate">视频 {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveVideo(index)}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Submit */}
+        <div className="flex gap-3 pt-4">
+          <button
+            type="button"
+            onClick={() => router.push('/admin')}
+            className="flex-1 py-3 border rounded-lg hover:bg-gray-50"
+          >
+            取消
+          </button>
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-3 bg-teal-500 text-white font-medium rounded-xl disabled:opacity-50"
+            className="flex-1 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
           >
-            {saving ? '保存中...' : '保存修改'}
+            {saving ? '保存中...' : '保存'}
           </button>
         </div>
       </form>

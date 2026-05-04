@@ -2,333 +2,418 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
-interface Category {
-  id: number;
+interface Product {
+  id?: string;
+  sku?: string;
+  name?: string;
+  description?: string;
+  price?: string;
+  location?: string;
+  contact?: string;
+  images?: string[];
+  videos?: string[];
+  tags?: string;
+  category_id?: string;
+  sort_order?: number;
+  video_urls?: string;
+}
+
+interface Tag {
+  id: string;
   name: string;
+  sort_order: number;
 }
 
 export default function NewProductPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [isLoading, setIsLoading] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [formData, setFormData] = useState<Product>({
     sku: '',
     name: '',
-    category_id: '',
-    location: '',
-    tags: '',
     description: '',
-    cover_image: '',
-    images: [] as string[],
-    videos: [] as string[],
-    hidden: false,
+    price: '',
+    location: '',
+    contact: '',
+    images: [],
+    videos: [],
+    tags: '',
+    category_id: '',
+    sort_order: 0,
+    video_urls: ''
   });
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [newImage, setNewImage] = useState('');
-  const [newVideo, setNewVideo] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // 检查登录状态 - 未登录则跳转到首页
-  useEffect(() => {
-    const authData = localStorage.getItem('atelier_authenticated');
-    if (authData !== 'true') {
-      router.replace('/');
-      return;
+  // Fetch available tags
+  const fetchTags = async () => {
+    try {
+      const res = await fetch('/api/tags');
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableTags(data.tags || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tags:', error);
     }
-    // 获取分类列表
-    fetch('/api/categories')
-      .then(res => res.json())
-      .then(data => {
-        if (data.categories) setCategories(data.categories);
-      });
+  };
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const authenticated = localStorage.getItem('atelier_authenticated');
+      if (!authenticated) {
+        router.push('/');
+        return false;
+      }
+      return true;
+    };
+
+    if (!checkAuth()) return;
+    fetchTags();
   }, [router]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const uploadImages = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    setUploadingImages(true);
+    try {
+      const uploadFormData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        uploadFormData.append('files', files[i]);
+      }
+      uploadFormData.append('sessionId', 'new-product');
+
+      const res = await fetch('/api/upload-multiple', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setImageUrls([...imageUrls, ...data.urls]);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
+    setUploadingImages(false);
+  };
+
+  const uploadVideos = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    setUploadingVideos(true);
+    try {
+      const uploadFormData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        uploadFormData.append('files', files[i]);
+      }
+      uploadFormData.append('sessionId', 'new-product-videos');
+
+      const res = await fetch('/api/upload-multiple', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setVideoUrls([...videoUrls, ...data.urls]);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
+    setUploadingVideos(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.sku) {
-      setMessage({ type: 'error', text: '请填写必填项' });
+    
+    if (!formData.sku) {
+      alert('SKU编号不能为空');
       return;
     }
 
-    setSaving(true);
+    setIsLoading(true);
+
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          images: imageUrls,
+          videos: videoUrls,
+          video_urls: videoUrls.join(',')
+        }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setMessage({ type: 'success', text: '创建成功' });
-        setTimeout(() => router.push('/admin'), 1500);
+
+      if (res.ok) {
+        const data = await res.json();
+        alert('产品创建成功！');
+        router.push('/admin');
       } else {
-        setMessage({ type: 'error', text: data.error || '创建失败' });
+        const error = await res.json();
+        alert('创建失败: ' + (error.error || '未知错误'));
       }
-    } catch (err) {
-      setMessage({ type: 'error', text: '创建失败' });
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('创建失败');
     }
-    setSaving(false);
+    setIsLoading(false);
   };
 
-  const addImage = () => {
-    if (newImage.trim()) {
-      setFormData({ ...formData, images: [...formData.images, newImage.trim()] });
-      setNewImage('');
+  const handleTagClick = (tagName: string) => {
+    const currentTags = formData.tags || '';
+    if (currentTags.includes(tagName)) {
+      const newTags = currentTags.split(',').filter(t => t.trim() !== tagName).join(',');
+      setFormData({ ...formData, tags: newTags });
+    } else {
+      const newTags = currentTags ? `${currentTags},${tagName}` : tagName;
+      setFormData({ ...formData, tags: newTags });
     }
   };
 
   const removeImage = (index: number) => {
-    setFormData({ ...formData, images: formData.images.filter((_, i) => i !== index) });
-  };
-
-  const addVideo = () => {
-    if (newVideo.trim()) {
-      setFormData({ ...formData, videos: [...formData.videos, newVideo.trim()] });
-      setNewVideo('');
-    }
+    setImageUrls(imageUrls.filter((_, i) => i !== index));
   };
 
   const removeVideo = (index: number) => {
-    setFormData({ ...formData, videos: formData.videos.filter((_, i) => i !== index) });
+    setVideoUrls(videoUrls.filter((_, i) => i !== index));
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center">
-          <button onClick={() => router.push('/admin')} className="p-2 -ml-2">
-            <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="text-lg font-bold text-gray-800 ml-2">新建产品</h1>
-        </div>
-      </header>
+      <div className="bg-white border-b px-4 py-3 flex items-center gap-4">
+        <Link href="/admin" className="text-gray-600 hover:text-gray-900">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <h1 className="text-lg font-semibold">新建产品</h1>
+      </div>
 
-      {/* 表单 */}
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto px-4 py-6 pb-32">
-        {/* 基本信息 */}
-        <div className="bg-white rounded-2xl p-5 mb-4">
-          <h2 className="text-base font-bold text-gray-800 mb-4">基本信息</h2>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">SKU编号 *</label>
-              <input
-                type="text"
-                value={formData.sku}
-                onChange={e => setFormData({ ...formData, sku: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-                placeholder="如：PROD-001"
-              />
-            </div>
+      <div className="max-w-2xl mx-auto p-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              SKU编号 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="sku"
+              value={formData.sku}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="例如: P2024001"
+              required
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">产品名称 *</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-                placeholder="输入产品名称"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">名称</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="产品名称"
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">分类</label>
-              <select
-                value={formData.category_id}
-                onChange={e => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-              >
-                <option value="">选择分类</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">地点</label>
-              <input
-                type="text"
-                value={formData.location}
-                onChange={e => setFormData({ ...formData, location: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-                placeholder="产品所在地"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">标签（用逗号分隔）</label>
-              <input
-                type="text"
-                value={formData.tags}
-                onChange={e => setFormData({ ...formData, tags: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-                placeholder="如：风景,山水,日落"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
-              <textarea
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6] resize-none"
-                placeholder="产品描述"
-              />
-            </div>
-
-            {/* 隐藏设置 */}
-            <div className="flex items-center justify-between py-3 border-t border-gray-100">
-              <div>
-                <label className="text-sm font-medium text-gray-700">隐藏产品</label>
-                <p className="text-xs text-gray-500">隐藏后访客将看不到此产品</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFormData({ ...formData, hidden: !formData.hidden })}
-                className={`relative w-12 h-6 rounded-full transition-colors ${
-                  formData.hidden ? 'bg-[#14b8a6]' : 'bg-gray-200'
-                }`}
-              >
-                <span
-                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                    formData.hidden ? 'translate-x-6' : ''
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">标签</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {availableTags.map(tag => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => handleTagClick(tag.name)}
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    formData.tags?.includes(tag.name)
+                      ? 'bg-teal-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 封面图片 */}
-        <div className="bg-white rounded-2xl p-5 mb-4">
-          <h2 className="text-base font-bold text-gray-800 mb-4">封面图片</h2>
-          <div className="flex gap-3">
-            <input
-              type="url"
-              value={formData.cover_image}
-              onChange={e => setFormData({ ...formData, cover_image: e.target.value })}
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-              placeholder="输入图片URL"
-            />
-            <button type="button" className="px-4 py-2 bg-[#14b8a6] text-white rounded-xl text-sm font-medium">
-              上传
-            </button>
-          </div>
-          {formData.cover_image && (
-            <div className="mt-3 relative inline-block">
-              <img src={formData.cover_image} alt="封面" className="w-32 h-32 object-cover rounded-xl" />
-            </div>
-          )}
-        </div>
-
-        {/* 产品图片 */}
-        <div className="bg-white rounded-2xl p-5 mb-4">
-          <h2 className="text-base font-bold text-gray-800 mb-4">产品图片</h2>
-          <div className="flex gap-3 mb-4">
-            <input
-              type="url"
-              value={newImage}
-              onChange={e => setNewImage(e.target.value)}
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-              placeholder="输入图片URL"
-            />
-            <button type="button" onClick={addImage} className="px-4 py-2 bg-[#14b8a6] text-white rounded-xl text-sm font-medium">
-              添加
-            </button>
-          </div>
-          {formData.images.length > 0 && (
-            <div className="grid grid-cols-3 gap-3">
-              {formData.images.map((url, i) => (
-                <div key={i} className="relative group">
-                  <img src={url} alt="" className="w-full aspect-square object-cover rounded-xl" />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(i)}
-                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </button>
-                </div>
+                >
+                  {tag.name}
+                </button>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* 视频 */}
-        <div className="bg-white rounded-2xl p-5 mb-4">
-          <h2 className="text-base font-bold text-gray-800 mb-4">视频</h2>
-          <div className="flex gap-3 mb-4">
             <input
-              type="url"
-              value={newVideo}
-              onChange={e => setNewVideo(e.target.value)}
-              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/30 focus:border-[#14b8a6]"
-              placeholder="输入视频URL"
+              type="text"
+              name="tags"
+              value={formData.tags}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="点击上方标签或手动输入，用逗号分隔"
             />
-            <button type="button" onClick={addVideo} className="px-4 py-2 bg-[#14b8a6] text-white rounded-xl text-sm font-medium">
-              添加
-            </button>
           </div>
-          {formData.videos.length > 0 && (
-            <div className="space-y-3">
-              {formData.videos.map((video, i) => (
-                <div key={i} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-[#14b8a6]/10 rounded-lg flex items-center justify-center">
-                      <svg className="w-6 h-6 text-[#14b8a6]" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </div>
-                    <span className="text-sm text-gray-600 truncate max-w-[200px]">{video}</span>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="产品描述"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">价格</label>
+              <input
+                type="text"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                placeholder="价格"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">地址</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                placeholder="地址"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">联系方式</label>
+            <input
+              type="text"
+              name="contact"
+              value={formData.contact}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="联系方式"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              产品图片（第1张将作为封面）
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => uploadImages(e.target.files)}
+              className="hidden"
+              id="image-upload"
+              disabled={uploadingImages}
+            />
+            <label
+              htmlFor="image-upload"
+              className="block w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-teal-500 transition-colors"
+            >
+              {uploadingImages ? (
+                <span className="text-gray-500">上传中...</span>
+              ) : (
+                <>
+                  <svg className="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-gray-500">点击选择多张图片</span>
+                </>
+              )}
+            </label>
+            {imageUrls.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 mt-3">
+                {imageUrls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img src={url} alt="" className="w-full h-20 object-cover rounded" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
+                    {index === 0 && (
+                      <span className="absolute bottom-1 left-1 bg-teal-600 text-white text-xs px-1 rounded">封面</span>
+                    )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeVideo(i)}
-                    className="w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-lg"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 消息提示 */}
-        {message && (
-          <div className={`fixed top-20 left-4 right-4 ${message.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white px-4 py-3 rounded-xl text-center z-50`}>
-            {message.text}
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </form>
 
-      {/* 底部保存按钮 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 z-40">
-        <div className="max-w-5xl mx-auto flex gap-3">
-          <button
-            type="button"
-            onClick={() => router.push('/admin')}
-            className="flex-1 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium"
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={saving}
-            className="flex-1 py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90 disabled:opacity-50"
-          >
-            {saving ? '保存中...' : '保存'}
-          </button>
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">产品视频</label>
+            <input
+              type="file"
+              accept="video/*"
+              multiple
+              onChange={(e) => uploadVideos(e.target.files)}
+              className="hidden"
+              id="video-upload"
+              disabled={uploadingVideos}
+            />
+            <label
+              htmlFor="video-upload"
+              className="block w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-teal-500 transition-colors"
+            >
+              {uploadingVideos ? (
+                <span className="text-gray-500">上传中...</span>
+              ) : (
+                <>
+                  <svg className="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-gray-500">点击选择多个视频</span>
+                </>
+              )}
+            </label>
+            {videoUrls.length > 0 && (
+              <div className="space-y-2 mt-3">
+                {videoUrls.map((url, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-gray-100 rounded p-2">
+                    <span className="text-sm text-gray-600">视频 {index + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeVideo(index)}
+                      className="ml-auto text-red-500 hover:text-red-700"
+                    >
+                      删除
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 bg-teal-600 text-white py-3 rounded-lg font-medium hover:bg-teal-700 disabled:bg-gray-400"
+            >
+              {isLoading ? '创建中...' : '创建产品'}
+            </button>
+            <Link
+              href="/admin"
+              className="px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50"
+            >
+              取消
+            </Link>
+          </div>
+        </form>
       </div>
     </div>
   );

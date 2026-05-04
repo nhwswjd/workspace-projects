@@ -49,9 +49,10 @@ const parsePasswords = (value: string): string[] => {
 };
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'settings' | 'backup'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'settings' | 'backup' | 'tags'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<{ id: string; name: string; sort_order: number }[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'product' | 'category'; id: string; name: string } | null>(null);
@@ -68,6 +69,9 @@ export default function AdminPage() {
   const [randomTo, setRandomTo] = useState('');
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [loading, setLoading] = useState(true);
+  const [showTagModal, setShowTagModal] = useState(false);
+  const [editingTag, setEditingTag] = useState<{ id?: string; name: string } | null>(null);
+  const [tagName, setTagName] = useState("");
   const { isAuthenticated, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -93,6 +97,7 @@ export default function AdminPage() {
         fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
         fetch('/api/site-settings/visitor_password').then(r => r.json()).catch(() => ({ value: '' })),
         fetch('/api/site-settings/random-sort-rules').then(r => r.json()).catch(() => ({ rules: [] })),
+        fetch('/api/tags').then(r => r.json()).catch(() => ({ tags: [] })),
       ];
       
       // 只有超级管理员才加载管理员密码
@@ -112,9 +117,13 @@ export default function AdminPage() {
       if (categoriesRes.categories) setCategories(categoriesRes.categories);
       if (brandRes.value) setSiteName(brandRes.value);
       
+      // 加载标签
+      const tagsRes = results[5];
+      if (tagsRes?.tags) setTags(tagsRes.tags);
+      
       // 只有超级管理员才解析管理员密码
-      if (isSuperAdmin && results[5]?.value) {
-        const passwords = parsePasswords(results[5].value);
+      if (isSuperAdmin && results[6]?.value) {
+        const passwords = parsePasswords(results[6].value);
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
         }
@@ -296,6 +305,65 @@ export default function AdminPage() {
     }
   };
 
+  const handleAddTag = () => {
+    setEditingTag(null);
+    setTagName('');
+    setShowTagModal(true);
+  };
+
+  const handleEditTag = (tag: { id: string; name: string }) => {
+    setEditingTag(tag);
+    setTagName(tag.name);
+    setShowTagModal(true);
+  };
+
+  const handleSaveTag = async () => {
+    if (!tagName.trim()) {
+      showToast('请输入标签名称', 'error');
+      return;
+    }
+    try {
+      const url = editingTag ? '/api/tags' : '/api/tags';
+      const method = editingTag ? 'PUT' : 'POST';
+      const body = editingTag 
+        ? JSON.stringify({ id: editingTag.id, name: tagName.trim() })
+        : JSON.stringify({ name: tagName.trim() });
+
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body });
+      
+      if (res.ok) {
+        const data = await res.json();
+        if (editingTag) {
+          setTags(tags.map(t => t.id === editingTag.id ? data.tag : t));
+        } else {
+          setTags([...tags, data.tag]);
+        }
+        setShowTagModal(false);
+        showToast(editingTag ? '标签已更新' : '标签已添加');
+      } else {
+        const error = await res.json();
+        showToast(error.error || '操作失败', 'error');
+      }
+    } catch {
+      showToast('操作失败', 'error');
+    }
+  };
+
+  const handleDeleteTag = async (id: string) => {
+    if (!confirm('确定要删除这个标签吗？')) return;
+    try {
+      const res = await fetch(`/api/tags?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setTags(tags.filter(t => t.id !== id));
+        showToast('标签已删除');
+      } else {
+        showToast('删除失败', 'error');
+      }
+    } catch {
+      showToast('删除失败', 'error');
+    }
+  };
+
   const handleSaveSettings = async () => {
     try {
       const requests: Promise<Response>[] = [
@@ -406,6 +474,7 @@ export default function AdminPage() {
   const tabs = [
     { id: 'products', label: '产品管理' },
     { id: 'categories', label: '分类管理' },
+    { id: 'tags', label: '标签管理' },
     { id: 'settings', label: '网站设置' },
     { id: 'backup', label: '数据备份' },
   ] as const;
@@ -585,6 +654,58 @@ export default function AdminPage() {
               <div className="text-center py-12 text-gray-400">暂无分类</div>
             )}
           </>
+        )}
+
+        {/* 标签管理 */}
+        {activeTab === 'tags' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-medium text-gray-700">标签列表</h3>
+                <button
+                  onClick={() => {
+                    setEditingTag(null);
+                    setTagName('');
+                    setShowTagModal(true);
+                  }}
+                  className="px-4 py-2 bg-[#14b8a6] text-white text-sm rounded-lg hover:bg-[#14b8a6]/90"
+                >
+                  添加标签
+                </button>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                {tags.length === 0 ? (
+                  <p className="text-sm text-gray-500">暂无标签，请点击上方添加</p>
+                ) : (
+                  tags.map((tag: { id: string; name: string }) => (
+                    <div
+                      key={tag.id}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-[#14b8a6]/10 text-[#14b8a6] rounded-full text-sm"
+                    >
+                      <span>{tag.name}</span>
+                      <button
+                        onClick={() => {
+                          setEditingTag(tag);
+                          setTagName(tag.name);
+                          setShowTagModal(true);
+                        }}
+                        className="hover:text-[#14b8a6]/70"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTag(tag.id)}
+                        className="hover:text-red-500"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* 网站设置 */}
@@ -902,6 +1023,43 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={handleSaveCategory}
+                className="flex-1 py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90"
+              >
+                确定
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 标签管理弹窗 */}
+      {showTagModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">
+              {editingTag ? '编辑标签' : '添加标签'}
+            </h3>
+            <input
+              type="text"
+              value={tagName}
+              onChange={(e) => setTagName(e.target.value)}
+              placeholder="请输入标签名称"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6] mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowTagModal(false);
+                  setEditingTag(null);
+                  setTagName('');
+                }}
+                className="flex-1 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSaveTag}
                 className="flex-1 py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90"
               >
                 确定
