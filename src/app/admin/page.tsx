@@ -619,6 +619,9 @@ export default function AdminPage() {
                     {product.location && (
                       <p className="text-xs text-gray-400 mt-1 truncate">{product.location}</p>
                     )}
+                    {product.notes && (
+                      <p className="text-xs text-orange-500 mt-1 truncate" title={product.notes}>备注: {product.notes}</p>
+                    )}
                     <div className="flex gap-1.5 mt-3">
                       <button
                         onClick={() => handleMoveUp(filteredProducts.findIndex(p => p.id === product.id))}

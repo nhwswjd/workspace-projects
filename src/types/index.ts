@@ -21,6 +21,7 @@ export interface Product {
   location?: string;
   hidden?: boolean;
   sortOrder?: number;
+  notes?: string;
 }
 
 export interface Category {

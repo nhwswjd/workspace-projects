@@ -91,6 +91,7 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const [featured, setFeatured] = useState(initialData?.featured || '');
   const [featuredRightBottom, setFeaturedRightBottom] = useState(initialData?.featured_right_bottom || '');
   const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 0);
+  const [notes, setNotes] = useState(initialData?.notes || '');
   const [coverImage, setCoverImage] = useState(initialData?.cover_image || '');
   const [images, setImages] = useState<string[]>(initialData?.images || []);
   const [videos, setVideos] = useState<string[]>(initialData?.videos || []);
@@ -282,6 +283,7 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
       featured_right_bottom: featuredRightBottom || null,
       tags,
       hidden,
+      notes: notes || null,
       coverImage: coverImage || images[0] || '', // 优先用封面，否则用第一张图片
       images: images.filter(Boolean),
       videos: videos.filter(Boolean)
@@ -388,6 +390,17 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
               onChange={(e) => setLocation(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               placeholder="如: 杭州市西湖区"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">备注</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+              placeholder="产品备注信息"
+              rows={3}
             />
           </div>
 
