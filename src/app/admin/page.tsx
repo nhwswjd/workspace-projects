@@ -22,14 +22,6 @@ interface Product {
   updated_at?: string;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  icon?: string;
-  description?: string;
-  sort_order?: number;
-}
-
 // 解析密码字符串为数组
 const parsePasswords = (value: string): string[] => {
   if (!value) return [];
@@ -50,16 +42,10 @@ const parsePasswords = (value: string): string[] => {
 };
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'settings' | 'backup' | 'tags'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'settings' | 'backup' | 'tags'>('products');
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [tags, setTags] = useState<{ id: string; name: string; sort_order: number }[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: 'product' | 'category'; id: string; name: string } | null>(null);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [categoryName, setCategoryName] = useState('');
   const [siteName, setSiteName] = useState('江南风景好');
   const [adminPasswords, setAdminPasswords] = useState<string[]>([]);
   const [newPassword, setNewPassword] = useState('');
@@ -94,7 +80,6 @@ export default function AdminPage() {
       // 根据权限决定是否加载管理员密码
       const requests: Promise<any>[] = [
         fetch('/api/products').then(r => r.json()),
-        fetch('/api/categories').then(r => r.json()),
         fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
         fetch('/api/site-settings/visitor_password').then(r => r.json()).catch(() => ({ value: '' })),
         fetch('/api/site-settings/random-sort-rules').then(r => r.json()).catch(() => ({ rules: [] })),
@@ -109,13 +94,11 @@ export default function AdminPage() {
       const results = await Promise.all(requests);
       
       const productsRes = results[0];
-      const categoriesRes = results[1];
-      const brandRes = results[2];
-      const visitorPwdRes = results[3];
-      const rulesRes = results[4];
+      const brandRes = results[1];
+      const visitorPwdRes = results[2];
+      const rulesRes = results[3];
       
       if (productsRes.products) setProducts(productsRes.products);
-      if (categoriesRes.categories) setCategories(categoriesRes.categories);
       if (brandRes.value) setSiteName(brandRes.value);
       
       // 加载标签
@@ -152,7 +135,7 @@ export default function AdminPage() {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  const handleDelete = (type: 'product' | 'category', id: string, name: string) => {
+  const handleDelete = (type: 'product', id: string, name: string) => {
     setDeleteTarget({ type, id, name });
     setShowDeleteModal(true);
   };
@@ -186,53 +169,12 @@ export default function AdminPage() {
     if (!deleteTarget) return;
     
     try {
-      const endpoint = deleteTarget.type === 'product' ? `/api/products/${deleteTarget.id}` : `/api/categories/${deleteTarget.id}`;
-      await fetch(endpoint, { method: 'DELETE' });
-      
-      if (deleteTarget.type === 'product') {
-        setProducts(products.filter(p => p.id !== deleteTarget.id));
-      } else {
-        setCategories(categories.filter(c => c.id !== deleteTarget.id));
-      }
-      
+      await fetch(`/api/products/${deleteTarget.id}`, { method: 'DELETE' });
+      setProducts(products.filter(p => p.id !== deleteTarget.id));
       showToast(`删除成功`);
     } catch (err) {
       showToast('删除失败', 'error');
     }
-    
-    setShowDeleteModal(false);
-    setDeleteTarget(null);
-  };
-
-  const handleSaveCategory = async () => {
-    if (!categoryName.trim()) {
-      showToast('请输入分类名称', 'error');
-      return;
-    }
-
-    try {
-      const method = editingCategory ? 'PUT' : 'POST';
-      const url = editingCategory ? `/api/categories/${editingCategory.id}` : '/api/categories';
-      
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: categoryName }),
-      });
-
-      if (res.ok) {
-        loadData();
-        showToast(editingCategory ? '修改成功' : '添加成功');
-      } else {
-        showToast('操作失败', 'error');
-      }
-    } catch (err) {
-      showToast('操作失败', 'error');
-    }
-
-    setShowCategoryModal(false);
-    setCategoryName('');
-    setEditingCategory(null);
   };
 
   const handleAddPassword = () => {
@@ -474,7 +416,6 @@ export default function AdminPage() {
 
   const tabs = [
     { id: 'products', label: '产品管理' },
-    { id: 'categories', label: '分类管理' },
     { id: 'tags', label: '标签管理' },
     { id: 'settings', label: '网站设置' },
     { id: 'backup', label: '数据备份' },
@@ -619,51 +560,6 @@ export default function AdminPage() {
 
             {filteredProducts.length === 0 && (
               <div className="text-center py-12 text-gray-400">没有找到产品</div>
-            )}
-          </>
-        )}
-
-        {/* 分类管理 */}
-        {activeTab === 'categories' && (
-          <>
-            <button
-              onClick={() => { setEditingCategory(null); setCategoryName(''); setShowCategoryModal(true); }}
-              className="w-full mb-4 py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90 transition-colors"
-            >
-              添加分类
-            </button>
-
-            <div className="space-y-3">
-              {categories.map(category => (
-                <div key={category.id} className="bg-white rounded-xl p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#14b8a6]/10 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-[#14b8a6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
-                      </svg>
-                    </div>
-                    <span className="font-medium text-gray-800">{category.name}</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => { setEditingCategory(category); setCategoryName(category.name); setShowCategoryModal(true); }}
-                      className="px-3 py-1.5 text-xs text-[#14b8a6] border border-[#14b8a6] rounded-lg hover:bg-[#14b8a6]/5"
-                    >
-                      编辑
-                    </button>
-                    <button
-                      onClick={() => handleDelete('category', category.id, category.name)}
-                      className="px-3 py-1.5 text-xs text-red-500 border border-red-200 rounded-lg hover:bg-red-50"
-                    >
-                      删除
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {categories.length === 0 && (
-              <div className="text-center py-12 text-gray-400">暂无分类</div>
             )}
           </>
         )}
@@ -1005,39 +901,6 @@ export default function AdminPage() {
                 className="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600"
               >
                 删除
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 分类编辑模态框 */}
-      {showCategoryModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">
-              {editingCategory ? '编辑分类' : '添加分类'}
-            </h3>
-            <input
-              type="text"
-              value={categoryName}
-              onChange={(e) => setCategoryName(e.target.value)}
-              placeholder="请输入分类名称"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20 focus:border-[#14b8a6] mb-4"
-              autoFocus
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCategoryModal(false)}
-                className="flex-1 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSaveCategory}
-                className="flex-1 py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90"
-              >
-                确定
               </button>
             </div>
           </div>
