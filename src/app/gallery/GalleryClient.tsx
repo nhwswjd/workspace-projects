@@ -72,7 +72,11 @@ export default function GalleryClient({
       );
     }
 
-    setFilteredProducts(result.sort((a, b) => (a.sortOrder || 999) - (b.sortOrder || 999)));
+    setFilteredProducts(result.sort((a, b) => {
+      const aOrder = a.sortOrder ?? 999;
+      const bOrder = b.sortOrder ?? 999;
+      return aOrder - bOrder;
+    }));
   }, [selectedCategory, searchQuery, initialProducts]);
 
   // 滚动监听 - 显示/隐藏返回顶部按钮
