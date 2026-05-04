@@ -20,6 +20,7 @@ interface Product {
   sortOrder?: number;
   sort_order?: number; // 兼容数据库字段
   updated_at?: string;
+  notes?: string;
 }
 
 // 解析密码字符串为数组
