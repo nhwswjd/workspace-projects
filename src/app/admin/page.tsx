@@ -56,6 +56,8 @@ export default function AdminPage() {
   const [randomTo, setRandomTo] = useState('');
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [loading, setLoading] = useState(true);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const [showTagModal, setShowTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<{ id?: string; name: string } | null>(null);
   const [tagName, setTagName] = useState("");
@@ -135,11 +137,6 @@ export default function AdminPage() {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  const handleDelete = (type: 'product', id: string, name: string) => {
-    setDeleteTarget({ type, id, name });
-    setShowDeleteModal(true);
-  };
-
   const handleToggleHidden = async (product: Product) => {
     const newHidden = !product.hidden;
     try {
@@ -162,18 +159,6 @@ export default function AdminPage() {
       }
     } catch {
       showToast('操作失败', 'error');
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    
-    try {
-      await fetch(`/api/products/${deleteTarget.id}`, { method: 'DELETE' });
-      setProducts(products.filter(p => p.id !== deleteTarget.id));
-      showToast(`删除成功`);
-    } catch (err) {
-      showToast('删除失败', 'error');
     }
   };
 
@@ -344,8 +329,127 @@ export default function AdminPage() {
     }
   };
 
-  const handleBackup = async () => {
-    showToast('备份功能开发中...');
+  // 数据库备份下载
+  const handleDatabaseBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      const res = await fetch('/api/backup');
+      if (!res.ok) throw new Error('备份失败');
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `database-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showToast('数据库备份下载成功');
+    } catch (err) {
+      console.error(err);
+      showToast('备份失败', 'error');
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
+  // 媒体文件备份下载
+  const handleMediaBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      const res = await fetch('/api/backup/media');
+      if (!res.ok) throw new Error('备份失败');
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `media-backup-${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showToast('媒体文件备份下载成功');
+    } catch (err) {
+      console.error(err);
+      showToast('备份失败', 'error');
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
+  // 完整备份（数据库+媒体）
+  const handleFullBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      // 并行下载数据库和媒体备份
+      const [dbRes, mediaRes] = await Promise.all([
+        fetch('/api/backup'),
+        fetch('/api/backup/media'),
+      ]);
+
+      if (!dbRes.ok || !mediaRes.ok) throw new Error('备份失败');
+
+      const [dbBlob, mediaBlob] = await Promise.all([dbRes.blob(), mediaRes.blob()]);
+      const date = new Date().toISOString().split('T')[0];
+
+      // 创建 zip 文件包含两个备份
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      zip.file(`database-backup-${date}.json`, dbBlob);
+      zip.file(`media-backup-${date}.zip`, mediaBlob);
+      
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = window.URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `full-backup-${date}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showToast('完整备份下载成功');
+    } catch (err) {
+      console.error(err);
+      showToast('备份失败', 'error');
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
+  // 恢复数据库
+  const handleRestoreDatabase = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm('恢复操作将清空现有数据并导入备份数据，是否继续？')) {
+      e.target.value = '';
+      return;
+    }
+
+    setIsRestoring(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await fetch('/api/backup', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('恢复失败');
+      
+      showToast('数据恢复成功，请手动刷新页面');
+      // 重新加载数据
+      // loadAllData();
+    } catch (err) {
+      console.error(err);
+      showToast('恢复失败', 'error');
+    } finally {
+      setIsRestoring(false);
+      e.target.value = '';
+    }
   };
 
   // 按 sortOrder 排序的产品列表
@@ -810,45 +914,55 @@ export default function AdminPage() {
         {/* 数据备份 */}
         {activeTab === 'backup' && (
           <div className="space-y-4">
+            {/* 数据库备份 */}
             <div className="bg-white rounded-xl p-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="font-medium text-gray-800">自动备份状态</h3>
-                  <p className="text-sm text-gray-500 mt-1">上次备份：2024-01-15 10:30</p>
-                </div>
-                <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">已启用</span>
-              </div>
-              
+              <h3 className="font-medium text-gray-800 mb-2">数据库备份</h3>
+              <p className="text-sm text-gray-500 mb-4">包含：产品、分类、标签等所有数据</p>
               <div className="flex gap-3">
                 <button
-                  onClick={handleBackup}
-                  className="flex-1 py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90 transition-colors"
+                  onClick={handleDatabaseBackup}
+                  disabled={isBackingUp}
+                  className="flex-1 py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90 transition-colors disabled:opacity-50"
                 >
-                  创建备份
+                  {isBackingUp ? '备份中...' : '下载数据库备份'}
                 </button>
-                <button className="flex-1 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">
-                  恢复数据
-                </button>
+                <label className="flex-1 py-3 bg-white border border-[#14b8a6] text-[#14b8a6] rounded-xl font-medium hover:bg-[#14b8a6]/5 transition-colors text-center cursor-pointer">
+                  {isRestoring ? '恢复中...' : '恢复数据库'}
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleRestoreDatabase}
+                    disabled={isRestoring}
+                    className="hidden"
+                  />
+                </label>
               </div>
             </div>
 
+            {/* 媒体文件备份 */}
             <div className="bg-white rounded-xl p-4">
-              <h3 className="font-medium text-gray-800 mb-3">备份历史</h3>
-              <div className="space-y-3">
-                {[
-                  { date: '2024-01-15 10:30', size: '2.3 MB', status: '完成' },
-                  { date: '2024-01-14 10:30', size: '2.2 MB', status: '完成' },
-                  { date: '2024-01-13 10:30', size: '2.1 MB', status: '完成' },
-                ].map((backup, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                    <div>
-                      <p className="text-sm text-gray-800">{backup.date}</p>
-                      <p className="text-xs text-gray-500">{backup.size}</p>
-                    </div>
-                    <span className="text-xs text-green-600">{backup.status}</span>
-                  </div>
-                ))}
-              </div>
+              <h3 className="font-medium text-gray-800 mb-2">媒体文件备份</h3>
+              <p className="text-sm text-gray-500 mb-4">包含：产品图片、封面图、视频等</p>
+              <button
+                onClick={handleMediaBackup}
+                disabled={isBackingUp}
+                className="w-full py-3 bg-[#14b8a6] text-white rounded-xl font-medium hover:bg-[#14b8a6]/90 transition-colors disabled:opacity-50"
+              >
+                {isBackingUp ? '备份中...' : '下载媒体文件备份'}
+              </button>
+            </div>
+
+            {/* 完整备份 */}
+            <div className="bg-gradient-to-r from-[#14b8a6] to-[#0d9488] rounded-xl p-4 text-white">
+              <h3 className="font-medium mb-2">一键完整备份</h3>
+              <p className="text-sm text-white/80 mb-4">同时下载数据库和媒体文件备份</p>
+              <button
+                onClick={handleFullBackup}
+                disabled={isBackingUp}
+                className="w-full py-3 bg-white text-[#14b8a6] rounded-xl font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
+              >
+                {isBackingUp ? '备份中...' : '下载完整备份'}
+              </button>
             </div>
           </div>
         )}
@@ -866,24 +980,6 @@ export default function AdminPage() {
           <span className="hidden md:inline pr-4 font-medium">添加产品</span>
         </a>
       )}
-
-      {activeTab === 'categories' && (
-        <button
-          onClick={() => {
-            setEditingCategory(null);
-            setCategoryName('');
-            setShowCategoryModal(true);
-          }}
-          className="fixed bottom-6 right-6 md:bottom-8 md:right-8 flex items-center gap-2 bg-white border-2 border-[#14b8a6] text-[#14b8a6] rounded-full md:rounded-xl shadow-lg hover:shadow-xl transition-all z-40 group"
-        >
-          <svg className="w-14 h-14 md:w-auto md:h-auto p-3 md:px-5 md:py-3 text-white bg-[#14b8a6] rounded-full md:rounded-l-xl group-hover:bg-[#0d9488] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="hidden md:inline pr-4 font-medium">添加分类</span>
-        </button>
-      )}
-
-
 
       {/* 标签管理弹窗 */}
       {showTagModal && (
