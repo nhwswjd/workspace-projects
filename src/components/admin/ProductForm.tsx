@@ -35,32 +35,19 @@ interface ProductData {
   videos?: string[];
 }
 
+interface FeaturedOption {
+  id: string;
+  type: string;
+  name: string;
+  sort_order: number;
+}
+
 interface ProductFormProps {
   initialData?: ProductData;
   onSuccess?: () => void;
 }
 
-// 右上标签选项
-const FEATURED_OPTIONS = [
-  { value: '', label: '无' },
-  { value: '新品', label: '新品' },
-  { value: '热销', label: '热销' },
-  { value: '特惠', label: '特惠' },
-  { value: '推荐', label: '推荐' },
-  { value: '爆款', label: '爆款' },
-  { value: '右上', label: '右上' },
-];
-
-// 右下标签选项
-const FEATURED_RIGHT_BOTTOM_OPTIONS = [
-  { value: '', label: '无' },
-  { value: '新品', label: '新品' },
-  { value: '热销', label: '热销' },
-  { value: '特惠', label: '特惠' },
-  { value: '推荐', label: '推荐' },
-  { value: '爆款', label: '爆款' },
-  { value: '右下', label: '右下' },
-];
+// 标签选项现在从数据库加载（见 useEffect）
 
 // 生成文件名
 const generateFileName = (file: File): string => {
@@ -109,6 +96,7 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const [videos, setVideos] = useState<string[]>(initialData?.videos || []);
   const [categories, setCategories] = useState<Category[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [featuredOptions, setFeaturedOptions] = useState<{ featured: FeaturedOption[], featuredRightBottom: FeaturedOption[] }>({ featured: [], featuredRightBottom: [] });
   const [saving, setSaving] = useState(false);
   const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
   const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
@@ -126,14 +114,21 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   }, [initialData]);
 
-  // 加载分类和标签
+  // 加载分类、标签和标签选项
   useEffect(() => {
     Promise.all([
       fetch('/api/categories').then(res => res.json()),
-      fetch('/api/tags').then(res => res.json())
-    ]).then(([catData, tagData]) => {
+      fetch('/api/tags').then(res => res.json()),
+      fetch('/api/featured-options').then(res => res.json())
+    ]).then(([catData, tagData, optionsData]) => {
       if (catData.categories) setCategories(catData.categories);
       if (tagData.tags) setAvailableTags(tagData.tags);
+      if (optionsData.success) {
+        setFeaturedOptions({
+          featured: optionsData.featuredOptions || [],
+          featuredRightBottom: optionsData.featuredRightBottomOptions || []
+        });
+      }
     });
   }, []);
 
@@ -486,18 +481,18 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">右上标签</label>
             <div className="flex flex-wrap gap-2">
-              {FEATURED_OPTIONS.map(opt => (
+              {featuredOptions.featured?.map(opt => (
                 <button
-                  key={opt.value}
+                  key={opt.id}
                   type="button"
-                  onClick={() => setFeatured(opt.value)}
+                  onClick={() => setFeatured(opt.name)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    featured === opt.value
+                    featured === opt.name
                       ? 'bg-orange-500 text-white'
                       : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
                   }`}
                 >
-                  {opt.label}
+                  {opt.name}
                 </button>
               ))}
             </div>
@@ -507,18 +502,18 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">右下标签</label>
             <div className="flex flex-wrap gap-2">
-              {FEATURED_RIGHT_BOTTOM_OPTIONS.map(opt => (
+              {featuredOptions.featuredRightBottom?.map(opt => (
                 <button
-                  key={opt.value}
+                  key={opt.id}
                   type="button"
-                  onClick={() => setFeaturedRightBottom(opt.value)}
+                  onClick={() => setFeaturedRightBottom(opt.name)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    featuredRightBottom === opt.value
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                    featuredRightBottom === opt.name
+                      ? 'bg-green-500 text-white'
+                      : 'bg-green-50 text-green-700 hover:bg-green-100'
                   }`}
                 >
-                  {opt.label}
+                  {opt.name}
                 </button>
               ))}
             </div>
