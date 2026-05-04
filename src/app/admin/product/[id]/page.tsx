@@ -23,6 +23,7 @@ interface Product {
   sortOrder?: number;
   created_at?: string;
   updated_at?: string;
+  notes?: string;
 }
 
 export default function ProductDetailPage() {

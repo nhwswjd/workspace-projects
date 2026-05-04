@@ -14,6 +14,7 @@ interface Product {
   coverImage: string;
   featured?: string | null;
   location: string;
+  notes?: string;
 }
 
 interface Category {
