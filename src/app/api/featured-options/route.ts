@@ -54,3 +54,34 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ success: true, data });
 }
+
+// 更新标签选项
+export async function PUT(request: NextRequest) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return NextResponse.json({ success: false, error: 'Database not configured' }, { status: 500 });
+  
+  const body = await request.json();
+  const { id, name, sort_order } = body;
+
+  if (!id || !name) {
+    return NextResponse.json({ success: false, error: '缺少必要参数' }, { status: 400 });
+  }
+
+  const updateData: Record<string, unknown> = { name };
+  if (sort_order !== undefined) {
+    updateData.sort_order = sort_order;
+  }
+
+  const { data, error } = await supabase
+    .from('featured_options')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, data });
+}
