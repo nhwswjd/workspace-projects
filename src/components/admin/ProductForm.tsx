@@ -27,6 +27,7 @@ interface ProductData {
   location?: string;
   tags?: string;
   featured?: string;
+  featured_right_bottom?: string;
   hidden?: boolean;
   sort_order?: number;
   cover_image?: string;
@@ -48,6 +49,17 @@ const FEATURED_OPTIONS = [
   { value: '推荐', label: '推荐' },
   { value: '爆款', label: '爆款' },
   { value: '右上', label: '右上' },
+];
+
+// 右下标签选项
+const FEATURED_RIGHT_BOTTOM_OPTIONS = [
+  { value: '', label: '无' },
+  { value: '新品', label: '新品' },
+  { value: '热销', label: '热销' },
+  { value: '特惠', label: '特惠' },
+  { value: '推荐', label: '推荐' },
+  { value: '爆款', label: '爆款' },
+  { value: '右下', label: '右下' },
 ];
 
 // 生成文件名
@@ -90,6 +102,7 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const [tagInput, setTagInput] = useState(''); // 手动输入标签
   const [hidden, setHidden] = useState(initialData?.hidden || false);
   const [featured, setFeatured] = useState(initialData?.featured || '');
+  const [featuredRightBottom, setFeaturedRightBottom] = useState(initialData?.featured_right_bottom || '');
   const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 0);
   const [coverImage, setCoverImage] = useState(initialData?.cover_image || '');
   const [images, setImages] = useState<string[]>(initialData?.images || []);
@@ -271,6 +284,7 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
       categoryId,
       location,
       featured: featured || null,
+      featured_right_bottom: featuredRightBottom || null,
       tags,
       hidden,
       coverImage: coverImage || images[0] || '', // 优先用封面，否则用第一张图片
@@ -481,6 +495,27 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                     featured === opt.value
                       ? 'bg-orange-500 text-white'
                       : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 右下标签 - 点选 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">右下标签</label>
+            <div className="flex flex-wrap gap-2">
+              {FEATURED_RIGHT_BOTTOM_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFeaturedRightBottom(opt.value)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    featuredRightBottom === opt.value
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
                   }`}
                 >
                   {opt.label}

@@ -14,6 +14,7 @@ interface Product {
   images?: string[];
   tags?: string[];
   featured?: string | null;
+  featuredRightBottom?: string | null;
   location?: string;
   hidden?: boolean;
   sortOrder?: number;
@@ -545,6 +546,11 @@ export default function AdminPage() {
                     {product.featured && (
                       <span className="absolute top-2 right-2 px-2 py-1 bg-[#14b8a6] text-white text-xs rounded-full">
                         {product.featured}
+                      </span>
+                    )}
+                    {product.featuredRightBottom && (
+                      <span className="absolute bottom-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                        {product.featuredRightBottom}
                       </span>
                     )}
                   </div>

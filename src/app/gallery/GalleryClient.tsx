@@ -215,6 +215,11 @@ export default function GalleryClient({
                         {product.featured}
                       </span>
                     )}
+                    {product.featuredRightBottom && (
+                      <span className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {product.featuredRightBottom}
+                      </span>
+                    )}
                   </div>
                   <div className="p-2.5">
                     <p className="text-sm font-medium text-gray-900">

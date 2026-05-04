@@ -58,7 +58,16 @@ export default function ProductCard({ product, showCategory = true }: ProductCar
               {product.sku}
             </span>
           </div>
-          
+
+          {/* 右下标签 */}
+          {product.featuredRightBottom && (
+            <div className="absolute bottom-2 left-2 z-10">
+              <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-sm">
+                {product.featuredRightBottom}
+              </span>
+            </div>
+          )}
+
           {/* 视频标识 */}
           {product.videos && product.videos.length > 0 && (
             <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1">

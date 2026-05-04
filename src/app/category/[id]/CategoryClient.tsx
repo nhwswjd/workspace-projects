@@ -96,6 +96,12 @@ export default function CategoryClient({ category, products, allCategories }: Ca
                       {product.featured}
                     </span>
                   )}
+                  {/* 右下标签 */}
+                  {product.featuredRightBottom && (
+                    <span className="absolute bottom-2 left-2 bg-blue-500/90 text-white text-xs px-2 py-0.5 rounded shadow-sm">
+                      {product.featuredRightBottom}
+                    </span>
+                  )}
                 </div>
                 {/* 编号和名称 */}
                 <div className="flex items-center gap-2">

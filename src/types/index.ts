@@ -17,6 +17,7 @@ export interface Product {
   images: string[];
   videos: Video[];
   featured?: '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null;
+  featuredRightBottom?: '右下' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null;
   location?: string;
   hidden?: boolean;
   sortOrder?: number;

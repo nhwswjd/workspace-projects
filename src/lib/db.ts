@@ -70,6 +70,7 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
           }).filter(Boolean)
         : []),
       featured: (p.featured as '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
+      featuredRightBottom: (p.featured_right_bottom as '右下' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
       sortOrder: (p.sort_order as number) || 0,
