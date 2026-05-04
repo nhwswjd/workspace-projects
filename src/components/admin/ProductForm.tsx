@@ -39,7 +39,7 @@ interface ProductFormProps {
   onSuccess?: () => void;
 }
 
-// 精选标签选项
+// 右上标签选项
 const FEATURED_OPTIONS = [
   { value: '', label: '无' },
   { value: '新品', label: '新品' },
@@ -47,7 +47,7 @@ const FEATURED_OPTIONS = [
   { value: '特惠', label: '特惠' },
   { value: '推荐', label: '推荐' },
   { value: '爆款', label: '爆款' },
-  { value: '精选', label: '精选' },
+  { value: '右上', label: '右上' },
 ];
 
 // 生成文件名
@@ -468,9 +468,9 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
             </div>
           </div>
 
-          {/* 精选标签 - 点选 */}
+          {/* 右上标签 - 点选 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">精选标签</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">右上标签</label>
             <div className="flex flex-wrap gap-2">
               {FEATURED_OPTIONS.map(opt => (
                 <button

@@ -437,7 +437,7 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">精选标签</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">右上标签</label>
               <input
                 type="text"
                 value={form.featured}

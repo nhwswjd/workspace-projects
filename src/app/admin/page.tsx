@@ -543,8 +543,8 @@ export default function AdminPage() {
                       )}
                     </a>
                     {product.featured && (
-                      <span className="absolute top-2 left-2 px-2 py-1 bg-[#14b8a6] text-white text-xs rounded-full">
-                        精选
+                      <span className="absolute top-2 right-2 px-2 py-1 bg-[#14b8a6] text-white text-xs rounded-full">
+                        {product.featured}
                       </span>
                     )}
                   </div>

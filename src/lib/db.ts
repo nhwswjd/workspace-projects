@@ -69,7 +69,7 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
             return null;
           }).filter(Boolean)
         : []),
-      featured: (p.featured as '精选产品' | '精选产品' | null) || null,
+      featured: (p.featured as '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
       sortOrder: (p.sort_order as number) || 0,
@@ -158,7 +158,7 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
             return null;
           }).filter(Boolean)
         : []),
-      featured: (p.featured as '精选产品' | '精选产品' | null) || null,
+      featured: (p.featured as '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
       location: (p.location as string) || '',
       hidden: (p.hidden as boolean) || false,
       sortOrder: (p.sort_order as number) || 0,
@@ -215,7 +215,7 @@ export async function getProductById(id: string): Promise<Product | null> {
             return null;
           }).filter(Boolean)
         : []),
-      featured: (data.featured as '精选产品' | '优选产品' | null) || null,
+      featured: (data.featured as '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
       location: (data.location as string) || '',
       hidden: (data.hidden as boolean) || false,
     } as unknown as Product;

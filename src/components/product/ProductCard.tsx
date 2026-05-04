@@ -12,10 +12,18 @@ interface ProductCardProps {
 export default function ProductCard({ product, showCategory = true }: ProductCardProps) {
   // 使用产品自带的 featured 字段，没有则不显示标签
   const getTagStyle = () => {
-    if (product.featured === '优选产品') {
-      return { text: '优选产品', color: 'bg-amber-500' };
-    } else if (product.featured === '精选产品') {
-      return { text: '精选产品', color: 'bg-emerald-500' };
+    if (product.featured === '右上') {
+      return { text: '右上', color: 'bg-emerald-500' };
+    } else if (product.featured === '新品') {
+      return { text: '新品', color: 'bg-blue-500' };
+    } else if (product.featured === '热销') {
+      return { text: '热销', color: 'bg-red-500' };
+    } else if (product.featured === '特惠') {
+      return { text: '特惠', color: 'bg-orange-500' };
+    } else if (product.featured === '推荐') {
+      return { text: '推荐', color: 'bg-purple-500' };
+    } else if (product.featured === '爆款') {
+      return { text: '爆款', color: 'bg-pink-500' };
     }
     return null;
   };

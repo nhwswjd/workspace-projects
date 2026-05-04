@@ -211,8 +211,8 @@ export default function GalleryClient({
                       </div>
                     )}
                     {product.featured && (
-                      <span className="absolute top-2 left-2 bg-teal-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        精选
+                      <span className="absolute top-2 right-2 bg-teal-500 text-white text-xs px-2 py-0.5 rounded-full">
+                        {product.featured}
                       </span>
                     )}
                   </div>
