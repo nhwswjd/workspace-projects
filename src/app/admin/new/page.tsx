@@ -9,7 +9,6 @@ interface Product {
   sku?: string;
   name?: string;
   description?: string;
-  price?: string;
   location?: string;
   contact?: string;
   images?: string[];
@@ -18,6 +17,7 @@ interface Product {
   category_id?: string;
   sort_order?: number;
   video_urls?: string;
+  featured?: string;
 }
 
 interface Tag {
@@ -38,7 +38,6 @@ export default function NewProductPage() {
     sku: '',
     name: '',
     description: '',
-    price: '',
     location: '',
     contact: '',
     images: [],
@@ -46,7 +45,8 @@ export default function NewProductPage() {
     tags: '',
     category_id: '',
     sort_order: 0,
-    video_urls: ''
+    video_urls: '',
+    featured: ''
   });
 
   // Fetch available tags
@@ -124,10 +124,27 @@ export default function NewProductPage() {
 
       if (res.ok) {
         const data = await res.json();
-        setVideoUrls([...videoUrls, ...data.urls]);
+        if (data.urls && data.urls.length > 0) {
+          setVideoUrls([...videoUrls, ...data.urls]);
+        }
+        // 显示部分成功或警告信息
+        if (data.errors && data.errors.length > 0) {
+          alert('部分视频上传失败: ' + data.errors.join(', '));
+        }
+      } else {
+        // 尝试解析错误响应
+        let errorMsg = '视频上传失败';
+        try {
+          const errorData = await res.json();
+          errorMsg = errorData.error || errorData.details || errorMsg;
+        } catch {
+          errorMsg = `服务器错误 (${res.status})`;
+        }
+        alert(errorMsg);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload failed:', error);
+      alert('视频上传失败: ' + (error.message || '网络错误'));
     }
     setUploadingVideos(false);
   };
@@ -148,6 +165,7 @@ export default function NewProductPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          featured: formData.featured || null,
           images: imageUrls,
           videos: videoUrls,
           video_urls: videoUrls.join(',')
@@ -257,6 +275,18 @@ export default function NewProductPage() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">精选标签</label>
+            <input
+              type="text"
+              name="featured"
+              value={formData.featured || ''}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="如: 精选产品（留空则不显示）"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">描述</label>
             <textarea
               name="description"
@@ -268,29 +298,16 @@ export default function NewProductPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">价格</label>
-              <input
-                type="text"
-                name="price"
-                value={formData.price}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="价格"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">地址</label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="地址"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">地址</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              placeholder="地址"
+            />
           </div>
 
           <div>

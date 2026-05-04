@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // 配置 API Routes 的请求体大小限制，支持最大 100MB
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100mb',
+    },
+  },
+  // 针对 API 路由配置
+  serverExternalPackages: ['@supabase/supabase-js'],
 };
 
 export default nextConfig;
