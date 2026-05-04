@@ -37,7 +37,7 @@ export async function PUT(
     }
     const { id } = await params;
     const body = await request.json();
-    const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, featuredRightBottom, location, hidden, sortOrder } = body;
+    const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, featuredRightBottom, featured_right_bottom, location, hidden, sortOrder } = body;
 
     const productData: Record<string, unknown> = {
       id, // 确保ID被设置，用于 upsert
@@ -53,6 +53,7 @@ export async function PUT(
     if (videos !== undefined) productData.videos = videos;
     if (featured !== undefined) productData.featured = featured;
     if (featuredRightBottom !== undefined) productData.featured_right_bottom = featuredRightBottom;
+    else if (featured_right_bottom !== undefined) productData.featured_right_bottom = featured_right_bottom;
     if (location !== undefined) productData.location = location;
     if (hidden !== undefined) productData.hidden = hidden;
     if (sortOrder !== undefined) productData.sort_order = sortOrder;
