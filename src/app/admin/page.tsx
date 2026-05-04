@@ -549,7 +549,7 @@ export default function AdminPage() {
                       </span>
                     )}
                     {product.featuredRightBottom && (
-                      <span className="absolute bottom-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                      <span className="absolute bottom-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
                         {product.featuredRightBottom}
                       </span>
                     )}
