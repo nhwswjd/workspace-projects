@@ -59,16 +59,16 @@ export default function ProductCard({ product, showCategory = true }: ProductCar
             </span>
           </div>
 
-          {/* 右下标签 */}
+          {/* 右下标签 - 左下角 */}
           {product.featuredRightBottom && (
-            <div className="absolute bottom-2 right-2 z-10">
+            <div className="absolute bottom-2 left-2 z-10">
               <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow-sm">
                 {product.featuredRightBottom}
               </span>
             </div>
           )}
 
-          {/* 视频标识 */}
+          {/* 视频标识 - 右下角 */}
           {product.videos && product.videos.length > 0 && (
             <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
