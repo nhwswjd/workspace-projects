@@ -55,6 +55,30 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, data });
 }
 
+// 删除标签选项
+export async function DELETE(request: NextRequest) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return NextResponse.json({ success: false, error: 'Database not configured' }, { status: 500 });
+  
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return NextResponse.json({ success: false, error: '缺少ID' }, { status: 400 });
+  }
+
+  const { error } = await supabase
+    .from('featured_options')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
 // 更新标签选项
 export async function PUT(request: NextRequest) {
   const supabase = getSupabaseAdmin();
