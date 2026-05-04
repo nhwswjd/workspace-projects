@@ -32,8 +32,7 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
     let query = supabase
       .from('products')
       .select('*')
-      .order('sort_order', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: false });
+      .order('sort_order', { ascending: true, nullsFirst: false });
     
     // 如果不是管理员请求，只返回未隐藏的产品（包含 NULL 值）
     if (!includeHidden) {
