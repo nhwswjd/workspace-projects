@@ -20,6 +20,7 @@ interface ProductData {
   cover_image?: string;
   images?: string[];
   videos?: string[];
+  notes?: string;
 }
 
 export default function EditProductPage() {
