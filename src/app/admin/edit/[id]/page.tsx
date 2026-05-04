@@ -57,7 +57,8 @@ export default function EditProductPage() {
                 : [],
               videos: Array.isArray(p.videos)
                 ? p.videos.map((v: unknown) => typeof v === 'string' ? v : (v as {url?: string})?.url || '')
-                : []
+                : [],
+              notes: p.notes || ''
             });
           }
           setLoading(false);
