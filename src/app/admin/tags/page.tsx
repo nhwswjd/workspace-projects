@@ -22,6 +22,13 @@ interface FeaturedOption {
   created_at: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
 export default function TagsPage() {
   // 普通标签状态
   const [tags, setTags] = useState<Tag[]>([]);
@@ -41,6 +48,12 @@ export default function TagsPage() {
   const [editingFeaturedRightBottom, setEditingFeaturedRightBottom] = useState<string | null>(null);
   const [editingFeaturedRightBottomName, setEditingFeaturedRightBottomName] = useState('');
 
+  // 分类状态
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [newCategory, setNewCategory] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -48,7 +61,21 @@ export default function TagsPage() {
   useEffect(() => {
     loadTags();
     loadFeaturedOptions();
+    loadCategories();
   }, []);
+
+  // 加载分类
+  const loadCategories = async () => {
+    try {
+      const res = await fetch('/api/categories');
+      const data = await res.json();
+      if (data.categories) {
+        setCategories(data.categories);
+      }
+    } catch (error) {
+      console.error('加载分类失败:', error);
+    }
+  };
 
   // 加载普通标签
   const loadTags = async () => {
@@ -105,6 +132,75 @@ export default function TagsPage() {
       }
     } catch {
       showMessage('error', '添加失败');
+    }
+    setLoading(false);
+  };
+
+  // ========== 分类操作 ==========
+
+  // 添加分类
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCategory.trim() })
+      });
+      const data = await res.json();
+      if (data.category) {
+        setCategories([...categories, data.category]);
+        setNewCategory('');
+        showMessage('success', '添加成功');
+      } else {
+        showMessage('error', data.error || '添加失败');
+      }
+    } catch {
+      showMessage('error', '添加失败');
+    }
+    setLoading(false);
+  };
+
+  // 更新分类
+  const handleUpdateCategory = async (id: string) => {
+    if (!editingCategoryName.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/categories`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name: editingCategoryName.trim() })
+      });
+      const data = await res.json();
+      if (data.category) {
+        setCategories(categories.map(c => c.id === id ? data.category : c));
+        setEditingCategory(null);
+        showMessage('success', '更新成功');
+      } else {
+        showMessage('error', data.error || '更新失败');
+      }
+    } catch {
+      showMessage('error', '更新失败');
+    }
+    setLoading(false);
+  };
+
+  // 删除分类
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('确定要删除这个分类吗？')) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setCategories(categories.filter(c => c.id !== id));
+        showMessage('success', '删除成功');
+      } else {
+        showMessage('error', data.error || '删除失败');
+      }
+    } catch {
+      showMessage('error', '删除失败');
     }
     setLoading(false);
   };
@@ -276,7 +372,7 @@ export default function TagsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* 普通标签 */}
         <Card>
           <CardHeader>
@@ -449,6 +545,76 @@ export default function TagsPage() {
                   )}
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 分类管理 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">分类管理</CardTitle>
+            <CardDescription>用于产品分类筛选</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 mb-4">
+              <Input
+                placeholder="输入分类名称"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+              />
+              <Button onClick={handleAddCategory} disabled={loading || !newCategory.trim()}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {categories.map(category => (
+                <div key={category.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                  {editingCategory?.id === category.id ? (
+                    <>
+                      <Input
+                        value={editingCategoryName}
+                        onChange={(e) => setEditingCategoryName(e.target.value)}
+                        className="flex-1 mr-2"
+                        autoFocus
+                      />
+                      <Button size="sm" onClick={() => handleUpdateCategory(category.id)}>
+                        <Check className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingCategory(null)}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span>{category.name}</span>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingCategory(category);
+                            setEditingCategoryName(category.name);
+                          }}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category.id)}
+                          disabled={loading}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              {categories.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">暂无分类</p>
+              )}
             </div>
           </CardContent>
         </Card>
