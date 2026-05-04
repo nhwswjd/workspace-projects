@@ -883,29 +883,7 @@ export default function AdminPage() {
         </button>
       )}
 
-      {/* 删除确认模态框 */}
-      {showDeleteModal && deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">确认删除</h3>
-            <p className="text-gray-600 mb-6">确定要删除「{deleteTarget.name}」吗？此操作不可撤销。</p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 py-3 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50"
-              >
-                取消
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600"
-              >
-                删除
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* 标签管理弹窗 */}
       {showTagModal && (
