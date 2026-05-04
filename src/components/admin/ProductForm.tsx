@@ -268,12 +268,12 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
       sort_order: sortOrder,
       description,
       category,
-      category_id: categoryId,
+      categoryId,
       location,
       featured: featured || null,
       tags,
       hidden,
-      cover_image: coverImage || images[0] || null, // 优先用封面，否则用第一张图片
+      coverImage: coverImage || images[0] || '', // 优先用封面，否则用第一张图片
       images: images.filter(Boolean),
       videos: videos.filter(Boolean)
     };

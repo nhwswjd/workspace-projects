@@ -528,9 +528,9 @@ export default function AdminPage() {
                 <div key={product.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
                   <div className="aspect-[3/4] relative">
                     <a href={`/product/${product.id}`} className="block w-full h-full">
-                      {product.coverImage || product.cover_image ? (
+                      {(product.coverImage || product.cover_image || (product.images && product.images[0])) ? (
                         <img
-                          src={product.coverImage || product.cover_image}
+                          src={product.coverImage || product.cover_image || product.images?.[0]}
                           alt={product.name}
                           className="w-full h-full object-cover"
                         />

@@ -194,9 +194,9 @@ export default function GalleryClient({
                   style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
                 >
                   <div className="relative" style={{ paddingBottom: '133.33%' }}>
-                    {product.coverImage ? (
+                    {(product.coverImage || (product.images && product.images[0])) ? (
                       <img
-                        src={product.coverImage}
+                        src={product.coverImage || product.images?.[0]}
                         alt={product.name}
                         className="absolute inset-0 w-full h-full object-cover"
                         loading="lazy"
