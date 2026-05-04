@@ -61,8 +61,8 @@ export default function ProductCard({ product, showCategory = true }: ProductCar
 
           {/* 右下标签 - 右下角 */}
           {product.featuredRightBottom && (
-            <div className="absolute bottom-2 right-2 z-10">
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow-sm">
+            <div className="absolute bottom-0 right-0 z-10">
+              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-bl-md">
                 {product.featuredRightBottom}
               </span>
             </div>

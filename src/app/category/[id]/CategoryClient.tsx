@@ -98,7 +98,7 @@ export default function CategoryClient({ category, products, allCategories }: Ca
                   )}
                   {/* 右下标签 */}
                   {product.featuredRightBottom && (
-                    <span className="absolute bottom-2 left-2 bg-blue-500/90 text-white text-xs px-2 py-0.5 rounded shadow-sm">
+                    <span className="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-2 py-0.5 rounded-bl-sm">
                       {product.featuredRightBottom}
                     </span>
                   )}
