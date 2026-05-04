@@ -55,7 +55,7 @@ export default function TagsPage() {
     try {
       const res = await fetch('/api/tags');
       const data = await res.json();
-      if (data.success) {
+      if (data.tags) {
         setTags(data.tags);
       }
     } catch (error) {
@@ -96,12 +96,12 @@ export default function TagsPage() {
         body: JSON.stringify({ name: newTag.trim() })
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.tag) {
         setTags([...tags, data.tag]);
         setNewTag('');
         showMessage('success', '添加成功');
       } else {
-        showMessage('error', data.error);
+        showMessage('error', data.error || '添加失败');
       }
     } catch {
       showMessage('error', '添加失败');
