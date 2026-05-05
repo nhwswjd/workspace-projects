@@ -62,6 +62,9 @@ export default function AdminPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [orphanFiles, setOrphanFiles] = useState<{ name: string; bucket: string; size: number; url: string }[]>([]);
+  const [showStorageManager, setShowStorageManager] = useState(false);
+  const [storageStats, setStorageStats] = useState({ images: 0, imageSize: 0, videos: 0, videoSize: 0 });
+  const [storageFiles, setStorageFiles] = useState<{ name: string; type: string; size: number; orphan?: boolean }[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [selectedBuckets, setSelectedBuckets] = useState<Set<string>>(new Set(['product-images', 'product-videos']))
   const [showTagModal, setShowTagModal] = useState(false);
@@ -433,11 +436,23 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/storage/list');
       const data = await res.json();
-      if (data.success) {
-        setOrphanedFiles(data.orphaned || []);
-        showToast(`扫描完成，发现 ${(data.orphaned || []).length} 个孤立文件`);
+      if (data.files && data.stats) {
+        setStorageStats({
+          images: data.stats.imageCount || 0,
+          imageSize: data.stats.imageSize || 0,
+          videos: data.stats.videoCount || 0,
+          videoSize: data.stats.videoSize || 0,
+        });
+        setStorageFiles(data.files.map((f: { name: string; type: string; size: number; id: string }) => ({
+          name: f.name,
+          type: f.type,
+          size: f.size,
+          orphan: data.orphaned?.includes(f.name) || false,
+        })));
+        setOrphanFiles(data.orphaned || []);
+        showToast(`扫描完成，共 ${data.files.length} 个文件，${(data.orphaned || []).length} 个孤立文件`);
       } else {
-        showToast('扫描失败', 'error');
+        showToast(data.error || '扫描失败', 'error');
       }
     } catch (err) {
       console.error(err);
