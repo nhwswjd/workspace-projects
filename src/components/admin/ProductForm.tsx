@@ -162,11 +162,15 @@ async function compressVideo(file: File): Promise<File> {
   }
 }
 
-// 生成文件名
+// 生成文件名（根据实际文件类型）
 const generateFileName = (file: File): string => {
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 8);
-  const ext = file.name.split('.').pop() || 'bin';
+  // 使用实际的文件类型来确定扩展名
+  const ext = file.type === 'image/webp' ? 'webp' : 
+               file.type === 'image/jpeg' ? 'jpg' : 
+               file.type === 'image/png' ? 'png' : 
+               file.name.split('.').pop() || 'bin';
   return `${timestamp}-${randomStr}.${ext}`;
 };
 
