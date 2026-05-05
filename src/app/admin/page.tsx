@@ -64,6 +64,7 @@ export default function AdminPage() {
   const [orphanFiles, setOrphanFiles] = useState<{ name: string; bucket: string; size: number; url: string }[]>([]);
   const [showStorageManager, setShowStorageManager] = useState(false);
   const [storageStats, setStorageStats] = useState({ images: 0, imageSize: 0, videos: 0, videoSize: 0 });
+  const [totalStorageSize, setTotalStorageSize] = useState(0);
   const [storageFiles, setStorageFiles] = useState<{ name: string; type: string; size: number; orphan?: boolean }[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [selectedBuckets, setSelectedBuckets] = useState<Set<string>>(new Set(['product-images', 'product-videos']))
@@ -444,6 +445,7 @@ export default function AdminPage() {
           videos: data.stats.videoCount || 0,
           videoSize: data.stats.videoSize || 0,
         });
+        setTotalStorageSize(data.stats.totalSize || 0);
         setStorageFiles(data.files.map((f: { name: string; type: string; size: number; id: string }) => ({
           name: f.name,
           type: f.type,
@@ -1055,6 +1057,29 @@ export default function AdminPage() {
           </div>
             <h3 className="font-medium text-gray-800 mb-3">存储空间清理</h3>
             <p className="text-sm text-gray-500 mb-4">扫描并删除孤立的图片/视频文件</p>
+            
+            {/* 存储空间统计 */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+              <p className="text-sm text-blue-600 mb-2 font-medium">存储空间占用</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-500">图片</p>
+                  <p className="font-medium text-gray-800">{storageStats.images} 个 ({(storageStats.imageSize / 1024 / 1024).toFixed(2)} MB)</p>
+                </div>
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-500">视频</p>
+                  <p className="font-medium text-gray-800">{storageStats.videos} 个 ({(storageStats.videoSize / 1024 / 1024).toFixed(2)} MB)</p>
+                </div>
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-500">已使用</p>
+                  <p className="font-medium text-green-600">{storageStats.images + storageStats.videos - orphanedFiles.length} 个 ({( (totalStorageSize - orphanedFiles.reduce((s, f) => s + f.size, 0)) / 1024 / 1024).toFixed(2)} MB)</p>
+                </div>
+                <div className="bg-white rounded-lg p-2">
+                  <p className="text-gray-500">总占用</p>
+                  <p className="font-medium text-gray-800">{(totalStorageSize / 1024 / 1024).toFixed(2)} MB</p>
+                </div>
+              </div>
+            </div>
             
             {orphanedFiles.length > 0 && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4">
