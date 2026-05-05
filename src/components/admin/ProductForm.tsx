@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -90,14 +92,10 @@ let ffmpegLoaded = false;
 // 初始化FFmpeg
 async function getFFmpeg() {
   if (ffmpegInstance && ffmpegLoaded) {
-    return ffmpegInstance;
+    return { ffmpeg: ffmpegInstance, fetchFile };
   }
   
   console.log('[视频压缩] 开始加载 FFmpeg...');
-  
-  // 动态加载 FFmpeg
-  const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-  const { fetchFile } = await import('@ffmpeg/util');
   
   ffmpegInstance = new FFmpeg();
   
@@ -109,7 +107,7 @@ async function getFFmpeg() {
     console.log('[FFmpeg log]:', message);
   });
   
-  // 尝试 unpkg CDN
+  // 使用 unpkg CDN
   const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
   console.log('[视频压缩] 从 CDN 加载:', baseURL);
   
@@ -121,7 +119,6 @@ async function getFFmpeg() {
   ffmpegLoaded = true;
   console.log('[视频压缩] FFmpeg加载完成');
   
-  // 返回包含 fetchFile 的对象
   return { ffmpeg: ffmpegInstance, fetchFile };
 }
 
