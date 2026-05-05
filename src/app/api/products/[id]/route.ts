@@ -94,40 +94,65 @@ export async function DELETE(
     // 收集所有需要删除的文件
     const filesToDelete: { name: string; bucket: string }[] = [];
     
+    // 判断URL属于哪个bucket
+    const getBucket = (url: string): string => {
+      if (url.includes('/product-videos/')) return 'product-videos';
+      if (url.includes('/product-images/')) return 'product-images';
+      return 'product-images'; // 默认
+    };
+    
     if (product) {
       // 封面图
       if (product.cover_image) {
         const fileName = product.cover_image.split('/').pop();
-        if (fileName) filesToDelete.push({ name: fileName, bucket: 'product-images' });
+        if (fileName) filesToDelete.push({ name: fileName, bucket: getBucket(product.cover_image) });
       }
       // 图片数组
       if (product.images && Array.isArray(product.images)) {
         for (const img of product.images) {
-          const url = typeof img === 'string' ? img : (img as { url?: string }).url;
+          let url = '';
+          if (typeof img === 'string') {
+            url = img;
+          } else if (img && typeof img === 'object') {
+            url = (img as { url?: string }).url || '';
+          }
           if (url) {
             const fileName = url.split('/').pop();
-            if (fileName) filesToDelete.push({ name: fileName, bucket: 'product-images' });
+            if (fileName) filesToDelete.push({ name: fileName, bucket: getBucket(url) });
           }
         }
       }
-      // 视频数组
+      // 视频数组 - 处理多种格式
       if (product.videos && Array.isArray(product.videos)) {
         for (const vid of product.videos) {
-          const url = typeof vid === 'string' ? vid : (vid as { url?: string }).url;
+          let url = '';
+          if (typeof vid === 'string') {
+            url = vid;
+          } else if (vid && typeof vid === 'object') {
+            // 处理 {url: "...", thumbnail: "..."} 格式
+            url = (vid as { url?: string }).url || '';
+          }
           if (url) {
             const fileName = url.split('/').pop();
-            if (fileName) filesToDelete.push({ name: fileName, bucket: 'product-videos' });
+            if (fileName) filesToDelete.push({ name: fileName, bucket: getBucket(url) });
           }
         }
       }
     }
     
+    console.log('[删除产品] 准备删除文件:', JSON.stringify(filesToDelete));
+    
     // 删除存储文件
     for (const file of filesToDelete) {
       try {
-        await supabaseAdmin.storage.from(file.bucket).remove([file.name]);
+        const { error } = await supabaseAdmin.storage.from(file.bucket).remove([file.name]);
+        if (error) {
+          console.error(`删除文件失败: ${file.bucket}/${file.name}`, error);
+        } else {
+          console.log(`删除成功: ${file.bucket}/${file.name}`);
+        }
       } catch (err) {
-        console.error(`删除文件失败: ${file.name}`, err);
+        console.error(`删除文件异常: ${file.name}`, err);
       }
     }
     
