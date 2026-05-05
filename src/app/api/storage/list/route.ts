@@ -96,6 +96,8 @@ export async function GET() {
     const totalSize = files.reduce((sum, f) => sum + f.size, 0);
     const imageCount = files.filter(f => f.type === 'image').length;
     const videoCount = files.filter(f => f.type === 'video').length;
+    const imageSize = files.filter(f => f.type === 'image').reduce((sum, f) => sum + f.size, 0);
+    const videoSize = files.filter(f => f.type === 'video').reduce((sum, f) => sum + f.size, 0);
 
     // 找出孤立文件（没有被任何产品引用）
     const orphanedFiles = files.filter(f => !usedFiles.has(f.name));
@@ -112,6 +114,8 @@ export async function GET() {
         totalSize,
         imageCount,
         videoCount,
+        imageSize,
+        videoSize,
         orphanedCount: orphanedFiles.length,
         orphanedSize: orphanedFiles.reduce((sum, f) => sum + f.size, 0)
       }
