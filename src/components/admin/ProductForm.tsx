@@ -93,6 +93,8 @@ async function getFFmpeg() {
     return ffmpegInstance;
   }
   
+  console.log('[视频压缩] 开始加载 FFmpeg...');
+  
   // 动态加载 FFmpeg
   const { FFmpeg } = await import('@ffmpeg/ffmpeg');
   const { fetchFile } = await import('@ffmpeg/util');
@@ -103,8 +105,14 @@ async function getFFmpeg() {
     console.log(`[视频压缩] 进度: ${Math.round(progress * 100)}%`);
   });
   
-  // 使用 jsDelivr CDN（国内访问较好）
-  const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+  ffmpegInstance.on('log', ({ message }: { message: string }) => {
+    console.log('[FFmpeg log]:', message);
+  });
+  
+  // 尝试 unpkg CDN
+  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+  console.log('[视频压缩] 从 CDN 加载:', baseURL);
+  
   await ffmpegInstance.load({
     coreURL: `${baseURL}/ffmpeg-core.js`,
     wasmURL: `${baseURL}/ffmpeg-core.wasm`,
