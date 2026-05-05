@@ -429,6 +429,7 @@ export default function AdminPage() {
 
   // 存储清理
   const [orphanedFiles, setOrphanedFiles] = useState<{name: string; bucket: string; size: number}[]>([]);
+  const [selectedOrphanFiles, setSelectedOrphanFiles] = useState<Set<string>>(new Set());
   const [isCleaning, setIsCleaning] = useState(false);
 
   const handleScanStorage = async () => {
@@ -449,7 +450,11 @@ export default function AdminPage() {
           size: f.size,
           orphan: data.orphaned?.includes(f.name) || false,
         })));
-        setOrphanFiles((data.orphaned || []).map((f: { name: string; bucket: string }) => ({ name: f.name, type: f.bucket, size: 0 })));
+        setOrphanedFiles((data.orphaned || []).map((f: { name: string; bucket: string }) => {
+          const fileInfo = data.files?.find((ff: { name: string }) => ff.name === f.name);
+          return { name: f.name, bucket: f.bucket, size: fileInfo?.size || 0 };
+        }));
+        setSelectedOrphanFiles(new Set());
         showToast(`扫描完成，共 ${data.files.length} 个文件，${(data.orphaned || []).length} 个孤立文件`);
       } else {
         showToast(data.error || '扫描失败', 'error');
@@ -463,16 +468,17 @@ export default function AdminPage() {
   };
 
   const handleCleanStorage = async () => {
-    if (orphanedFiles.length === 0) {
-      showToast('没有可清理的文件', 'error');
+    const selected = orphanedFiles.filter(f => selectedOrphanFiles.has(`${f.bucket}/${f.name}`));
+    if (selected.length === 0) {
+      showToast('请先选择要删除的文件', 'error');
       return;
     }
 
-    if (!confirm(`确定删除 ${orphanedFiles.length} 个孤立文件吗？`)) return;
+    if (!confirm(`确定删除 ${selected.length} 个选中的孤立文件吗？`)) return;
 
     setIsCleaning(true);
     try {
-      const fileNames = orphanedFiles.map((f) => ({ name: f.name, bucket: f.bucket }));
+      const fileNames = selected.map((f) => ({ name: f.name, bucket: f.bucket }));
       const res = await fetch('/api/storage/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -483,6 +489,7 @@ export default function AdminPage() {
         const saved = data.deletedSize || 0;
         showToast(`已删除 ${data.deleted} 个文件，节省 ${(saved / 1024 / 1024).toFixed(2)} MB`);
         setOrphanedFiles([]);
+        setSelectedOrphanFiles(new Set());
       } else {
         showToast('删除失败: ' + (data.error || '未知错误'), 'error');
       }
@@ -1050,18 +1057,57 @@ export default function AdminPage() {
             
             {orphanedFiles.length > 0 && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4">
-                <p className="text-sm text-orange-600 mb-2">发现 {orphanedFiles.length} 个孤立文件，共 {(orphanedFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)} MB</p>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm text-orange-600">发现 {orphanedFiles.length} 个孤立文件，共 {(orphanedFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)} MB</p>
+                  <label className="flex items-center gap-1 text-xs text-orange-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedOrphanFiles.size === orphanedFiles.length && orphanedFiles.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedOrphanFiles(new Set(orphanedFiles.map(f => `${f.bucket}/${f.name}`)));
+                        } else {
+                          setSelectedOrphanFiles(new Set());
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    全选
+                  </label>
+                </div>
                 <div className="max-h-40 overflow-y-auto text-xs text-gray-600 space-y-1">
-                  {orphanedFiles.slice(0, 20).map((file, idx) => (
-                    <div key={idx} className="flex justify-between">
-                      <span className="truncate flex-1">{file.bucket}/{file.name}</span>
-                      <span className="ml-2 text-gray-400">{(file.size / 1024).toFixed(1)} KB</span>
-                    </div>
-                  ))}
+                  {orphanedFiles.slice(0, 20).map((file, idx) => {
+                    const key = `${file.bucket}/${file.name}`;
+                    return (
+                      <div key={idx} className="flex justify-between items-center hover:bg-orange-100 rounded px-1">
+                        <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedOrphanFiles.has(key)}
+                            onChange={() => {
+                              const newSet = new Set(selectedOrphanFiles);
+                              if (newSet.has(key)) {
+                                newSet.delete(key);
+                              } else {
+                                newSet.add(key);
+                              }
+                              setSelectedOrphanFiles(newSet);
+                            }}
+                            className="rounded"
+                          />
+                          <span className="truncate flex-1">{file.bucket}/{file.name}</span>
+                        </label>
+                        <span className="ml-2 text-gray-400">{(file.size / 1024).toFixed(1)} KB</span>
+                      </div>
+                    );
+                  })}
                   {orphanedFiles.length > 20 && (
                     <p className="text-gray-400">...还有 {orphanedFiles.length - 20} 个文件</p>
                   )}
                 </div>
+                {selectedOrphanFiles.size > 0 && (
+                  <p className="text-xs text-orange-600 mt-2">已选择 {selectedOrphanFiles.size} 个文件</p>
+                )}
               </div>
             )}
 
@@ -1075,10 +1121,10 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={handleCleanStorage}
-                disabled={isCleaning || orphanedFiles.length === 0}
+                disabled={isCleaning || selectedOrphanFiles.size === 0}
                 className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
               >
-                {isCleaning ? '删除中...' : '删除选中文件'}
+                {isCleaning ? '删除中...' : `删除选中 (${selectedOrphanFiles.size})`}
               </button>
             </div>
           </div>
