@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function DELETE(request: Request) {
   try {
@@ -8,7 +8,7 @@ export async function DELETE(request: Request) {
       return Response.json({ error: 'No files specified' }, { status: 400 });
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseAdmin();
     const results: { success: string[]; failed: string[] } = { success: [], failed: [] };
 
     for (const path of paths) {

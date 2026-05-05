@@ -1,8 +1,8 @@
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 export async function GET() {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseAdmin();
     
     const [imagesResult, videosResult] = await Promise.all([
       supabase.storage.from('product-images').list('', { limit: 1000 }),
