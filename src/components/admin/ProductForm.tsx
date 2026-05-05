@@ -103,8 +103,8 @@ async function getFFmpeg() {
     console.log(`[视频压缩] 进度: ${Math.round(progress * 100)}%`);
   });
   
-  // 使用 CDN 加载，避免构建问题
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+  // 使用 jsDelivr CDN（国内访问较好）
+  const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
   await ffmpegInstance.load({
     coreURL: `${baseURL}/ffmpeg-core.js`,
     wasmURL: `${baseURL}/ffmpeg-core.wasm`,
