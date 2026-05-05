@@ -101,11 +101,11 @@ async function getFFmpeg(): Promise<FFmpeg> {
     console.log(`[视频压缩] 进度: ${Math.round(progress * 100)}%`);
   });
   
-  // 加载FFmpeg核心文件
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+  // 加载FFmpeg核心文件 - 使用单线程版本避免 SharedArrayBuffer 问题
+  const baseURL = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/umd';
   await ffmpegInstance.load({
-    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    coreURL: `${baseURL}/ffmpeg-core.js`,
+    wasmURL: `${baseURL}/ffmpeg-core.wasm`,
   });
   
   ffmpegLoaded = true;
