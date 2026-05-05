@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -49,6 +52,114 @@ interface ProductFormProps {
 }
 
 // 标签选项现在从数据库加载（见 useEffect）
+
+// ==================== 文件压缩功能 ====================
+
+// 图片压缩配置：90%质量，保持原尺寸
+const imageCompressionOptions = {
+  maxSizeMB: 2, // 最大2MB
+  maxWidthOrHeight: 3000, // 最大尺寸，不裁剪
+  useWebWorker: true,
+  fileType: 'image/webp' as const, // 转为WebP格式，体积更小
+  initialQuality: 0.9, // 90%质量，几乎无损
+};
+
+// 压缩图片
+async function compressImage(file: File): Promise<File> {
+  try {
+    console.log(`[压缩] 原始图片: ${file.name}, 大小: ${(file.size / 1024).toFixed(1)}KB`);
+    const compressedFile = await imageCompression(file, imageCompressionOptions);
+    console.log(`[压缩] 压缩后: ${file.name}, 大小: ${(compressedFile.size / 1024).toFixed(1)}KB, 减少: ${((1 - compressedFile.size / file.size) * 100).toFixed(0)}%`);
+    return compressedFile;
+  } catch (error) {
+    console.error('[压缩] 图片压缩失败，使用原图:', error);
+    return file;
+  }
+}
+
+// 视频压缩配置
+const videoCompressionOptions = {
+  maxWidth: 1280, // 最大宽度720p
+  maxHeight: 720,
+  videoBitrate: 2000, // 2Mbps，清晰且体积小
+  audioBitrate: '128k',
+};
+
+// FFmpeg实例（全局复用）
+let ffmpegInstance: FFmpeg | null = null;
+let ffmpegLoaded = false;
+
+// 初始化FFmpeg
+async function getFFmpeg(): Promise<FFmpeg> {
+  if (ffmpegInstance && ffmpegLoaded) {
+    return ffmpegInstance;
+  }
+  
+  ffmpegInstance = new FFmpeg();
+  
+  ffmpegInstance.on('progress', ({ progress }) => {
+    console.log(`[视频压缩] 进度: ${Math.round(progress * 100)}%`);
+  });
+  
+  // 加载FFmpeg核心文件
+  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+  await ffmpegInstance.load({
+    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+  });
+  
+  ffmpegLoaded = true;
+  console.log('[视频压缩] FFmpeg加载完成');
+  return ffmpegInstance;
+}
+
+// 压缩视频
+async function compressVideo(file: File): Promise<File> {
+  try {
+    console.log(`[视频压缩] 原始视频: ${file.name}, 大小: ${(file.size / 1024 / 1024).toFixed(1)}MB`);
+    
+    const ffmpeg = await getFFmpeg();
+    const inputName = 'input.mp4';
+    const outputName = 'output.mp4';
+    
+    // 写入输入文件
+    await ffmpeg.writeFile(inputName, await fetchFile(file));
+    
+    // 执行压缩：720p, 2Mbps
+    await ffmpeg.exec([
+      '-i', inputName,
+      '-vf', `scale='min(${videoCompressionOptions.maxWidth},iw)':min'(${videoCompressionOptions.maxHeight},ih)':force_original_aspect_ratio=decrease`,
+      '-c:v', 'libx264',
+      '-b:v', `${videoCompressionOptions.videoBitrate}k`,
+      '-c:a', 'aac',
+      '-b:a', videoCompressionOptions.audioBitrate,
+      '-preset', 'fast', // 快速编码
+      '-crf', '23', // 质量控制
+      '-movflags', '+faststart', // 优化Web播放
+      outputName
+    ]);
+    
+    // 读取输出文件
+    const data = await ffmpeg.readFile(outputName);
+    // FFmpeg返回的数据可能是Uint8Array或string，需要转换
+    const blobData = typeof data === 'string' 
+      ? new TextEncoder().encode(data) 
+      : data;
+    const blob = new Blob([blobData as BlobPart], { type: 'video/mp4' });
+    const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.mp4'), { type: 'video/mp4' });
+    
+    // 清理临时文件
+    await ffmpeg.deleteFile(inputName);
+    await ffmpeg.deleteFile(outputName);
+    
+    console.log(`[视频压缩] 压缩后: ${compressedFile.name}, 大小: ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB, 减少: ${((1 - compressedFile.size / file.size) * 100).toFixed(0)}%`);
+    return compressedFile;
+  } catch (error) {
+    console.error('[视频压缩] 压缩失败，使用原图:', error);
+    // 视频压缩失败时尝试返回原文件
+    return file;
+  }
+}
 
 // 生成文件名
 const generateFileName = (file: File): string => {
@@ -162,14 +273,16 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
-  // 批量上传图片后自动设置封面
+  // 批量上传图片后自动设置封面（自动压缩）
   const handleBatchUploadImages = async (files: File[]) => {
     if (files.length === 0) return;
     setUploadingMultiple(true);
     try {
       const newUrls: string[] = [];
       for (const file of files) {
-        const url = await uploadFile(file);
+        // 自动压缩图片
+        const compressedFile = await compressImage(file);
+        const url = await uploadFile(compressedFile);
         if (url) newUrls.push(url);
       }
       if (newUrls.length > 0) {
@@ -190,11 +303,13 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
-  // 单个上传图片
+  // 单个上传图片（自动压缩）
   const handleSingleUploadImage = async (index: number, file: File) => {
     setUploadingImageIndex(index);
     try {
-      const url = await uploadFile(file);
+      // 自动压缩图片
+      const compressedFile = await compressImage(file);
+      const url = await uploadFile(compressedFile);
       if (url) {
         const newImages = [...images];
         newImages[index] = url;
@@ -213,14 +328,16 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
-  // 批量上传视频
+  // 批量上传视频（自动压缩转码为720p）
   const handleBatchUploadVideos = async (files: File[]) => {
     if (files.length === 0) return;
     setUploadingVideos(true);
     try {
       const newUrls: string[] = [];
       for (const file of files) {
-        const url = await uploadFile(file);
+        // 自动压缩视频
+        const compressedFile = await compressVideo(file);
+        const url = await uploadFile(compressedFile);
         if (url) newUrls.push(url);
       }
       if (newUrls.length > 0) {
@@ -236,11 +353,13 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
-  // 单个上传视频
+  // 单个上传视频（自动压缩）
   const handleSingleUploadVideo = async (index: number, file: File) => {
     setUploadingVideoIndex(index);
     try {
-      const url = await uploadFile(file);
+      // 自动压缩视频
+      const compressedFile = await compressVideo(file);
+      const url = await uploadFile(compressedFile);
       if (url) {
         const newVideos = [...videos];
         newVideos[index] = url;
