@@ -155,8 +155,9 @@ async function compressVideo(file: File): Promise<File> {
     console.log(`[视频压缩] 压缩后: ${compressedFile.name}, 大小: ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB, 减少: ${((1 - compressedFile.size / file.size) * 100).toFixed(0)}%`);
     return compressedFile;
   } catch (error) {
-    console.error('[视频压缩] 压缩失败，使用原图:', error);
-    // 视频压缩失败时尝试返回原文件
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('[视频压缩] 压缩失败，使用原视频:', errorMsg);
+    alert(`视频压缩失败: ${errorMsg}\n将使用原视频上传。`);
     return file;
   }
 }
