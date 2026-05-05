@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -79,30 +77,34 @@ async function compressImage(file: File): Promise<File> {
 
 // 视频压缩配置
 const videoCompressionOptions = {
-  maxWidth: 1280, // 最大宽度720p
-  maxHeight: 720,
+  maxWidth: 1280, // 最大宽度
+  maxHeight: 720, // 最大高度
   videoBitrate: 2000, // 2Mbps，清晰且体积小
   audioBitrate: '128k',
 };
 
 // FFmpeg实例（全局复用）
-let ffmpegInstance: FFmpeg | null = null;
+let ffmpegInstance: any = null;
 let ffmpegLoaded = false;
 
 // 初始化FFmpeg
-async function getFFmpeg(): Promise<FFmpeg> {
+async function getFFmpeg() {
   if (ffmpegInstance && ffmpegLoaded) {
     return ffmpegInstance;
   }
   
+  // 动态加载 FFmpeg
+  const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+  const { fetchFile } = await import('@ffmpeg/util');
+  
   ffmpegInstance = new FFmpeg();
   
-  ffmpegInstance.on('progress', ({ progress }) => {
+  ffmpegInstance.on('progress', ({ progress }: { progress: number }) => {
     console.log(`[视频压缩] 进度: ${Math.round(progress * 100)}%`);
   });
   
-  // 加载FFmpeg核心文件 - 使用单线程版本避免 SharedArrayBuffer 问题
-  const baseURL = 'https://unpkg.com/@ffmpeg/core-st@0.12.6/dist/umd';
+  // 使用 CDN 加载，避免构建问题
+  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
   await ffmpegInstance.load({
     coreURL: `${baseURL}/ffmpeg-core.js`,
     wasmURL: `${baseURL}/ffmpeg-core.wasm`,
@@ -110,7 +112,9 @@ async function getFFmpeg(): Promise<FFmpeg> {
   
   ffmpegLoaded = true;
   console.log('[视频压缩] FFmpeg加载完成');
-  return ffmpegInstance;
+  
+  // 返回包含 fetchFile 的对象
+  return { ffmpeg: ffmpegInstance, fetchFile };
 }
 
 // 压缩视频
@@ -118,7 +122,7 @@ async function compressVideo(file: File): Promise<File> {
   try {
     console.log(`[视频压缩] 原始视频: ${file.name}, 大小: ${(file.size / 1024 / 1024).toFixed(1)}MB`);
     
-    const ffmpeg = await getFFmpeg();
+    const { ffmpeg, fetchFile } = await getFFmpeg();
     const inputName = 'input.mp4';
     const outputName = 'output.mp4';
     
@@ -133,19 +137,15 @@ async function compressVideo(file: File): Promise<File> {
       '-b:v', `${videoCompressionOptions.videoBitrate}k`,
       '-c:a', 'aac',
       '-b:a', videoCompressionOptions.audioBitrate,
-      '-preset', 'fast', // 快速编码
-      '-crf', '23', // 质量控制
-      '-movflags', '+faststart', // 优化Web播放
+      '-preset', 'fast',
+      '-crf', '23',
+      '-movflags', '+faststart',
       outputName
     ]);
     
     // 读取输出文件
     const data = await ffmpeg.readFile(outputName);
-    // FFmpeg返回的数据可能是Uint8Array或string，需要转换
-    const blobData = typeof data === 'string' 
-      ? new TextEncoder().encode(data) 
-      : data;
-    const blob = new Blob([blobData as BlobPart], { type: 'video/mp4' });
+    const blob = new Blob([data], { type: 'video/mp4' });
     const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.mp4'), { type: 'video/mp4' });
     
     // 清理临时文件
