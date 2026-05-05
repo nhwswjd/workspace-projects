@@ -132,7 +132,7 @@ async function compressVideo(file: File): Promise<File> {
     // 执行压缩：720p, 2Mbps
     await ffmpeg.exec([
       '-i', inputName,
-      '-vf', `scale='min(${videoCompressionOptions.maxWidth},iw)':min'(${videoCompressionOptions.maxHeight},ih)':force_original_aspect_ratio=decrease`,
+      '-vf', `scale=min(${videoCompressionOptions.maxWidth},iw):min(${videoCompressionOptions.maxHeight},ih):force_original_aspect_ratio=decrease`,
       '-c:v', 'libx264',
       '-b:v', `${videoCompressionOptions.videoBitrate}k`,
       '-c:a', 'aac',
