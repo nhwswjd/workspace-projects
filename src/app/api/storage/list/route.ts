@@ -4,6 +4,7 @@ export async function GET() {
   try {
     const supabase = getSupabaseAdmin();
     
+    // 获取 Storage 中的所有文件
     const [imagesResult, videosResult] = await Promise.all([
       supabase.storage.from('product-images').list('', { limit: 1000 }),
       supabase.storage.from('product-videos').list('', { limit: 1000 })
@@ -21,10 +22,6 @@ export async function GET() {
     if (imagesResult.data) {
       for (const item of imagesResult.data) {
         if (item.id && item.name) {
-          const { data: urlData } = supabase.storage
-            .from('product-images')
-            .getPublicUrl(item.name);
-          
           files.push({
             id: item.id,
             name: item.name,
@@ -51,17 +48,68 @@ export async function GET() {
       }
     }
 
+    // 获取数据库中所有产品的图片和视频引用
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, name, cover_image, images, videos');
+
+    // 提取所有被引用的文件名
+    const usedFiles = new Set<string>();
+    
+    if (products) {
+      for (const p of products) {
+        // 封面图
+        if (p.cover_image) {
+          const fileName = p.cover_image.split('/').pop() || '';
+          if (fileName) usedFiles.add(fileName);
+        }
+        
+        // 图片数组
+        if (p.images && Array.isArray(p.images)) {
+          for (const img of p.images) {
+            if (typeof img === 'string') {
+              const fileName = img.split('/').pop() || '';
+              if (fileName) usedFiles.add(fileName);
+            } else if (img && typeof img === 'object' && 'url' in img) {
+              const fileName = (img as { url: string }).url.split('/').pop() || '';
+              if (fileName) usedFiles.add(fileName);
+            }
+          }
+        }
+        
+        // 视频数组
+        if (p.videos && Array.isArray(p.videos)) {
+          for (const vid of p.videos) {
+            if (typeof vid === 'string') {
+              const fileName = vid.split('/').pop() || '';
+              if (fileName) usedFiles.add(fileName);
+            } else if (vid && typeof vid === 'object' && 'url' in vid) {
+              const fileName = (vid as { url: string }).url.split('/').pop() || '';
+              if (fileName) usedFiles.add(fileName);
+            }
+          }
+        }
+      }
+    }
+
     // 计算总大小
     const totalSize = files.reduce((sum, f) => sum + f.size, 0);
     const imageCount = files.filter(f => f.type === 'image').length;
     const videoCount = files.filter(f => f.type === 'video').length;
 
+    // 找出孤立文件（没有被任何产品引用）
+    const orphanedFiles = files.filter(f => !usedFiles.has(f.name));
+    const orphanedNames = orphanedFiles.map(f => f.name);
+
     return Response.json({
       files,
+      orphaned: orphanedNames,
       stats: {
         totalSize,
         imageCount,
-        videoCount
+        videoCount,
+        orphanedCount: orphanedFiles.length,
+        orphanedSize: orphanedFiles.reduce((sum, f) => sum + f.size, 0)
       }
     });
   } catch (error) {

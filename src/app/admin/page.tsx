@@ -449,7 +449,7 @@ export default function AdminPage() {
           size: f.size,
           orphan: data.orphaned?.includes(f.name) || false,
         })));
-        setOrphanFiles(data.orphaned || []);
+        setOrphanFiles((data.orphaned || []).map((f: { name: string; bucket: string }) => ({ name: f.name, type: f.bucket, size: 0 })));
         showToast(`扫描完成，共 ${data.files.length} 个文件，${(data.orphaned || []).length} 个孤立文件`);
       } else {
         showToast(data.error || '扫描失败', 'error');
@@ -472,7 +472,7 @@ export default function AdminPage() {
 
     setIsCleaning(true);
     try {
-      const fileNames = orphanedFiles.map(f => ({ name: f.name, bucket: f.bucket }));
+      const fileNames = orphanedFiles.map((f) => ({ name: f.name, bucket: f.bucket }));
       const res = await fetch('/api/storage/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
