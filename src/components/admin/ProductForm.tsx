@@ -273,13 +273,27 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     setTagInput('');
   };
 
-  // 删除图片
-  const handleRemoveImage = (index: number) => {
+  // 删除图片（同时删除存储文件）
+  const handleRemoveImage = async (index: number) => {
+    const imageToDelete = images[index];
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
     // 如果删除的是封面图片，用新的第一张作为封面
     if (coverImage === images[index]) {
       setCoverImage(newImages[0] || '');
+    }
+    // 删除存储文件
+    if (imageToDelete) {
+      try {
+        const fileName = imageToDelete.split('/').pop();
+        await fetch('/api/storage/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ files: [{ name: fileName, bucket: 'product-images' }] })
+        });
+      } catch (err) {
+        console.error('删除图片文件失败:', err);
+      }
     }
   };
 
@@ -407,9 +421,23 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
-  // 删除视频
-  const handleRemoveVideo = (index: number) => {
+  // 删除视频（同时删除存储文件）
+  const handleRemoveVideo = async (index: number) => {
+    const videoToDelete = videos[index];
     setVideos(videos.filter((_, i) => i !== index));
+    // 删除存储文件
+    if (videoToDelete) {
+      try {
+        const fileName = videoToDelete.split('/').pop();
+        await fetch('/api/storage/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ files: [{ name: fileName, bucket: 'product-videos' }] })
+        });
+      } catch (err) {
+        console.error('删除视频文件失败:', err);
+      }
+    }
   };
 
   // 设置封面图片

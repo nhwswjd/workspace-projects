@@ -83,6 +83,55 @@ export async function DELETE(
       return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });
     }
     const { id } = await params;
+    
+    // 先获取产品数据，获取所有图片和视频文件名
+    const { data: product } = await supabaseAdmin
+      .from('products')
+      .select('cover_image, images, videos')
+      .eq('id', id)
+      .single();
+    
+    // 收集所有需要删除的文件
+    const filesToDelete: { name: string; bucket: string }[] = [];
+    
+    if (product) {
+      // 封面图
+      if (product.cover_image) {
+        const fileName = product.cover_image.split('/').pop();
+        if (fileName) filesToDelete.push({ name: fileName, bucket: 'product-images' });
+      }
+      // 图片数组
+      if (product.images && Array.isArray(product.images)) {
+        for (const img of product.images) {
+          const url = typeof img === 'string' ? img : (img as { url?: string }).url;
+          if (url) {
+            const fileName = url.split('/').pop();
+            if (fileName) filesToDelete.push({ name: fileName, bucket: 'product-images' });
+          }
+        }
+      }
+      // 视频数组
+      if (product.videos && Array.isArray(product.videos)) {
+        for (const vid of product.videos) {
+          const url = typeof vid === 'string' ? vid : (vid as { url?: string }).url;
+          if (url) {
+            const fileName = url.split('/').pop();
+            if (fileName) filesToDelete.push({ name: fileName, bucket: 'product-videos' });
+          }
+        }
+      }
+    }
+    
+    // 删除存储文件
+    for (const file of filesToDelete) {
+      try {
+        await supabaseAdmin.storage.from(file.bucket).remove([file.name]);
+      } catch (err) {
+        console.error(`删除文件失败: ${file.name}`, err);
+      }
+    }
+    
+    // 删除数据库记录
     const { error } = await supabaseAdmin
       .from('products')
       .delete()
@@ -90,7 +139,7 @@ export async function DELETE(
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true, message: '产品删除成功' });
+    return NextResponse.json({ success: true, message: '产品删除成功', deletedFiles: filesToDelete.length });
   } catch (error) {
     console.error('删除产品失败:', error);
     return NextResponse.json({ success: false, message: '删除产品失败' }, { status: 500 });
