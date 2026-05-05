@@ -363,6 +363,29 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
+  // 批量上传视频（不压缩，直接上传）
+  const handleBatchUploadVideosDirect = async (files: File[]) => {
+    if (files.length === 0) return;
+    setUploadingVideos(true);
+    try {
+      const newUrls: string[] = [];
+      for (const file of files) {
+        const url = await uploadFile(file);
+        if (url) newUrls.push(url);
+      }
+      if (newUrls.length > 0) {
+        setVideos([...videos, ...newUrls]);
+      }
+      if (newUrls.length < files.length) {
+        alert(`成功 ${newUrls.length} 个，失败 ${files.length - newUrls.length} 个`);
+      }
+    } catch {
+      alert('上传失败');
+    } finally {
+      setUploadingVideos(false);
+    }
+  };
+
   // 单个上传视频（自动压缩）
   const handleSingleUploadVideo = async (index: number, file: File) => {
     setUploadingVideoIndex(index);
@@ -814,17 +837,30 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
               <label className="text-sm font-medium text-gray-700">
                 视频列表 ({videos.length}个)
               </label>
-              <label className={`text-sm text-teal-600 font-medium cursor-pointer ${uploadingVideos ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                {uploadingVideos ? '上传中...' : '+ 批量上传视频'}
-                <input 
-                  type="file" 
-                  accept="video/*" 
-                  multiple 
-                  className="hidden" 
-                  disabled={uploadingVideos} 
-                  onChange={(e) => handleBatchUploadVideos(Array.from(e.target.files || []))}
-                />
-              </label>
+            <div className="flex gap-2">
+                <label className={`text-sm text-teal-600 font-medium cursor-pointer ${uploadingVideos ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  {uploadingVideos ? '上传中...' : '+ 快速上传'}
+                  <input 
+                    type="file" 
+                    accept="video/*" 
+                    multiple 
+                    className="hidden" 
+                    disabled={uploadingVideos} 
+                    onChange={(e) => handleBatchUploadVideosDirect(Array.from(e.target.files || []))}
+                  />
+                </label>
+                <label className={`text-sm text-orange-600 font-medium cursor-pointer ${uploadingVideos ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  {uploadingVideos ? '上传中...' : '+ 压缩上传'}
+                  <input 
+                    type="file" 
+                    accept="video/*" 
+                    multiple 
+                    className="hidden" 
+                    disabled={uploadingVideos} 
+                    onChange={(e) => handleBatchUploadVideos(Array.from(e.target.files || []))}
+                  />
+                </label>
+              </div>
             </div>
             
             {videos.length > 0 && (
