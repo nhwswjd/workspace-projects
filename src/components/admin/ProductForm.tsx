@@ -134,17 +134,17 @@ async function compressVideo(file: File): Promise<File> {
     // 写入输入文件
     await ffmpeg.writeFile(inputName, await fetchFile(file));
     
-    // 执行压缩：720p, 2Mbps
+    // 执行压缩：720p, 兼容格式
     await ffmpeg.exec([
       '-i', inputName,
-      '-vf', `scale=min(${videoCompressionOptions.maxWidth},iw):min(${videoCompressionOptions.maxHeight},ih):force_original_aspect_ratio=decrease`,
+      '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease',
       '-c:v', 'libx264',
-      '-b:v', `${videoCompressionOptions.videoBitrate}k`,
+      '-preset', 'ultrafast',
+      '-crf', '28',
       '-c:a', 'aac',
-      '-b:a', videoCompressionOptions.audioBitrate,
-      '-preset', 'fast',
-      '-crf', '23',
+      '-b:a', '128k',
       '-movflags', '+faststart',
+      '-y',
       outputName
     ]);
     
