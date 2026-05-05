@@ -59,6 +59,11 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [orphanFiles, setOrphanFiles] = useState<{ name: string; bucket: string; size: number; url: string }[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [selectedBuckets, setSelectedBuckets] = useState<Set<string>>(new Set(['product-images', 'product-videos']))
   const [showTagModal, setShowTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<{ id?: string; name: string } | null>(null);
   const [tagName, setTagName] = useState("");
@@ -416,6 +421,61 @@ export default function AdminPage() {
       showToast('备份失败', 'error');
     } finally {
       setIsBackingUp(false);
+    }
+  };
+
+  // 存储清理
+  const [orphanedFiles, setOrphanedFiles] = useState<{name: string; bucket: string; size: number}[]>([]);
+  const [isCleaning, setIsCleaning] = useState(false);
+
+  const handleScanStorage = async () => {
+    setIsScanning(true);
+    try {
+      const res = await fetch('/api/storage/list');
+      const data = await res.json();
+      if (data.success) {
+        setOrphanedFiles(data.orphaned || []);
+        showToast(`扫描完成，发现 ${(data.orphaned || []).length} 个孤立文件`);
+      } else {
+        showToast('扫描失败', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('扫描失败', 'error');
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleCleanStorage = async () => {
+    if (orphanedFiles.length === 0) {
+      showToast('没有可清理的文件', 'error');
+      return;
+    }
+
+    if (!confirm(`确定删除 ${orphanedFiles.length} 个孤立文件吗？`)) return;
+
+    setIsCleaning(true);
+    try {
+      const fileNames = orphanedFiles.map(f => ({ name: f.name, bucket: f.bucket }));
+      const res = await fetch('/api/storage/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: fileNames }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const saved = data.deletedSize || 0;
+        showToast(`已删除 ${data.deleted} 个文件，节省 ${(saved / 1024 / 1024).toFixed(2)} MB`);
+        setOrphanedFiles([]);
+      } else {
+        showToast('删除失败: ' + (data.error || '未知错误'), 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('删除失败', 'error');
+    } finally {
+      setIsCleaning(false);
     }
   };
 
@@ -966,6 +1026,44 @@ export default function AdminPage() {
                 className="w-full py-3 bg-white text-[#14b8a6] rounded-xl font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
               >
                 {isBackingUp ? '备份中...' : '下载完整备份'}
+              </button>
+            </div>
+          <div className="border-t border-gray-100 pt-4 mt-4">
+          </div>
+            <h3 className="font-medium text-gray-800 mb-3">存储空间清理</h3>
+            <p className="text-sm text-gray-500 mb-4">扫描并删除孤立的图片/视频文件</p>
+            
+            {orphanedFiles.length > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4">
+                <p className="text-sm text-orange-600 mb-2">发现 {orphanedFiles.length} 个孤立文件，共 {(orphanedFiles.reduce((sum, f) => sum + f.size, 0) / 1024 / 1024).toFixed(2)} MB</p>
+                <div className="max-h-40 overflow-y-auto text-xs text-gray-600 space-y-1">
+                  {orphanedFiles.slice(0, 20).map((file, idx) => (
+                    <div key={idx} className="flex justify-between">
+                      <span className="truncate flex-1">{file.bucket}/{file.name}</span>
+                      <span className="ml-2 text-gray-400">{(file.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                  ))}
+                  {orphanedFiles.length > 20 && (
+                    <p className="text-gray-400">...还有 {orphanedFiles.length - 20} 个文件</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleScanStorage}
+                disabled={isScanning}
+                className="flex-1 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50"
+              >
+                {isScanning ? '扫描中...' : '扫描孤立文件'}
+              </button>
+              <button
+                onClick={handleCleanStorage}
+                disabled={isCleaning || orphanedFiles.length === 0}
+                className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                {isCleaning ? '删除中...' : '删除选中文件'}
               </button>
             </div>
           </div>
