@@ -99,11 +99,15 @@ export async function GET() {
 
     // 找出孤立文件（没有被任何产品引用）
     const orphanedFiles = files.filter(f => !usedFiles.has(f.name));
-    const orphanedNames = orphanedFiles.map(f => f.name);
+    const orphanedDetails = orphanedFiles.map(f => ({
+      name: f.name,
+      bucket: f.type === 'video' ? 'product-videos' : 'product-images',
+      size: f.size
+    }));
 
     return Response.json({
       files,
-      orphaned: orphanedNames,
+      orphaned: orphanedDetails,
       stats: {
         totalSize,
         imageCount,
