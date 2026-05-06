@@ -60,8 +60,11 @@ export async function GET(request: Request) {
     const uniqueIps = new Set(uniqueVisitors?.map(v => v.ip));
     const uniqueVisitorCount = uniqueIps.size;
 
-    // 5. 最近访问记录
-    let recentQuery = supabaseAdmin.from('access_logs').select('*').order('visited_at', { ascending: false }).limit(100);
+    // 5. 最近访问记录（显式选择需要的字段，包含location）
+    let recentQuery = supabaseAdmin.from('access_logs')
+      .select('id, ip, location, password_used, device, browser, visited_at, access_type')
+      .order('visited_at', { ascending: false })
+      .limit(100);
     if (showOnlyVisitor) {
       recentQuery = recentQuery.eq('access_type', 'visitor');
     }

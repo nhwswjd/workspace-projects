@@ -76,8 +76,7 @@ export default function AdminPage() {
     yesterdayVisits: number;
     totalVisits: number;
     uniqueVisitors: number;
-    popularProducts: { id: string; name: string; count: number }[];
-    recentLogs: { id: string; password_used: string; ip: string; device: string; browser: string; visited_at: string }[];
+    recentLogs: { id: string; password_used: string; ip: string; location: string; device: string; browser: string; visited_at: string }[];
     passwordStats: Record<string, number>;
     deviceStats: Record<string, number>;
     browserStats: Record<string, number>;
@@ -1028,8 +1027,8 @@ export default function AdminPage() {
 
             {/* 访问统计 */}
             <div className="border-t border-gray-100 pt-4 mt-4">
-              <h3 className="font-medium text-gray-800 mb-3">访问统计</h3>
-              <p className="text-sm text-gray-500 mb-4">记录产品详情页的访问情况</p>
+              <h3 className="font-medium text-gray-800 mb-3">访问记录</h3>
+              <p className="text-sm text-gray-500 mb-4">记录访客使用密码登录的情况</p>
               {analyticsStats ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1051,98 +1050,72 @@ export default function AdminPage() {
                     </div>
                   </div>
                   
-                  {analyticsStats && analyticsStats.popularProducts?.length > 0 && (
-                    <div className="bg-white rounded-xl p-4">
-                      <h4 className="font-medium text-gray-700 mb-3">热门产品 TOP10</h4>
-                      <div className="space-y-2">
-                        {analyticsStats.popularProducts?.map((p: { id: string; name: string; count: number }, idx: number) => (
-                          <div key={p.id} className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 bg-[#14b8a6] text-white rounded-full flex items-center justify-center text-xs">
-                                {idx + 1}
-                              </span>
-                              <span className="truncate max-w-[200px]">{p.name}</span>
-                            </div>
-                            <span className="text-gray-400">{p.count} 次</span>
-                          </div>
-                        ))}
-                      </div>
+                  {/* 逐条访问记录列表 */}
+                  <div className="bg-white rounded-xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-gray-500 font-medium">时间</th>
+                            <th className="px-3 py-2 text-left text-gray-500 font-medium">密码</th>
+                            <th className="px-3 py-2 text-left text-gray-500 font-medium">IP / 归属地</th>
+                            <th className="px-3 py-2 text-left text-gray-500 font-medium">设备</th>
+                            <th className="px-3 py-2 text-left text-gray-500 font-medium">浏览器</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {analyticsStats.recentLogs && analyticsStats.recentLogs.length > 0 ? (
+                            analyticsStats.recentLogs.slice(0, 100).map((log: { id: string; password_used: string; ip: string; location: string; device: string; browser: string; visited_at: string }) => (
+                              <tr key={log.id} className="hover:bg-gray-50">
+                                <td className="px-3 py-2 text-gray-600 whitespace-nowrap">
+                                  {new Date(log.visited_at).toLocaleString('zh-CN', { 
+                                    month: '2-digit', 
+                                    day: '2-digit', 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                  })}
+                                </td>
+                                <td className="px-3 py-2">
+                                  <span className="font-mono bg-teal-50 text-teal-600 px-2 py-0.5 rounded text-xs">
+                                    {log.password_used}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2">
+                                  <div className="text-xs">
+                                    <span className="text-gray-800 font-mono">{log.ip}</span>
+                                    {log.location && log.location !== '未知' && (
+                                      <span className="ml-2 text-gray-400">({log.location})</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{log.device}</td>
+                                <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{log.browser}</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="px-3 py-8 text-center text-gray-400">
+                                暂无访问记录
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
-                  )}
-                  
-                  {analyticsStats && analyticsStats.recentLogs?.length > 0 && (
-                    <div className="space-y-4">
-                      {/* 密码使用统计 */}
-                      {Object.keys(analyticsStats.passwordStats || {}).length > 0 && (
-                        <div className="bg-white rounded-xl p-4">
-                          <h4 className="font-medium text-gray-700 mb-3">密码使用统计</h4>
-                          <div className="space-y-2">
-                            {Object.entries(analyticsStats.passwordStats).map(([password, count]) => (
-                              <div key={password} className="flex items-center justify-between text-sm">
-                                <span className="font-mono bg-gray-100 px-2 py-1 rounded">{password}</span>
-                                <span className="text-gray-600">{count} 次</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 设备统计 */}
-                      {Object.keys(analyticsStats.deviceStats || {}).length > 0 && (
-                        <div className="bg-white rounded-xl p-4">
-                          <h4 className="font-medium text-gray-700 mb-3">设备分布</h4>
-                          <div className="space-y-2">
-                            {Object.entries(analyticsStats.deviceStats).map(([device, count]) => (
-                              <div key={device} className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600">{device}</span>
-                                <span className="text-gray-400">{count} 次</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 浏览器统计 */}
-                      {Object.keys(analyticsStats.browserStats || {}).length > 0 && (
-                        <div className="bg-white rounded-xl p-4">
-                          <h4 className="font-medium text-gray-700 mb-3">浏览器分布</h4>
-                          <div className="space-y-2">
-                            {Object.entries(analyticsStats.browserStats).map(([browser, count]) => (
-                              <div key={browser} className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600">{browser}</span>
-                                <span className="text-gray-400">{count} 次</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 最近访问记录 */}
-                      <div className="bg-white rounded-xl p-4">
-                        <h4 className="font-medium text-gray-700 mb-3">最近访问记录</h4>
-                        <div className="max-h-60 overflow-y-auto space-y-2">
-                          {analyticsStats.recentLogs?.slice(0, 50).map((log: { id: string; password_used: string; ip: string; device: string; browser: string; visited_at: string }) => (
-                            <div key={log.id} className="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <span className="font-mono bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded truncate max-w-[80px]">{log.password_used}</span>
-                                <span className="text-gray-400 truncate max-w-[60px]">{log.device}</span>
-                                <span className="text-gray-400 truncate max-w-[50px]">{log.browser}</span>
-                              </div>
-                              <span className="text-gray-400 ml-2 truncate max-w-[120px]">{log.ip}</span>
-                              <span className="text-gray-400 ml-2 whitespace-nowrap">{new Date(log.visited_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
-                            </div>
-                          ))}
-                        </div>
+                    {analyticsStats.recentLogs && analyticsStats.recentLogs.length > 100 && (
+                      <div className="px-3 py-2 text-xs text-gray-400 text-center border-t border-gray-100">
+                        显示前100条记录，共 {analyticsStats.recentLogs.length} 条
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ) : (
                 <button
                   onClick={loadAnalytics}
                   className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-medium hover:bg-gray-200 transition-colors"
                 >
-                  加载访问统计
+                  加载访问记录
                 </button>
               )}
             </div>

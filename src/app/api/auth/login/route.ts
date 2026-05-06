@@ -49,6 +49,32 @@ function parseUserAgent(ua: string): { device: string; browser: string } {
   return { device, browser };
 }
 
+// 获取IP归属地
+async function getIpLocation(ip: string): Promise<string> {
+  // 跳过本地IP和无效IP
+  if (ip === 'unknown' || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+    return '本地网络';
+  }
+  
+  try {
+    // 使用 ip-api.com 免费API
+    const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city`);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      const parts = [];
+      if (data.country) parts.push(data.country);
+      if (data.regionName && data.regionName !== data.country) parts.push(data.regionName);
+      if (data.city) parts.push(data.city);
+      return parts.join(' ') || '未知';
+    }
+  } catch (error) {
+    console.error('获取IP归属地失败:', error);
+  }
+  
+  return '未知';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
@@ -124,6 +150,9 @@ export async function POST(request: NextRequest) {
       adminPasswords = ['admin2024'];
     }
     
+    // 获取IP归属地
+    const location = await getIpLocation(ip);
+    
     // 超级管理员密码（可以看全部记录）
     const SUPER_ADMIN_PASSWORD = 'admin2026';
     
@@ -131,6 +160,7 @@ export async function POST(request: NextRequest) {
     if (password === SUPER_ADMIN_PASSWORD) {
       await supabase.from('access_logs').insert({
         ip,
+        location,
         page_url: '/login',
         password_used: password,
         device,
@@ -150,6 +180,7 @@ export async function POST(request: NextRequest) {
     if (adminPasswords.includes(password)) {
       await supabase.from('access_logs').insert({
         ip,
+        location,
         page_url: '/login',
         password_used: password,
         device,
@@ -170,6 +201,7 @@ export async function POST(request: NextRequest) {
       try {
         const { error: insertError } = await supabase.from('access_logs').insert({
           ip,
+          location,
           page_url: '/login',
           password_used: password,
           device,
