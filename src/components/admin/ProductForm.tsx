@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -134,6 +136,88 @@ const uploadVideoFile = async (file: File): Promise<string | null> => {
   return urlData.publicUrl;
 };
 
+// FFmpeg实例（全局复用）
+let ffmpegInstance: any = null;
+let ffmpegLoaded = false;
+
+// 初始化FFmpeg
+async function getFFmpeg() {
+  if (ffmpegInstance && ffmpegLoaded) {
+    return { ffmpeg: ffmpegInstance, fetchFile };
+  }
+  
+  console.log('[视频压缩] 开始加载 FFmpeg...');
+  
+  ffmpegInstance = new FFmpeg();
+  
+  ffmpegInstance.on('progress', ({ progress }: { progress: number }) => {
+    console.log(`[视频压缩] 进度: ${Math.round(progress * 100)}%`);
+  });
+  
+  ffmpegInstance.on('log', ({ message }: { message: string }) => {
+    console.log('[FFmpeg log]:', message);
+  });
+  
+  // 使用 unpkg CDN
+  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+  console.log('[视频压缩] 从 CDN 加载:', baseURL);
+  
+  await ffmpegInstance.load({
+    coreURL: `${baseURL}/ffmpeg-core.js`,
+    wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+  });
+  
+  ffmpegLoaded = true;
+  console.log('[视频压缩] FFmpeg加载完成');
+  
+  return { ffmpeg: ffmpegInstance, fetchFile };
+}
+
+// 压缩视频并返回压缩后的File
+async function compressVideo(file: File): Promise<File> {
+  try {
+    console.log(`[视频压缩] 原始视频: ${file.name}, 大小: ${(file.size / 1024 / 1024).toFixed(1)}MB`);
+    
+    const { ffmpeg, fetchFile } = await getFFmpeg();
+    const inputName = 'input.mp4';
+    const outputName = 'output.mp4';
+    
+    // 写入输入文件
+    await ffmpeg.writeFile(inputName, await fetchFile(file));
+    
+    // 执行压缩：720p, 兼容格式
+    await ffmpeg.exec([
+      '-i', inputName,
+      '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease',
+      '-c:v', 'libx264',
+      '-preset', 'ultrafast',
+      '-crf', '28',
+      '-c:a', 'aac',
+      '-b:a', '128k',
+      '-movflags', '+faststart',
+      '-y',
+      outputName
+    ]);
+    
+    // 读取输出文件
+    const data = await ffmpeg.readFile(outputName);
+    const blob = new Blob([data], { type: 'video/mp4' });
+    const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.mp4'), { type: 'video/mp4' });
+    
+    // 清理临时文件
+    await ffmpeg.deleteFile(inputName);
+    await ffmpeg.deleteFile(outputName);
+    
+    console.log(`[视频压缩] 压缩后: ${compressedFile.name}, 大小: ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB, 减少: ${((1 - compressedFile.size / file.size) * 100).toFixed(0)}%`);
+    return compressedFile;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('[视频压缩] 压缩失败，使用原视频:', errorMsg);
+    alert(`视频压缩失败: ${errorMsg}\n将使用原视频上传。`);
+    return file;
+  }
+}
+
 interface VideoItem {
   url: string;
   thumbnail?: string;
@@ -175,6 +259,51 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     const newVideos = [...videos];
     newVideos[videoIndex] = { ...newVideos[videoIndex], thumbnail: imageUrl };
     setVideos(newVideos);
+  };
+  
+  // 压缩单个视频（提取封面 + 压缩体积）
+  const [compressingVideoIndex, setCompressingVideoIndex] = useState<number | null>(null);
+  const handleCompressVideo = async (index: number) => {
+    const video = videos[index];
+    if (!video || compressingVideoIndex !== null) return;
+    
+    setCompressingVideoIndex(index);
+    try {
+      console.log('[视频压缩] 开始压缩视频...');
+      
+      // 1. 从 Storage 下载原视频
+      const videoResponse = await fetch(video.url);
+      const videoBlob = await videoResponse.blob();
+      const originalFile = new File([videoBlob], 'original.mp4', { type: 'video/mp4' });
+      
+      // 2. 压缩视频
+      const compressedFile = await compressVideo(originalFile);
+      
+      // 3. 上传压缩后的视频
+      const compressedUrl = await uploadVideoFile(compressedFile);
+      if (!compressedUrl) {
+        throw new Error('上传压缩视频失败');
+      }
+      
+      // 4. 删除原视频文件
+      const oldFileName = video.url.split('/').pop();
+      if (oldFileName) {
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        await supabase.storage.from('product-videos').remove([oldFileName]);
+      }
+      
+      // 5. 更新视频列表（保持原有的封面，如果没有则设为空）
+      const newVideos = [...videos];
+      newVideos[index] = { url: compressedUrl, thumbnail: video.thumbnail || '' };
+      setVideos(newVideos);
+      
+      alert('视频压缩成功！');
+    } catch (err) {
+      console.error('[视频压缩] 压缩失败:', err);
+      alert('视频压缩失败');
+    } finally {
+      setCompressingVideoIndex(null);
+    }
   };
   
   const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
@@ -888,8 +1017,17 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                         <div className="flex gap-1">
                           <button
                             type="button"
+                            onClick={() => handleCompressVideo(index)}
+                            disabled={compressingVideoIndex === index}
+                            className="w-6 h-6 bg-amber-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-amber-600 disabled:opacity-50"
+                            title="压缩视频"
+                          >
+                            {compressingVideoIndex === index ? '...' : '⚡'}
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => {
-                              const img = prompt('请输入图片URL作为视频封面：', images[0] || '');
+                              const img = prompt('请输入图片URL作为视频封面：', images[0] || video.thumbnail || '');
                               if (img) handleSetVideoCover(index, img);
                             }}
                             disabled={images.length === 0}
