@@ -107,6 +107,7 @@ export default function AdminPage() {
     deviceStats: Record<string, number>;
     browserStats: Record<string, number>;
   } | null>(null);
+  const [clearingLogs, setClearingLogs] = useState(false);
   const { isAuthenticated, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -720,6 +721,29 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error('加载访问统计失败:', err);
+    }
+  };
+
+  // 清除所有访问记录
+  const handleClearAccessLogs = async () => {
+    if (!confirm('确定要清除所有访问记录吗？此操作不可恢复。')) {
+      return;
+    }
+    setClearingLogs(true);
+    try {
+      const res = await fetch('/api/analytics/clear', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        alert(`已清除 ${data.deleted} 条访问记录`);
+        loadAnalytics();
+      } else {
+        alert('清除失败: ' + (data.error || '未知错误'));
+      }
+    } catch (err) {
+      console.error('清除访问记录失败:', err);
+      alert('清除失败');
+    } finally {
+      setClearingLogs(false);
     }
   };
 
@@ -1501,7 +1525,24 @@ export default function AdminPage() {
 
             {/* 访问统计 */}
             <div className="border-t border-gray-100 pt-4 mt-4">
-              <h3 className="font-medium text-gray-800 mb-3">访问记录</h3>
+              <h3 className="font-medium text-gray-800 mb-3 flex items-center justify-between">
+                <span>访问记录</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleClearAccessLogs}
+                    disabled={clearingLogs}
+                    className="px-3 py-1 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 disabled:opacity-50"
+                  >
+                    {clearingLogs ? '清除中...' : '清除全部'}
+                  </button>
+                  <button
+                    onClick={loadAnalytics}
+                    className="px-3 py-1 text-xs bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"
+                  >
+                    刷新
+                  </button>
+                </div>
+              </h3>
               <p className="text-sm text-gray-500 mb-4">记录访客使用密码登录的情况</p>
               {analyticsStats ? (
                 <div className="space-y-4">
