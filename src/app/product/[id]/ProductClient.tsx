@@ -26,7 +26,18 @@ export default function ProductClient({ product }: ProductClientProps) {
     // 检查管理员权限
     const adminData = localStorage.getItem('atelier_is_admin');
     setIsAdmin(adminData === 'true');
-  }, [router]);
+
+    // 记录访问统计
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        page_url: window.location.pathname,
+        product_id: product.id,
+        product_name: product.name
+      })
+    }).catch(err => console.error('访问统计失败:', err));
+  }, [router, product.id, product.name]);
 
   // 获取视频URL - 简化逻辑
   const getVideoUrl = (data: unknown): string => {

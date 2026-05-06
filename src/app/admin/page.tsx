@@ -71,6 +71,14 @@ export default function AdminPage() {
   const [showTagModal, setShowTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<{ id?: string; name: string } | null>(null);
   const [tagName, setTagName] = useState("");
+  const [analyticsStats, setAnalyticsStats] = useState<{
+    todayVisits: number;
+    yesterdayVisits: number;
+    totalVisits: number;
+    uniqueVisitors: number;
+    popularProducts: { id: string; name: string; count: number }[];
+    recentLogs: { id: string; product_name: string; ip: string; visited_at: string }[];
+  } | null>(null);
   const { isAuthenticated, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -432,6 +440,19 @@ export default function AdminPage() {
   const [orphanedFiles, setOrphanedFiles] = useState<{name: string; bucket: string; size: number}[]>([]);
   const [selectedOrphanFiles, setSelectedOrphanFiles] = useState<Set<string>>(new Set());
   const [isCleaning, setIsCleaning] = useState(false);
+
+  // 加载访问统计
+  const loadAnalytics = async () => {
+    try {
+      const res = await fetch('/api/analytics/stats?days=30');
+      const data = await res.json();
+      if (data.success && data.stats) {
+        setAnalyticsStats(data.stats);
+      }
+    } catch (err) {
+      console.error('加载访问统计失败:', err);
+    }
+  };
 
   const handleScanStorage = async () => {
     setIsScanning(true);
@@ -997,6 +1018,77 @@ export default function AdminPage() {
             >
               保存设置
             </button>
+
+            {/* 访问统计 */}
+            <div className="border-t border-gray-100 pt-4 mt-4">
+              <h3 className="font-medium text-gray-800 mb-3">访问统计</h3>
+              <p className="text-sm text-gray-500 mb-4">记录产品详情页的访问情况</p>
+              {analyticsStats ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-blue-50 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-blue-600">{analyticsStats.todayVisits}</p>
+                      <p className="text-xs text-gray-500">今日访问</p>
+                    </div>
+                    <div className="bg-green-50 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-green-600">{analyticsStats.yesterdayVisits}</p>
+                      <p className="text-xs text-gray-500">昨日访问</p>
+                    </div>
+                    <div className="bg-purple-50 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-purple-600">{analyticsStats.totalVisits}</p>
+                      <p className="text-xs text-gray-500">总访问量</p>
+                    </div>
+                    <div className="bg-orange-50 rounded-xl p-3 text-center">
+                      <p className="text-2xl font-bold text-orange-600">{analyticsStats.uniqueVisitors}</p>
+                      <p className="text-xs text-gray-500">独立访客</p>
+                    </div>
+                  </div>
+                  
+                  {analyticsStats.popularProducts.length > 0 && (
+                    <div className="bg-white rounded-xl p-4">
+                      <h4 className="font-medium text-gray-700 mb-3">热门产品 TOP10</h4>
+                      <div className="space-y-2">
+                        {analyticsStats.popularProducts.map((p: { id: string; name: string; count: number }, idx: number) => (
+                          <div key={p.id} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 bg-[#14b8a6] text-white rounded-full flex items-center justify-center text-xs">
+                                {idx + 1}
+                              </span>
+                              <span className="truncate max-w-[200px]">{p.name}</span>
+                            </div>
+                            <span className="text-gray-400">{p.count} 次</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {analyticsStats.recentLogs.length > 0 && (
+                    <div className="bg-white rounded-xl p-4">
+                      <h4 className="font-medium text-gray-700 mb-3">最近访问</h4>
+                      <div className="max-h-60 overflow-y-auto space-y-2">
+                        {analyticsStats.recentLogs.slice(0, 20).map((log: { id: string; product_name: string; ip: string; visited_at: string }) => (
+                          <div key={log.id} className="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
+                            <div className="truncate flex-1">
+                              <span className="text-gray-700">{log.product_name || '首页'}</span>
+                            </div>
+                            <span className="text-gray-400 ml-2">{log.ip}</span>
+                            <span className="text-gray-400 ml-2">{new Date(log.visited_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={loadAnalytics}
+                  className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                >
+                  加载访问统计
+                </button>
+              )}
+            </div>
           </div>
         )}
 
