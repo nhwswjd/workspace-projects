@@ -125,62 +125,36 @@ export default function AdminPage() {
 
   const loadData = async () => {
     try {
-      // 根据权限决定是否加载管理员密码
-      const requests: Promise<any>[] = [
-        fetch('/api/products').then(r => r.json()),
-        fetch('/api/site-settings/brand_name').then(r => r.json()).catch(() => ({ value: '江南风景好' })),
-        fetch('/api/site-settings/visitor_password').then(r => r.json()).catch(() => ({ value: '' })),
-        fetch('/api/site-settings/random-sort-rules').then(r => r.json()).catch(() => ({ rules: [] })),
-        fetch('/api/tags').then(r => r.json()).catch(() => ({ tags: [] })),
-        fetch('/api/categories').then(r => r.json()).catch(() => ({ categories: [] })),
-        fetch('/api/featured-options').then(r => r.json()).catch(() => ({ featuredOptions: [], featuredRightBottomOptions: [] })),
-      ];
+      // 使用合并API，一次请求获取所有数据
+      const res = await fetch(`/api/admin/data?super_admin=${isSuperAdmin}`);
+      const data = await res.json();
       
-      // 只有超级管理员才加载管理员密码
-      if (isSuperAdmin) {
-        requests.push(fetch('/api/site-settings/admin_password').then(r => r.json()).catch(() => ({ value: '' })));
-      }
+      if (data.products) setProducts(data.products);
+      if (data.brandName) setSiteName(data.brandName);
+      if (data.tags) setTags(data.tags);
+      if (data.categories) setCategories(data.categories);
+      if (data.featuredOptions) setFeaturedOptions(data.featuredOptions);
+      if (data.featuredRightBottomOptions) setFeaturedRightBottomOptions(data.featuredRightBottomOptions);
       
-      const results = await Promise.all(requests);
-      
-      const productsRes = results[0];
-      const brandRes = results[1];
-      const visitorPwdRes = results[2];
-      const rulesRes = results[3];
-      
-      if (productsRes.products) setProducts(productsRes.products);
-      if (brandRes.value) setSiteName(brandRes.value);
-      
-      // 加载标签
-      const tagsRes = results[4];
-      if (tagsRes?.tags) setTags(tagsRes.tags);
-      
-      // 加载分类
-      const categoriesRes = results[5];
-      if (categoriesRes?.categories) setCategories(categoriesRes.categories);
-      
-      // 加载右上/右下标签
-      const featuredRes = results[6];
-      if (featuredRes?.featuredOptions) setFeaturedOptions(featuredRes.featuredOptions || []);
-      if (featuredRes?.featuredRightBottomOptions) setFeaturedRightBottomOptions(featuredRes.featuredRightBottomOptions || []);
-      
-      // 只有超级管理员才解析管理员密码
-      if (isSuperAdmin && results[7]?.value) {
-        const passwords = parsePasswords(results[7].value);
+      // 解析管理员密码
+      if (isSuperAdmin && data.adminPassword) {
+        const passwords = parsePasswords(data.adminPassword);
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
         }
       }
-      // 加载访客密码
-      if (visitorPwdRes.value) {
-        const passwords = parsePasswords(visitorPwdRes.value);
+      
+      // 解析访客密码
+      if (data.visitorPassword) {
+        const passwords = parsePasswords(data.visitorPassword);
         if (passwords.length > 0) {
           setVisitorPasswords(passwords);
         }
       }
+      
       // 加载随机排序规则
-      if (rulesRes.rules) {
-        setRandomRules(rulesRes.rules);
+      if (data.randomSortRules) {
+        setRandomRules(data.randomSortRules);
       }
     } catch (err) {
       console.error('加载数据失败', err);
