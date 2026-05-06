@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
+import { useFFmpeg } from '@/hooks/useFFmpeg';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -134,123 +135,6 @@ const uploadVideoFile = async (file: File): Promise<string | null> => {
   return urlData.publicUrl;
 };
 
-// FFmpeg实例（全局复用）
-let ffmpegInstance: any = null;
-let ffmpegLoaded = false;
-let ffmpegFetchFile: any = null;
-
-// 初始化FFmpeg
-async function getFFmpeg() {
-  if (ffmpegInstance && ffmpegLoaded) {
-    return { ffmpeg: ffmpegInstance, fetchFile: ffmpegFetchFile };
-  }
-  
-  console.log('[视频压缩] 开始加载 FFmpeg...');
-  
-  // 动态导入避免 SSR 问题
-  const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-  const { fetchFile } = await import('@ffmpeg/util');
-  
-  ffmpegFetchFile = fetchFile;
-  ffmpegInstance = new FFmpeg();
-  
-  ffmpegInstance.on('progress', ({ progress }: { progress: number }) => {
-    console.log(`[视频压缩] 进度: ${Math.round(progress * 100)}%`);
-  });
-  
-  ffmpegInstance.on('log', ({ message }: { message: string }) => {
-    console.log('[FFmpeg log]:', message);
-  });
-  
-  // 使用本地文件加载（避免 CDN 跨域问题）
-  const baseURL = '/ffmpeg/umd';
-  console.log('[视频压缩] 加载本地 FFmpeg:', baseURL);
-  
-  await ffmpegInstance.load({
-    coreURL: `${baseURL}/ffmpeg-core.js`,
-    wasmURL: `${baseURL}/ffmpeg-core.wasm`,
-  });
-  
-  ffmpegLoaded = true;
-  console.log('[视频压缩] FFmpeg加载完成');
-  
-  return { ffmpeg: ffmpegInstance, fetchFile };
-}
-
-// 压缩视频并返回压缩后的File和封面
-async function compressVideoWithThumbnail(file: File): Promise<{ video: File; thumbnailUrl: string }> {
-  try {
-    console.log(`[视频压缩] 原始视频: ${file.name}, 大小: ${(file.size / 1024 / 1024).toFixed(1)}MB`);
-    
-    const { ffmpeg, fetchFile } = await getFFmpeg();
-    const inputName = 'input.mp4';
-    const outputName = 'output.mp4';
-    const thumbName = 'thumbnail.jpg';
-    
-    // 写入输入文件
-    await ffmpeg.writeFile(inputName, await fetchFile(file));
-    
-    // 并行执行：压缩视频 + 提取封面
-    await Promise.all([
-      ffmpeg.exec([
-        '-i', inputName,
-        '-vf', 'scale=1280:720:force_original_aspect_ratio=decrease',
-        '-c:v', 'libx264',
-        '-preset', 'ultrafast',
-        '-crf', '28',
-        '-c:a', 'aac',
-        '-b:a', '128k',
-        '-movflags', '+faststart',
-        '-y',
-        outputName
-      ]),
-      ffmpeg.exec([
-        '-i', inputName,
-        '-ss', '00:00:00', // 第0秒
-        '-frames:v', '1',
-        '-q:v', '2',
-        '-y',
-        thumbName
-      ])
-    ]);
-    
-    // 读取输出文件
-    const videoData = await ffmpeg.readFile(outputName);
-    const thumbData = await ffmpeg.readFile(thumbName);
-    
-    // 创建压缩后的视频文件
-    const blob = new Blob([videoData], { type: 'video/mp4' });
-    const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.mp4'), { type: 'video/mp4' });
-    
-    // 上传封面图
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const timestamp = Date.now();
-    const thumbFileName = `${timestamp}-thumb.jpg`;
-    
-    const { error: thumbError } = await supabase.storage
-      .from('product-images')
-      .upload(thumbFileName, thumbData, { contentType: 'image/jpeg', upsert: true });
-    
-    let thumbnailUrl = '';
-    if (!thumbError) {
-      const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(thumbFileName);
-      thumbnailUrl = urlData.publicUrl;
-    }
-    
-    // 清理临时文件
-    await ffmpeg.deleteFile(inputName);
-    await ffmpeg.deleteFile(outputName);
-    await ffmpeg.deleteFile(thumbName);
-    
-    console.log(`[视频压缩] 压缩后: ${compressedFile.name}, 大小: ${(compressedFile.size / 1024 / 1024).toFixed(1)}MB`);
-    return { video: compressedFile, thumbnailUrl };
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('[视频压缩] 压缩失败:', errorMsg);
-    throw new Error(`视频压缩失败: ${errorMsg}`);
-  }
-}
-
 interface VideoItem {
   url: string;
   thumbnail?: string;
@@ -287,6 +171,9 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const [featuredOptions, setFeaturedOptions] = useState<{ featured: FeaturedOption[], featuredRightBottom: FeaturedOption[] }>({ featured: [], featuredRightBottom: [] });
   const [saving, setSaving] = useState(false);
   
+  // FFmpeg hook
+  const { isLoading: ffmpegLoading, isReady: ffmpegReady, compressVideo, error: ffmpegError } = useFFmpeg();
+  
   // 压缩单个视频（提取封面 + 压缩体积）
   const [compressingVideoIndex, setCompressingVideoIndex] = useState<number | null>(null);
   const handleCompressVideo = async (index: number) => {
@@ -297,30 +184,35 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     try {
       console.log('[视频压缩] 开始压缩视频...');
       
-      // 1. 从 Storage 下载原视频
-      const videoResponse = await fetch(video.url);
-      const videoBlob = await videoResponse.blob();
-      const originalFile = new File([videoBlob], 'original.mp4', { type: 'video/mp4' });
+      // 使用 hook 压缩视频
+      const result = await compressVideo(video.url);
+      if (!result) {
+        throw new Error(ffmpegError || '视频压缩失败');
+      }
       
-      // 2. 压缩视频并提取封面
-      const { video: compressedFile, thumbnailUrl } = await compressVideoWithThumbnail(originalFile);
+      const { compressedBlob, thumbnailBlob } = result;
+      const compressedFile = new File([compressedBlob], 'video.mp4', { type: 'video/mp4' });
       
-      // 3. 上传压缩后的视频
+      // 上传压缩后的视频
       const compressedUrl = await uploadVideoFile(compressedFile);
       if (!compressedUrl) {
         throw new Error('上传压缩视频失败');
       }
       
-      // 4. 删除原视频文件
+      // 上传封面图
+      const thumbnailFile = new File([thumbnailBlob], 'thumb.jpg', { type: 'image/jpeg' });
+      const thumbnailUrl = await uploadFile(thumbnailFile);
+      
+      // 删除原视频文件
       const oldFileName = video.url.split('/').pop();
       if (oldFileName) {
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         await supabase.storage.from('product-videos').remove([oldFileName]);
       }
       
-      // 5. 更新视频列表（使用新封面）
+      // 更新视频列表
       const newVideos = [...videos];
-      newVideos[index] = { url: compressedUrl, thumbnail: thumbnailUrl };
+      newVideos[index] = { url: compressedUrl, thumbnail: thumbnailUrl || undefined };
       setVideos(newVideos);
       
       alert('视频压缩成功！');
