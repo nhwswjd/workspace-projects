@@ -25,6 +25,24 @@ const nextConfig: NextConfig = {
   },
   // 针对 API 路由配置
   serverExternalPackages: ['@supabase/supabase-js'],
+  // ffmpeg.wasm 需要 SharedArrayBuffer 支持
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
