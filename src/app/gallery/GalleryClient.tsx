@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Image as ImageIcon } from 'lucide-react';
 
@@ -25,17 +25,43 @@ interface Category {
   name: string;
 }
 
+// 骨架屏组件
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-xl overflow-hidden" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+      <div className="relative animate-pulse" style={{ paddingBottom: '133.33%' }}>
+        <div className="absolute inset-0 bg-gray-200" />
+      </div>
+      <div className="p-2.5 space-y-2">
+        <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
+        <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+// 骨架屏数量（与网格布局匹配）
+const SKELETON_COUNT = 12;
+
 export default function GalleryClient() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  
   const searchRef = useRef<HTMLInputElement>(null);
   const mainRef = useRef<HTMLElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const PAGE_SIZE = 20; // 每页加载数量
 
   // 检查认证状态
   useEffect(() => {
@@ -60,8 +86,13 @@ export default function GalleryClient() {
         ]);
         const productsData = await productsRes.json();
         const categoriesData = await categoriesRes.json();
-        setProducts(productsData.products || []);
+        const allProducts = productsData.products || [];
+        setProducts(allProducts);
         setCategories(categoriesData.categories || []);
+        
+        // 初始只显示前 PAGE_SIZE 个
+        setDisplayedProducts(allProducts.slice(0, PAGE_SIZE));
+        setHasMore(allProducts.length > PAGE_SIZE);
       } catch (error) {
         console.error('获取数据失败:', error);
       } finally {
@@ -93,28 +124,56 @@ export default function GalleryClient() {
       );
     }
 
-    setFilteredProducts(result.sort((a, b) => {
+    const sortedResult = result.sort((a, b) => {
       const aOrder = a.sortOrder ?? 999;
       const bOrder = b.sortOrder ?? 999;
       return aOrder - bOrder;
-    }));
+    });
+
+    setFilteredProducts(sortedResult);
+    // 切换筛选时重置显示的产品
+    setDisplayedProducts(sortedResult.slice(0, PAGE_SIZE));
+    setHasMore(sortedResult.length > PAGE_SIZE);
   }, [selectedCategory, searchQuery, products]);
 
-  // 滚动监听 - 显示/隐藏返回顶部按钮
+  // 加载更多产品
+  const loadMore = useCallback(() => {
+    if (isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    // 模拟延迟以显示加载效果
+    setTimeout(() => {
+      const currentLength = displayedProducts.length;
+      const nextProducts = filteredProducts.slice(currentLength, currentLength + PAGE_SIZE);
+      setDisplayedProducts(prev => [...prev, ...nextProducts]);
+      setHasMore(currentLength + PAGE_SIZE < filteredProducts.length);
+      setIsLoadingMore(false);
+    }, 300);
+  }, [isLoadingMore, hasMore, displayedProducts.length, filteredProducts]);
+
+  // 无限滚动监听
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY || (mainRef.current?.scrollTop || 0);
-      // 滚动相关状态可以在这里处理
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    mainRef.current?.addEventListener('scroll', handleScroll);
-    
+    if (isLoading) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      mainRef.current?.removeEventListener('scroll', handleScroll);
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
     };
-  }, []);
+  }, [isLoading, hasMore, isLoadingMore, loadMore]);
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -134,7 +193,7 @@ export default function GalleryClient() {
     return mapping[category.toLowerCase()] || category;
   };
 
-  // 未认证或加载中状态
+  // 未认证状态
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -157,11 +216,9 @@ export default function GalleryClient() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder=""
-                disabled={isLoading}
                 className="w-full bg-gray-100 border border-teal-200 rounded-full pl-10 pr-4 py-2.5 text-sm
                          text-gray-900 placeholder:text-gray-400/50
-                         focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors
-                         disabled:opacity-50"
+                         focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors"
               />
               {searchQuery && (
                 <button 
@@ -209,17 +266,21 @@ export default function GalleryClient() {
           </div>
         </div>
 
-        {/* 加载状态 */}
+        {/* 加载骨架屏或内容 */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-teal-500/50 border-t-teal-500 rounded-full animate-spin" />
+          <div className="px-1.5">
+            <div className="grid-layout">
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
           </div>
         ) : (
           <>
-            {/* 横向网格 */}
+            {/* 产品网格 */}
             <div className="px-1.5">
               <div className="grid-layout">
-                {filteredProducts.map((product) => (
+                {displayedProducts.map((product) => (
                   <div key={product.id} className="grid-item">
                     <a 
                       href={`/product/${product.id}`}
@@ -268,6 +329,20 @@ export default function GalleryClient() {
                     </a>
                   </div>
                 ))}
+              </div>
+
+              {/* 加载更多指示器 */}
+              <div ref={loadMoreRef} className="py-4">
+                {isLoadingMore && (
+                  <div className="flex justify-center py-4">
+                    <div className="w-6 h-6 border-2 border-teal-500/50 border-t-teal-500 rounded-full animate-spin" />
+                  </div>
+                )}
+                {!hasMore && displayedProducts.length > 0 && (
+                  <p className="text-center text-gray-400 text-sm py-4">
+                    已显示全部 {displayedProducts.length} 个产品
+                  </p>
+                )}
               </div>
 
               {filteredProducts.length === 0 && (
