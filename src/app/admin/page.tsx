@@ -77,7 +77,10 @@ export default function AdminPage() {
     totalVisits: number;
     uniqueVisitors: number;
     popularProducts: { id: string; name: string; count: number }[];
-    recentLogs: { id: string; product_name: string; ip: string; visited_at: string }[];
+    recentLogs: { id: string; password_used: string; ip: string; device: string; browser: string; visited_at: string }[];
+    passwordStats: Record<string, number>;
+    deviceStats: Record<string, number>;
+    browserStats: Record<string, number>;
   } | null>(null);
   const { isAuthenticated, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
 
@@ -444,7 +447,11 @@ export default function AdminPage() {
   // 加载访问统计
   const loadAnalytics = async () => {
     try {
-      const res = await fetch('/api/analytics/stats?days=30');
+      // 根据用户角色获取统计数据
+      const role = isSuperAdmin ? 'super_admin' : isAdmin ? 'admin' : 'visitor';
+      const res = await fetch('/api/analytics/stats?days=30', {
+        headers: { 'x-user-role': role }
+      });
       const data = await res.json();
       if (data.success && data.stats) {
         setAnalyticsStats(data.stats);
@@ -1064,18 +1071,68 @@ export default function AdminPage() {
                   )}
                   
                   {analyticsStats.recentLogs.length > 0 && (
-                    <div className="bg-white rounded-xl p-4">
-                      <h4 className="font-medium text-gray-700 mb-3">最近访问</h4>
-                      <div className="max-h-60 overflow-y-auto space-y-2">
-                        {analyticsStats.recentLogs.slice(0, 20).map((log: { id: string; product_name: string; ip: string; visited_at: string }) => (
-                          <div key={log.id} className="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
-                            <div className="truncate flex-1">
-                              <span className="text-gray-700">{log.product_name || '首页'}</span>
-                            </div>
-                            <span className="text-gray-400 ml-2">{log.ip}</span>
-                            <span className="text-gray-400 ml-2">{new Date(log.visited_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                    <div className="space-y-4">
+                      {/* 密码使用统计 */}
+                      {Object.keys(analyticsStats.passwordStats || {}).length > 0 && (
+                        <div className="bg-white rounded-xl p-4">
+                          <h4 className="font-medium text-gray-700 mb-3">密码使用统计</h4>
+                          <div className="space-y-2">
+                            {Object.entries(analyticsStats.passwordStats).map(([password, count]) => (
+                              <div key={password} className="flex items-center justify-between text-sm">
+                                <span className="font-mono bg-gray-100 px-2 py-1 rounded">{password}</span>
+                                <span className="text-gray-600">{count} 次</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
+                      )}
+
+                      {/* 设备统计 */}
+                      {Object.keys(analyticsStats.deviceStats || {}).length > 0 && (
+                        <div className="bg-white rounded-xl p-4">
+                          <h4 className="font-medium text-gray-700 mb-3">设备分布</h4>
+                          <div className="space-y-2">
+                            {Object.entries(analyticsStats.deviceStats).map(([device, count]) => (
+                              <div key={device} className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">{device}</span>
+                                <span className="text-gray-400">{count} 次</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 浏览器统计 */}
+                      {Object.keys(analyticsStats.browserStats || {}).length > 0 && (
+                        <div className="bg-white rounded-xl p-4">
+                          <h4 className="font-medium text-gray-700 mb-3">浏览器分布</h4>
+                          <div className="space-y-2">
+                            {Object.entries(analyticsStats.browserStats).map(([browser, count]) => (
+                              <div key={browser} className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600">{browser}</span>
+                                <span className="text-gray-400">{count} 次</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 最近访问记录 */}
+                      <div className="bg-white rounded-xl p-4">
+                        <h4 className="font-medium text-gray-700 mb-3">最近访问记录</h4>
+                        <div className="max-h-60 overflow-y-auto space-y-2">
+                          {analyticsStats.recentLogs.slice(0, 50).map((log: { id: string; password_used: string; ip: string; device: string; browser: string; visited_at: string }) => (
+                            <div key={log.id} className="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="font-mono bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded truncate max-w-[80px]">{log.password_used}</span>
+                                <span className="text-gray-400 truncate max-w-[60px]">{log.device}</span>
+                                <span className="text-gray-400 truncate max-w-[50px]">{log.browser}</span>
+                              </div>
+                              <span className="text-gray-400 ml-2 truncate max-w-[120px]">{log.ip}</span>
+                              <span className="text-gray-400 ml-2 whitespace-nowrap">{new Date(log.visited_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
