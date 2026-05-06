@@ -182,26 +182,74 @@ export default function AdminPage() {
     }
   };
 
-  const handleAddPassword = () => {
+  const handleAddPassword = async () => {
     if (newPassword.trim()) {
-      setAdminPasswords([...adminPasswords, newPassword.trim()]);
-      setNewPassword('');
+      const newPasswords = [...adminPasswords, newPassword.trim()];
+      try {
+        const res = await fetch('/api/site-settings/admin_password', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
+        });
+        if (res.ok) {
+          setAdminPasswords(newPasswords);
+          setNewPassword('');
+        }
+      } catch (err) {
+        console.error('保存管理员密码失败', err);
+      }
     }
   };
 
-  const handleRemovePassword = (index: number) => {
-    setAdminPasswords(adminPasswords.filter((_, i) => i !== index));
+  const handleRemovePassword = async (index: number) => {
+    const newPasswords = adminPasswords.filter((_, i) => i !== index);
+    try {
+      const res = await fetch('/api/site-settings/admin_password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
+      });
+      if (res.ok) {
+        setAdminPasswords(newPasswords);
+      }
+    } catch (err) {
+      console.error('删除管理员密码失败', err);
+    }
   };
 
-  const handleAddVisitorPassword = () => {
+  const handleAddVisitorPassword = async () => {
     if (newVisitorPassword.trim()) {
-      setVisitorPasswords([...visitorPasswords, newVisitorPassword.trim()]);
-      setNewVisitorPassword('');
+      const newPasswords = [...visitorPasswords, newVisitorPassword.trim()];
+      try {
+        const res = await fetch('/api/site-settings/visitor_password', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
+        });
+        if (res.ok) {
+          setVisitorPasswords(newPasswords);
+          setNewVisitorPassword('');
+        }
+      } catch (err) {
+        console.error('保存访客密码失败', err);
+      }
     }
   };
 
-  const handleRemoveVisitorPassword = (index: number) => {
-    setVisitorPasswords(visitorPasswords.filter((_, i) => i !== index));
+  const handleRemoveVisitorPassword = async (index: number) => {
+    const newPasswords = visitorPasswords.filter((_, i) => i !== index);
+    try {
+      const res = await fetch('/api/site-settings/visitor_password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
+      });
+      if (res.ok) {
+        setVisitorPasswords(newPasswords);
+      }
+    } catch (err) {
+      console.error('删除访客密码失败', err);
+    }
   };
 
   // 执行随机排序
