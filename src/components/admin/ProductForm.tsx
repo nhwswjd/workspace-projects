@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import imageCompression from 'browser-image-compression';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -51,36 +50,6 @@ interface ProductFormProps {
 }
 
 // 标签选项现在从数据库加载（见 useEffect）
-
-// ==================== 文件压缩功能 ====================
-
-// 图片压缩配置：90%质量，保持原尺寸
-const imageCompressionOptions = {
-  maxSizeMB: 2, // 最大2MB
-  maxWidthOrHeight: 3000, // 最大尺寸，不裁剪
-  useWebWorker: true,
-  fileType: 'image/webp' as const, // 转为WebP格式，体积更小
-  initialQuality: 0.9, // 90%质量，几乎无损
-};
-
-// 压缩图片
-async function compressImage(file: File): Promise<File> {
-  try {
-    const compressedFile = await imageCompression(file, imageCompressionOptions);
-    return compressedFile;
-  } catch (error) {
-    console.error('[压缩] 图片压缩失败，使用原图:', error);
-    return file;
-  }
-}
-
-// 视频压缩配置
-const videoCompressionOptions = {
-  maxWidth: 1280, // 最大宽度
-  maxHeight: 720, // 最大高度
-  videoBitrate: 2000, // 2Mbps，清晰且体积小
-  audioBitrate: '128k',
-};
 
 // 生成文件名（根据实际文件类型）
 const generateFileName = (file: File): string => {
@@ -244,16 +213,14 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
-  // 批量上传图片后自动设置封面（自动压缩）
+  // 批量上传图片后自动设置封面
   const handleBatchUploadImages = async (files: File[]) => {
     if (files.length === 0) return;
     setUploadingMultiple(true);
     try {
       const newUrls: string[] = [];
       for (const file of files) {
-        // 自动压缩图片
-        const compressedFile = await compressImage(file);
-        const url = await uploadFile(compressedFile);
+        const url = await uploadFile(file);
         if (url) newUrls.push(url);
       }
       if (newUrls.length > 0) {
@@ -274,13 +241,11 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     }
   };
 
-  // 单个上传图片（自动压缩）
+  // 单个上传图片
   const handleSingleUploadImage = async (index: number, file: File) => {
     setUploadingImageIndex(index);
     try {
-      // 自动压缩图片
-      const compressedFile = await compressImage(file);
-      const url = await uploadFile(compressedFile);
+      const url = await uploadFile(file);
       if (url) {
         const newImages = [...images];
         newImages[index] = url;
