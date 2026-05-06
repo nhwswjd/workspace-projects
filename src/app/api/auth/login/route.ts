@@ -198,6 +198,9 @@ export async function POST(request: NextRequest) {
         visited_at: new Date().toISOString()
       });
       
+      // 自动清理超过1000条的旧记录
+      await supabase.rpc('delete_old_access_logs', { keep_count: 1000 });
+      
       return NextResponse.json({ 
         success: true, 
         role: 'super_admin',
@@ -217,6 +220,9 @@ export async function POST(request: NextRequest) {
         access_type: 'admin',
         visited_at: new Date().toISOString()
       });
+      
+      // 自动清理超过1000条的旧记录
+      await supabase.rpc('delete_old_access_logs', { keep_count: 1000 });
       
       return NextResponse.json({ 
         success: true, 
@@ -240,6 +246,9 @@ export async function POST(request: NextRequest) {
         });
         if (insertError) {
           console.error('记录访客访问失败:', insertError);
+        } else {
+          // 自动清理超过1000条的旧记录
+          await supabase.rpc('delete_old_access_logs', { keep_count: 1000 });
         }
       } catch (err) {
         console.error('记录访客访问异常:', err);

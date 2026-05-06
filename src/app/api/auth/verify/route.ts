@@ -152,6 +152,9 @@ async function recordAccess(
     
     if (error) {
       console.error('[访问记录] 插入失败:', error);
+    } else {
+      // 自动清理超过1000条的旧记录
+      await supabase.rpc('delete_old_access_logs', { keep_count: 1000 });
     }
   } catch (error) {
     console.error('[访问记录] 记录失败:', error);
