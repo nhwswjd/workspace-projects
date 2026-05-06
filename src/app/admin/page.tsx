@@ -166,7 +166,7 @@ export default function AdminPage() {
       
       // 只有超级管理员才解析管理员密码
       if (isSuperAdmin && results[7]?.value) {
-        const passwords = parsePasswords(results[5].value);
+        const passwords = parsePasswords(results[7].value);
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
         }
@@ -222,12 +222,15 @@ export default function AdminPage() {
   const handleAddPassword = async () => {
     if (newPassword.trim()) {
       const newPasswords = [...adminPasswords, newPassword.trim()];
+      console.log('[DEBUG] 添加管理员密码:', newPasswords);
       try {
         const res = await fetch('/api/site-settings/admin_password', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
         });
+        const data = await res.json();
+        console.log('[DEBUG] API响应:', res.status, data);
         if (res.ok) {
           setAdminPasswords(newPasswords);
           setNewPassword('');
@@ -240,12 +243,15 @@ export default function AdminPage() {
 
   const handleRemovePassword = async (index: number) => {
     const newPasswords = adminPasswords.filter((_, i) => i !== index);
+    console.log('[DEBUG] 删除管理员密码, index:', index, 'new list:', newPasswords);
     try {
       const res = await fetch('/api/site-settings/admin_password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
       });
+      const data = await res.json();
+      console.log('[DEBUG] 删除API响应:', res.status, data);
       if (res.ok) {
         setAdminPasswords(newPasswords);
       }
