@@ -61,7 +61,13 @@ export async function getAllProducts(includeHidden = false): Promise<Product[]> 
       category: p.category as string,
       categoryId: p.category_id as string,
       coverImage: p.cover_image as string,
-      images: (p.images as string[]) || [],
+      images: (Array.isArray(p.images) 
+        ? p.images.map((img: unknown) => {
+            if (typeof img === 'string') return img;
+            if (typeof img === 'object' && img !== null && 'url' in img) return (img as { url: string }).url;
+            return null;
+          }).filter((url): url is string => url !== null)
+        : []),
       videos: (Array.isArray(p.videos) 
         ? p.videos.map((v: unknown) => {
             if (typeof v === 'string') return { url: v, thumbnail: '' };

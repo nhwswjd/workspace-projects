@@ -158,9 +158,9 @@ async function getFFmpeg() {
     console.log('[FFmpeg log]:', message);
   });
   
-  // 使用 unpkg CDN
-  const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-  console.log('[视频压缩] 从 CDN 加载:', baseURL);
+  // 使用本地文件加载（避免 CDN 跨域问题）
+  const baseURL = '/ffmpeg/umd';
+  console.log('[视频压缩] 加载本地 FFmpeg:', baseURL);
   
   await ffmpegInstance.load({
     coreURL: `${baseURL}/ffmpeg-core.js`,

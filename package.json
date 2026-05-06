@@ -6,8 +6,8 @@
     "build": "bash ./scripts/build.sh",
     "dev": "bash ./scripts/dev.sh",
     "preinstall": "npx only-allow pnpm",
-    "lint": "eslint",
-    "lint:build": "eslint . --quiet",
+    "lint": "eslint --ignore-pattern 'public/'",
+    "lint:build": "eslint . --quiet --ignore-pattern 'public/'",
     "start": "bash ./scripts/start.sh",
     "ts-check": "tsc -p tsconfig.json",
     "validate": "pnpm run --parallel '/^(ts-check|lint:build)$/'"
