@@ -53,38 +53,59 @@ async function recordAccess(
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
     // 解析设备信息
-    const ua = userAgent.toLowerCase();
+    const originalUA = userAgent;
+    const androidMatch = originalUA.match(/Android[^;]*;\s*([^)]+)\)/);
+    const androidDevice = androidMatch ? androidMatch[1].trim() : '';
+    const ua = originalUA.toLowerCase();
     let device = '未知';
     let browser = '未知';
 
+    // iPhone检测
     if (ua.includes('iphone')) {
-      device = 'iPhone';
+      const versionMatch = originalUA.match(/iPhone\s+OS\s+(\d+)[_\d]*/);
+      const version = versionMatch ? ` ${versionMatch[1]}` : '';
+      device = `iPhone${version}`;
     } else if (ua.includes('ipad')) {
       device = 'iPad';
-    } else if (ua.includes('android')) {
-      if (ua.includes('huawei')) device = '华为';
-      else if (ua.includes('xiaomi') || ua.includes('redmi')) device = '小米';
-      else if (ua.includes('oppo')) device = 'OPPO';
-      else if (ua.includes('vivo')) device = 'vivo';
-      else if (ua.includes('samsung')) device = '三星';
-      else if (ua.includes('oneplus')) device = '一加';
-      else device = 'Android';
+    } else if (ua.includes('ipod')) {
+      device = 'iPod';
+    } else if (androidDevice) {
+      const deviceLower = androidDevice.toLowerCase();
+      if (deviceLower.includes('xiaomi') || deviceLower.includes('redmi') || deviceLower.includes('poco')) {
+        device = androidDevice.replace(/xiaomi/i, '小米').replace(/redmi/i, 'Redmi').replace(/poco/i, 'POCO');
+      } else if (deviceLower.includes('huawei')) {
+        device = androidDevice;
+      } else if (deviceLower.includes('oppo')) {
+        device = androidDevice.includes('OPPO') ? androidDevice : `OPPO ${androidDevice}`;
+      } else if (deviceLower.includes('vivo')) {
+        device = androidDevice;
+      } else if (deviceLower.includes('samsung') || deviceLower.includes('galaxy')) {
+        device = androidDevice.includes('Samsung') ? androidDevice : `Samsung ${androidDevice}`;
+      } else if (deviceLower.includes('oneplus')) {
+        device = androidDevice.includes('OnePlus') ? androidDevice : `OnePlus ${androidDevice}`;
+      } else if (deviceLower.includes('realme')) {
+        device = androidDevice.includes('Realme') ? androidDevice : `Realme ${androidDevice}`;
+      } else if (deviceLower.includes('honor')) {
+        device = androidDevice.includes('Honor') ? androidDevice : `Honor ${androidDevice}`;
+      } else {
+        device = androidDevice;
+      }
     } else if (ua.includes('windows')) {
-      device = '电脑';
+      device = 'Windows PC';
     } else if (ua.includes('macintosh') || ua.includes('mac os')) {
       device = 'Mac';
     } else if (ua.includes('linux')) {
       device = 'Linux';
+    } else if (ua.includes('mobile')) {
+      device = '手机';
     }
 
     if (ua.includes('micromessenger') || ua.includes('wechat')) {
       browser = '微信';
-    } else if (ua.includes('qqbrowser')) {
-      browser = 'QQ浏览器';
-    } else if (ua.includes('ucbrowser') || ua.includes('ucweb')) {
-      browser = 'UC浏览器';
     } else if (ua.includes('quark')) {
       browser = '夸克';
+    } else if (ua.includes('baidu') && ua.includes('mbrowser')) {
+      browser = '百度';
     } else if (ua.includes('chrome') && !ua.includes('edg')) {
       browser = 'Chrome';
     } else if (ua.includes('safari') && !ua.includes('chrome')) {
@@ -93,6 +114,12 @@ async function recordAccess(
       browser = 'Firefox';
     } else if (ua.includes('edg')) {
       browser = 'Edge';
+    } else if (ua.includes('qqbrowser')) {
+      browser = 'QQ浏览器';
+    } else if (ua.includes('ucbrowser') || ua.includes('ucweb')) {
+      browser = 'UC浏览器';
+    } else if (ua.includes('opera') || ua.includes('opr')) {
+      browser = 'Opera';
     }
 
     // 获取IP归属地

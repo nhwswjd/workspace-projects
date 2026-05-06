@@ -6,24 +6,49 @@ function parseUserAgent(ua: string): { device: string; browser: string } {
   let device = '未知';
   let browser = '未知';
 
-  if (ua.includes('Xiaomi') || ua.includes('Redmi') || ua.includes('POCO')) {
-    device = '小米';
-  } else if (ua.includes('HUAWEI') || ua.includes('Huawei')) {
-    device = '华为';
-  } else if (ua.includes('OPPO')) {
-    device = 'OPPO';
-  } else if (ua.includes('vivo')) {
-    device = 'vivo';
-  } else if (ua.includes('Samsung') || ua.includes('Galaxy')) {
-    device = '三星';
-  } else if (ua.includes('iPhone')) {
-    device = 'iPhone';
+  // 从User Agent中提取Android设备型号
+  const androidMatch = ua.match(/Android[^;]*;\s*([^)]+)\)/);
+  const androidDevice = androidMatch ? androidMatch[1].trim() : '';
+
+  // iPhone检测
+  if (ua.includes('iPhone')) {
+    const versionMatch = ua.match(/iPhone\s+OS\s+(\d+)[_\d]*/);
+    const version = versionMatch ? ` ${versionMatch[1]}` : '';
+    device = `iPhone${version}`;
   } else if (ua.includes('iPad')) {
     device = 'iPad';
+  } else if (ua.includes('iPod')) {
+    device = 'iPod';
+  } else if (androidDevice) {
+    // 尝试从Android型号中提取更具体的信息
+    const deviceLower = androidDevice.toLowerCase();
+    
+    if (deviceLower.includes('xiaomi') || deviceLower.includes('redmi') || deviceLower.includes('poco')) {
+      device = androidDevice.replace(/xiaomi/i, '小米').replace(/redmi/i, 'Redmi').replace(/poco/i, 'POCO');
+    } else if (deviceLower.includes('huawei')) {
+      device = androidDevice;
+    } else if (deviceLower.includes('oppo')) {
+      device = androidDevice.includes('OPPO') ? androidDevice : `OPPO ${androidDevice}`;
+    } else if (deviceLower.includes('vivo')) {
+      device = androidDevice;
+    } else if (deviceLower.includes('samsung') || deviceLower.includes('galaxy')) {
+      device = androidDevice.includes('Samsung') ? androidDevice : `Samsung ${androidDevice}`;
+    } else if (deviceLower.includes('oneplus')) {
+      device = androidDevice.includes('OnePlus') ? androidDevice : `OnePlus ${androidDevice}`;
+    } else if (deviceLower.includes('realme')) {
+      device = androidDevice.includes('Realme') ? androidDevice : `Realme ${androidDevice}`;
+    } else if (deviceLower.includes('honor')) {
+      device = androidDevice.includes('Honor') ? androidDevice : `Honor ${androidDevice}`;
+    } else {
+      // 通用Android设备，返回完整型号
+      device = androidDevice;
+    }
   } else if (ua.includes('Windows')) {
-    device = 'Windows';
-  } else if (ua.includes('Macintosh')) {
+    device = 'Windows PC';
+  } else if (ua.includes('Macintosh') || ua.includes('Mac OS')) {
     device = 'Mac';
+  } else if (ua.includes('Linux')) {
+    device = 'Linux';
   } else if (ua.includes('Mobile')) {
     device = '手机';
   }
@@ -32,6 +57,8 @@ function parseUserAgent(ua: string): { device: string; browser: string } {
     browser = '微信';
   } else if (ua.includes('Quark')) {
     browser = '夸克';
+  } else if (ua.includes('baidu') && ua.includes('mbrowser')) {
+    browser = '百度';
   } else if (ua.includes('Chrome') && !ua.includes('Edg')) {
     browser = 'Chrome';
   } else if (ua.includes('Safari') && !ua.includes('Chrome')) {
@@ -44,6 +71,8 @@ function parseUserAgent(ua: string): { device: string; browser: string } {
     browser = 'QQ浏览器';
   } else if (ua.includes('UCBrowser') || ua.includes('UCWEB')) {
     browser = 'UC浏览器';
+  } else if (ua.includes('Opera') || ua.includes('OPR')) {
+    browser = 'Opera';
   }
 
   return { device, browser };
