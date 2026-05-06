@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllProducts, getSupabaseAdmin } from '@/lib/db';
+import { verifyAdminSession, checkRateLimit, getClientIp } from '@/lib/api-auth';
 
 export async function GET(request: NextRequest) {
   try {
+    // 应用速率限制
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(clientIp);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, message: '请求过于频繁，请稍后再试' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)) } }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const includeHidden = searchParams.get('includeHidden') === 'true';
     
@@ -24,6 +35,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // 验证管理员会话
+    const auth = await verifyAdminSession(request);
+    if (!auth.valid) {
+      return NextResponse.json(
+        { success: false, message: '未授权访问，请先登录' },
+        { status: 401 }
+      );
+    }
+
+    // 应用速率限制
+    const clientIp = getClientIp(request);
+    const rateLimit = checkRateLimit(clientIp);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, message: '请求过于频繁，请稍后再试' },
+        { status: 429 }
+      );
+    }
+
     const supabaseAdmin = getSupabaseAdmin();
     if (!supabaseAdmin) {
       return NextResponse.json({ success: false, message: 'Database not configured' }, { status: 500 });

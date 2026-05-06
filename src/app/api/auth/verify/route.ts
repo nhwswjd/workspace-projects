@@ -1,19 +1,31 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db';
+import { createAdminSession } from '@/lib/api-auth';
 
-// 超级管理员密码（硬编码，用于紧急访问）
-const SUPER_ADMIN_PASSWORD = 'admin2026';
+// 超级管理员密码（从环境变量获取，用于紧急访问）
+const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || '';
 
-// 默认访客密码（当数据库无配置时使用）
-const DEFAULT_VISITOR_PASSWORD = 'atelier2024';
+// 默认访客密码（当数据库无配置时使用，必须设置环境变量）
+const DEFAULT_VISITOR_PASSWORD = process.env.DEFAULT_VISITOR_PASSWORD || '';
 
-// 默认管理员密码（当数据库无配置时使用）
-const DEFAULT_ADMIN_PASSWORD = 'admin2024';
+// 默认管理员密码（当数据库无配置时使用，必须设置环境变量）
+const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || '';
+
+// 检查是否有有效的默认密码配置
+const hasDefaultPasswords = DEFAULT_VISITOR_PASSWORD && DEFAULT_ADMIN_PASSWORD;
 
 // 从数据库获取密码配置
 async function getPasswords() {
   const supabase = getSupabaseAdmin();
-  if (!supabase) {
+  
+  // 如果没有配置默认密码且数据库不可用，返回空数组
+  if (!supabase && !hasDefaultPasswords) {
+    console.warn('[Auth] No database and no default passwords configured');
+    return { visitor: [] as string[], admin: [] as string[] };
+  }
+  
+  // 如果数据库不可用但有默认密码，使用默认密码
+  if (!supabase && hasDefaultPasswords) {
     return {
       visitor: [DEFAULT_VISITOR_PASSWORD],
       admin: [DEFAULT_ADMIN_PASSWORD]
@@ -21,15 +33,16 @@ async function getPasswords() {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabase!
       .from('site_settings')
       .select('key, value')
       .in('key', ['visitor_password', 'admin_password']);
 
     if (error) {
+      // 如果数据库查询失败，使用默认密码（如果有）
       return {
-        visitor: [DEFAULT_VISITOR_PASSWORD],
-        admin: [DEFAULT_ADMIN_PASSWORD]
+        visitor: hasDefaultPasswords ? [DEFAULT_VISITOR_PASSWORD] : [],
+        admin: hasDefaultPasswords ? [DEFAULT_ADMIN_PASSWORD] : []
       };
     }
 
@@ -37,7 +50,7 @@ async function getPasswords() {
     const adminSetting = data?.find(d => d.key === 'admin_password');
 
     // 解析访客密码
-    let visitorPasswords = [DEFAULT_VISITOR_PASSWORD];
+    let visitorPasswords: string[] = [];
     if (visitorSetting?.value) {
       try {
         const value = visitorSetting.value;
@@ -50,7 +63,7 @@ async function getPasswords() {
     }
 
     // 解析管理员密码
-    let adminPasswords = [DEFAULT_ADMIN_PASSWORD];
+    let adminPasswords: string[] = [];
     if (adminSetting?.value) {
       try {
         const value = adminSetting.value;
@@ -63,6 +76,14 @@ async function getPasswords() {
         }
       } catch {}
     }
+    
+    // 如果数据库中没有配置，使用默认密码（如果有）
+    if (visitorPasswords.length === 0 && hasDefaultPasswords) {
+      visitorPasswords = [DEFAULT_VISITOR_PASSWORD];
+    }
+    if (adminPasswords.length === 0 && hasDefaultPasswords) {
+      adminPasswords = [DEFAULT_ADMIN_PASSWORD];
+    }
 
     return {
       visitor: visitorPasswords,
@@ -70,8 +91,8 @@ async function getPasswords() {
     };
   } catch {
     return {
-      visitor: [DEFAULT_VISITOR_PASSWORD],
-      admin: [DEFAULT_ADMIN_PASSWORD]
+      visitor: hasDefaultPasswords ? [DEFAULT_VISITOR_PASSWORD] : [],
+      admin: hasDefaultPasswords ? [DEFAULT_ADMIN_PASSWORD] : []
     };
   }
 }
@@ -211,33 +232,39 @@ export async function POST(request: Request) {
     // 检查超级管理员密码
     if (password === SUPER_ADMIN_PASSWORD) {
       await recordAccess(request, password, 'super_admin');
+      const sessionToken = await createAdminSession(password, true);
       return NextResponse.json({
         success: true,
         isAdmin: true,
         isSuperAdmin: true,
-        categoryPermission: null
+        categoryPermission: null,
+        sessionToken
       });
     }
 
     // 检查管理员密码（优先于访客密码）
     if (adminPasswords.includes(password)) {
       await recordAccess(request, password, 'admin');
+      const sessionToken = await createAdminSession(password, false);
       return NextResponse.json({
         success: true,
         isAdmin: true,
         isSuperAdmin: false,
-        categoryPermission: null
+        categoryPermission: null,
+        sessionToken
       });
     }
 
     // 检查访客密码
     if (visitorPasswords.includes(password)) {
       await recordAccess(request, password, 'visitor');
+      // 访客不创建服务端会话，仅前端验证
       return NextResponse.json({
         success: true,
         isAdmin: false,
         isSuperAdmin: false,
-        categoryPermission: null
+        categoryPermission: null,
+        sessionToken: null
       });
     }
 

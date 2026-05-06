@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db';
+import { verifyAdminSession } from '@/lib/api-auth';
 
 export async function GET() {
   try {
@@ -23,6 +24,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // 验证管理员会话
+    const auth = await verifyAdminSession(request);
+    if (!auth.valid) {
+      return NextResponse.json(
+        { success: false, message: '未授权访问，请先登录' },
+        { status: 401 }
+      );
+    }
+
     const supabase = getSupabaseAdmin();
     if (!supabase) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
@@ -61,6 +71,15 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    // 验证管理员会话
+    const auth = await verifyAdminSession(request);
+    if (!auth.valid) {
+      return NextResponse.json(
+        { success: false, message: '未授权访问，请先登录' },
+        { status: 401 }
+      );
+    }
+
     const supabase = getSupabaseAdmin();
     if (!supabase) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
