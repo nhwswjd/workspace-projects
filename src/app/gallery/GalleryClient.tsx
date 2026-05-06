@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { Search, X, Heart, Share2, ChevronLeft, MoreVertical, ShoppingBag, Image as ImageIcon } from 'lucide-react';
+import { Search, X, Image as ImageIcon } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -15,6 +14,10 @@ interface Product {
   featured?: string | null;
   location: string;
   notes?: string;
+  tags?: string[];
+  sortOrder?: number;
+  images?: string[];
+  featuredRightBottom?: string | null;
 }
 
 interface Category {
@@ -22,54 +25,71 @@ interface Category {
   name: string;
 }
 
-export default function GalleryClient({ 
-  initialProducts, 
-  initialCategories, 
-  brandInfo 
-}: { 
-  initialProducts: any[]; 
-  initialCategories: any[];
-  brandInfo: { name: string } | null;
-}) {
+export default function GalleryClient() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState(initialProducts);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   const router = useRouter();
 
-  const brandName = brandInfo?.name || '江南风景好';
-
-  // 检查登录状态 - 未登录则跳转到首页
+  // 检查认证状态
   useEffect(() => {
-    const checkAuth = () => {
-      const authData = localStorage.getItem('atelier_authenticated');
-      if (authData !== 'true') {
-        router.replace('/');
-      }
-    };
-    checkAuth();
+    const authData = localStorage.getItem('atelier_authenticated');
+    if (authData !== 'true') {
+      router.replace('/');
+      return;
+    }
+    setIsAuthenticated(true);
   }, [router]);
 
+  // 获取数据
   useEffect(() => {
-    let result = initialProducts;
+    if (!isAuthenticated) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/categories')
+        ]);
+        const productsData = await productsRes.json();
+        const categoriesData = await categoriesRes.json();
+        setProducts(productsData.products || []);
+        setCategories(categoriesData.categories || []);
+      } catch (error) {
+        console.error('获取数据失败:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isAuthenticated]);
+
+  // 过滤产品
+  useEffect(() => {
+    let result = products;
 
     if (selectedCategory !== 'all') {
       result = result.filter(p => 
-        p.category.toLowerCase().includes(selectedCategory.toLowerCase())
+        p.category_id === selectedCategory || 
+        p.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.sku.toLowerCase().includes(query) ||
-        (p.location && p.location.toLowerCase().includes(query)) ||
-        (p.description && p.description.toLowerCase().includes(query)) ||
-        (p.tags && p.tags.some((tag: string) => tag.toLowerCase().includes(query)))
+        p.name?.toLowerCase().includes(query) ||
+        p.sku?.toLowerCase().includes(query) ||
+        p.location?.toLowerCase().includes(query) ||
+        p.tags?.some((tag: string) => tag.toLowerCase().includes(query))
       );
     }
 
@@ -78,19 +98,16 @@ export default function GalleryClient({
       const bOrder = b.sortOrder ?? 999;
       return aOrder - bOrder;
     }));
-  }, [selectedCategory, searchQuery, initialProducts]);
+  }, [selectedCategory, searchQuery, products]);
 
   // 滚动监听 - 显示/隐藏返回顶部按钮
   useEffect(() => {
     const handleScroll = () => {
-      // 同时监听 window 和 mainRef 的滚动
       const scrollY = window.scrollY || (mainRef.current?.scrollTop || 0);
-      setShowBackToTop(scrollY > 100);
+      // 滚动相关状态可以在这里处理
     };
     
-    // 监听 window 滚动
     window.addEventListener('scroll', handleScroll);
-    // 监听 mainRef 滚动（移动端）
     mainRef.current?.addEventListener('scroll', handleScroll);
     
     return () => {
@@ -98,12 +115,6 @@ export default function GalleryClient({
       mainRef.current?.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
-  const scrollToTop = () => {
-    // 同时滚动 window 和 mainRef
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -123,6 +134,15 @@ export default function GalleryClient({
     return mapping[category.toLowerCase()] || category;
   };
 
+  // 未认证或加载中状态
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-teal-500/50 border-t-teal-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <>
       <main ref={mainRef} className="min-h-screen bg-gray-50 overflow-y-auto pb-4">
@@ -136,11 +156,12 @@ export default function GalleryClient({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && setSearchQuery((e.target as HTMLInputElement).value)}
                 placeholder=""
+                disabled={isLoading}
                 className="w-full bg-gray-100 border border-teal-200 rounded-full pl-10 pr-4 py-2.5 text-sm
                          text-gray-900 placeholder:text-gray-400/50
-                         focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors"
+                         focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors
+                         disabled:opacity-50"
               />
               {searchQuery && (
                 <button 
@@ -173,7 +194,7 @@ export default function GalleryClient({
             >
               全部
             </button>
-            {initialCategories.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
@@ -188,104 +209,76 @@ export default function GalleryClient({
           </div>
         </div>
 
-        {/* 横向网格 */}
-        <div className="px-1.5">
-          <div className="grid-layout">
-            {filteredProducts.map((product) => (
-              <div key={product.id} className="grid-item">
-                <a 
-                  href={`/product/${product.id}`}
-                  className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-                >
-                  <div className="relative" style={{ paddingBottom: '133.33%' }}>
-                    {(product.coverImage || (product.images && product.images[0])) ? (
-                      <img
-                        src={product.coverImage || product.images?.[0]}
-                        alt={product.name}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-                        <ImageIcon className="w-8 h-8 text-gray-300" />
-                      </div>
-                    )}
-                    {product.featured && (
-                      <span className="absolute top-0 right-0 bg-teal-500 text-white text-xs px-2 py-0.5 rounded-bl-lg">
-                        {product.featured}
-                      </span>
-                    )}
-                    {product.featuredRightBottom && (
-                      <span className="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-2 py-0.5 rounded-tl-lg">
-                        {product.featuredRightBottom}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-2.5">
-                    <p className="text-sm font-medium text-gray-900">
-                      <span className="text-teal-600">{product.sku}</span> {product.name}
-                    </p>
-                    {product.tags && product.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {product.tags.slice(0, 3).map((tag: string, index: number) => (
-                          <span key={index} className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                            {tag}
+        {/* 加载状态 */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-teal-500/50 border-t-teal-500 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <>
+            {/* 横向网格 */}
+            <div className="px-1.5">
+              <div className="grid-layout">
+                {filteredProducts.map((product) => (
+                  <div key={product.id} className="grid-item">
+                    <a 
+                      href={`/product/${product.id}`}
+                      className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
+                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                    >
+                      <div className="relative" style={{ paddingBottom: '133.33%' }}>
+                        {(product.coverImage || (product.images && product.images[0])) ? (
+                          <img
+                            src={product.coverImage || product.images?.[0]}
+                            alt={product.name}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                            <ImageIcon className="w-8 h-8 text-gray-300" />
+                          </div>
+                        )}
+                        {product.featured && (
+                          <span className="absolute top-0 right-0 bg-teal-500 text-white text-xs px-2 py-0.5 rounded-bl-lg">
+                            {product.featured}
                           </span>
-                        ))}
+                        )}
+                        {product.featuredRightBottom && (
+                          <span className="absolute bottom-0 right-0 bg-green-500 text-white text-xs px-2 py-0.5 rounded-tl-lg">
+                            {product.featuredRightBottom}
+                          </span>
+                        )}
                       </div>
-                    )}
-                    <p className="text-xs text-gray-400 mt-1">{product.location}</p>
+                      <div className="p-2.5">
+                        <p className="text-sm font-medium text-gray-900">
+                          <span className="text-teal-600">{product.sku}</span> {product.name}
+                        </p>
+                        {product.tags && product.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {product.tags.slice(0, 3).map((tag: string, index: number) => (
+                              <span key={index} className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-gray-400 mt-1">{product.location}</p>
+                      </div>
+                    </a>
                   </div>
-                </a>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-12 text-gray-400">
-              <p>暂无相关产品</p>
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-12 text-gray-400">
+                  <p>暂无相关产品</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </main>
-
-      {/* 返回顶部按钮 - 在main外面确保fixed定位正常工作 */}
-      {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 w-12 h-12 bg-teal-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-teal-700 transition-all z-50"
-          aria-label="返回顶部"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="18 15 12 9 6 15"></polyline>
-          </svg>
-        </button>
-      )}
-
-      {/* 移动端菜单 */}
-      {showMobileMenu && (
-        <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setShowMobileMenu(false)}>
-          <div 
-            className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 border-b border-gray-100">
-              <h2 className="font-semibold text-gray-900">{brandName}</h2>
-            </div>
-            <nav className="p-2">
-              <a href="/gallery" className="flex items-center gap-3 px-1.5 py-3 rounded-lg bg-teal-50 text-teal-600">
-                <ShoppingBag className="w-5 h-5" />
-                <span>产品广场</span>
-              </a>
-              <a href="/admin" className="flex items-center gap-3 px-1.5 py-3 rounded-lg hover:bg-gray-100 text-gray-700">
-                <ShoppingBag className="w-5 h-5" />
-                <span>管理后台</span>
-              </a>
-            </nav>
-          </div>
-        </div>
-      )}
     </>
   );
 }
