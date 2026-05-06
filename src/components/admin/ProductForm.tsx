@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
-import { useFFmpeg } from '@/hooks/useFFmpeg';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -170,60 +169,7 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [featuredOptions, setFeaturedOptions] = useState<{ featured: FeaturedOption[], featuredRightBottom: FeaturedOption[] }>({ featured: [], featuredRightBottom: [] });
   const [saving, setSaving] = useState(false);
-  
-  // FFmpeg hook
-  const { isLoading: ffmpegLoading, isReady: ffmpegReady, compressVideo, error: ffmpegError } = useFFmpeg();
-  
-  // 压缩单个视频（提取封面 + 压缩体积）
-  const [compressingVideoIndex, setCompressingVideoIndex] = useState<number | null>(null);
-  const handleCompressVideo = async (index: number) => {
-    const video = videos[index];
-    if (!video || compressingVideoIndex !== null) return;
-    
-    setCompressingVideoIndex(index);
-    try {
-      console.log('[视频压缩] 开始压缩视频...');
-      
-      // 使用 hook 压缩视频
-      const result = await compressVideo(video.url);
-      if (!result) {
-        throw new Error(ffmpegError || '视频压缩失败');
-      }
-      
-      const { compressedBlob, thumbnailBlob } = result;
-      const compressedFile = new File([compressedBlob], 'video.mp4', { type: 'video/mp4' });
-      
-      // 上传压缩后的视频
-      const compressedUrl = await uploadVideoFile(compressedFile);
-      if (!compressedUrl) {
-        throw new Error('上传压缩视频失败');
-      }
-      
-      // 上传封面图
-      const thumbnailFile = new File([thumbnailBlob], 'thumb.jpg', { type: 'image/jpeg' });
-      const thumbnailUrl = await uploadFile(thumbnailFile);
-      
-      // 删除原视频文件
-      const oldFileName = video.url.split('/').pop();
-      if (oldFileName) {
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        await supabase.storage.from('product-videos').remove([oldFileName]);
-      }
-      
-      // 更新视频列表
-      const newVideos = [...videos];
-      newVideos[index] = { url: compressedUrl, thumbnail: thumbnailUrl || undefined };
-      setVideos(newVideos);
-      
-      alert('视频压缩成功！');
-    } catch (err) {
-      console.error('[视频压缩] 压缩失败:', err);
-      alert(err instanceof Error ? err.message : '视频压缩失败');
-    } finally {
-      setCompressingVideoIndex(null);
-    }
-  };
-  
+
   const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
   const [uploadingVideoIndex, setUploadingVideoIndex] = useState<number | null>(null);
   const [uploadingMultiple, setUploadingMultiple] = useState(false);
@@ -934,15 +880,6 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                           {video.thumbnail ? ' ✓' : ''}
                         </span>
                         <div className="flex gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleCompressVideo(index)}
-                            disabled={compressingVideoIndex === index}
-                            className="w-6 h-6 bg-amber-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-amber-600 disabled:opacity-50"
-                            title="压缩视频并生成封面"
-                          >
-                            {compressingVideoIndex === index ? '...' : '⚡'}
-                          </button>
                           <button
                             type="button"
                             onClick={() => handleRemoveVideo(index)}
