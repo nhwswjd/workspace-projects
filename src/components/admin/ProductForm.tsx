@@ -197,6 +197,11 @@ const uploadFile = async (file: File): Promise<string | null> => {
   return urlData.publicUrl;
 };
 
+interface VideoItem {
+  url: string;
+  thumbnail?: string;
+}
+
 export default function ProductForm({ initialData, onSuccess }: ProductFormProps) {
   const isEditMode = !!initialData?.id;
   
@@ -214,9 +219,15 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const [featuredRightBottom, setFeaturedRightBottom] = useState(initialData?.featured_right_bottom || '');
   const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 0);
   const [notes, setNotes] = useState(initialData?.notes || '');
+  // 转换视频数据格式（兼容旧数据）
+  const convertVideos = (v: VideoItem[] | string[] | null | undefined): VideoItem[] => {
+    if (!v) return [];
+    return v.map(item => typeof item === 'string' ? { url: item, thumbnail: '' } : item);
+  };
+
   const [coverImage, setCoverImage] = useState(initialData?.cover_image || '');
   const [images, setImages] = useState<string[]>(initialData?.images || []);
-  const [videos, setVideos] = useState<string[]>(initialData?.videos || []);
+  const [videos, setVideos] = useState<VideoItem[]>(convertVideos(initialData?.videos));
   const [categories, setCategories] = useState<Category[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [featuredOptions, setFeaturedOptions] = useState<{ featured: FeaturedOption[], featuredRightBottom: FeaturedOption[] }>({ featured: [], featuredRightBottom: [] });
@@ -357,18 +368,18 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     if (files.length === 0) return;
     setUploadingVideos(true);
     try {
-      const newUrls: string[] = [];
+      const newVideos: VideoItem[] = [];
       for (const file of files) {
         // 自动压缩视频
         const compressedFile = await compressVideo(file);
         const url = await uploadFile(compressedFile);
-        if (url) newUrls.push(url);
+        if (url) newVideos.push({ url, thumbnail: '' });
       }
-      if (newUrls.length > 0) {
-        setVideos([...videos, ...newUrls]);
+      if (newVideos.length > 0) {
+        setVideos([...videos, ...newVideos]);
       }
-      if (newUrls.length < files.length) {
-        alert(`成功 ${newUrls.length} 个，失败 ${files.length - newUrls.length} 个`);
+      if (newVideos.length < files.length) {
+        alert(`成功 ${newVideos.length} 个，失败 ${files.length - newVideos.length} 个`);
       }
     } catch {
       alert('上传失败');
@@ -382,16 +393,16 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     if (files.length === 0) return;
     setUploadingVideos(true);
     try {
-      const newUrls: string[] = [];
+      const newVideos: VideoItem[] = [];
       for (const file of files) {
         const url = await uploadFile(file);
-        if (url) newUrls.push(url);
+        if (url) newVideos.push({ url, thumbnail: '' });
       }
-      if (newUrls.length > 0) {
-        setVideos([...videos, ...newUrls]);
+      if (newVideos.length > 0) {
+        setVideos([...videos, ...newVideos]);
       }
-      if (newUrls.length < files.length) {
-        alert(`成功 ${newUrls.length} 个，失败 ${files.length - newUrls.length} 个`);
+      if (newVideos.length < files.length) {
+        alert(`成功 ${newVideos.length} 个，失败 ${files.length - newVideos.length} 个`);
       }
     } catch {
       alert('上传失败');
@@ -409,7 +420,7 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
       const url = await uploadFile(compressedFile);
       if (url) {
         const newVideos = [...videos];
-        newVideos[index] = url;
+        newVideos[index] = { url, thumbnail: '' };
         setVideos(newVideos);
       } else {
         alert('上传失败');
@@ -428,7 +439,8 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     // 删除存储文件
     if (videoToDelete) {
       try {
-        const fileName = videoToDelete.split('/').pop();
+        const videoUrl = typeof videoToDelete === 'string' ? videoToDelete : videoToDelete.url;
+        const fileName = videoUrl.split('/').pop();
         await fetch('/api/storage/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -877,17 +889,6 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                     onChange={(e) => handleBatchUploadVideosDirect(Array.from(e.target.files || []))}
                   />
                 </label>
-                <label className={`text-sm text-orange-600 font-medium cursor-pointer ${uploadingVideos ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                  {uploadingVideos ? '上传中...' : '+ 压缩上传'}
-                  <input 
-                    type="file" 
-                    accept="video/*" 
-                    multiple 
-                    className="hidden" 
-                    disabled={uploadingVideos} 
-                    onChange={(e) => handleBatchUploadVideos(Array.from(e.target.files || []))}
-                  />
-                </label>
               </div>
             </div>
             
@@ -897,21 +898,60 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                 <div className="grid grid-cols-2 gap-4">
                   {videos.map((video, index) => video && (
                     <div key={index} className="relative bg-gray-100 rounded-xl overflow-hidden border border-gray-200" style={{minHeight: '150px'}}>
-                      <video 
-                        src={video} 
-                        className="w-full h-auto max-h-48 object-contain" 
-                        controls 
-                        preload="metadata"
-                      />
+                      {typeof video === 'string' ? (
+                        <video 
+                          src={video} 
+                          className="w-full h-auto max-h-48 object-contain" 
+                          controls 
+                          preload="metadata"
+                        />
+                      ) : (
+                        video.thumbnail ? (
+                          <div className="relative">
+                            <img src={video.thumbnail} className="w-full h-48 object-cover" alt={`视频 ${index + 1}`} />
+                            <video 
+                              src={video.url} 
+                              className="hidden"
+                              preload="metadata"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  const v = e.currentTarget.parentElement?.querySelector('video');
+                                  if (v) { v.classList.remove('hidden'); v.play(); }
+                                }}
+                                className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center"
+                              >
+                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <video 
+                            src={video.url} 
+                            className="w-full h-auto max-h-48 object-contain" 
+                            controls 
+                            preload="metadata"
+                          />
+                        )
+                      )}
                       <div className="absolute top-0 left-0 right-0 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent p-2">
-                        <span className="text-white text-xs font-medium">视频 {index + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveVideo(index)}
-                          className="w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
-                        >
-                          ×
-                        </button>
+                        <span className="text-white text-xs font-medium">
+                          视频 {index + 1}
+                          {typeof video === 'object' && video.thumbnail ? '' : ' (待压缩)'}
+                        </span>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveVideo(index)}
+                            className="w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

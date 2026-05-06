@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
+interface ProductVideo {
+  url: string;
+  thumbnail?: string;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -12,6 +17,7 @@ interface Product {
   coverImage?: string;
   cover_image?: string;
   images?: string[];
+  videos?: ProductVideo[];
   tags?: string[];
   featured?: string | null;
   featuredRightBottom?: string | null;
@@ -918,6 +924,38 @@ export default function AdminPage() {
     }
   };
 
+  // 压缩视频
+  const [compressingVideos, setCompressingVideos] = useState<Set<string>>(new Set());
+  const handleCompressVideo = async (productId: string) => {
+    if (compressingVideos.has(productId)) return;
+    setCompressingVideos(prev => new Set(prev).add(productId));
+    
+    try {
+      const response = await fetch('/api/products/compress-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        showToast(`视频已压缩${result.compressed}个`);
+        loadData();
+      } else {
+        showToast(result.error || '压缩失败', 'error');
+      }
+    } catch {
+      showToast('压缩失败', 'error');
+    } finally {
+      setCompressingVideos(prev => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
+    }
+  };
+
   const tabs = [
     { id: 'products', label: '产品管理' },
     { id: 'tags', label: '标签管理' },
@@ -1047,6 +1085,19 @@ export default function AdminPage() {
                       >
                         {product.hidden ? '显示' : '隐藏'}
                       </button>
+                      {product.videos && product.videos.length > 0 && (
+                        <button
+                          onClick={() => handleCompressVideo(product.id)}
+                          disabled={compressingVideos.has(product.id)}
+                          className={`py-1.5 px-2 text-xs rounded-lg transition-colors ${
+                            compressingVideos.has(product.id)
+                              ? 'bg-amber-100 text-amber-600 border border-amber-200 cursor-not-allowed'
+                              : 'bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100'
+                          }`}
+                        >
+                          {compressingVideos.has(product.id) ? '处理中...' : '压缩'}
+                        </button>
+                      )}
                       <a
                         href={`/admin/edit/${product.id}`}
                         className="flex-1 py-1.5 text-xs text-[#14b8a6] border border-[#14b8a6] rounded-lg text-center hover:bg-[#14b8a6]/5"
