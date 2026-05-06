@@ -1051,11 +1051,11 @@ export default function AdminPage() {
                     </div>
                   </div>
                   
-                  {analyticsStats.popularProducts.length > 0 && (
+                  {analyticsStats && analyticsStats.popularProducts?.length > 0 && (
                     <div className="bg-white rounded-xl p-4">
                       <h4 className="font-medium text-gray-700 mb-3">热门产品 TOP10</h4>
                       <div className="space-y-2">
-                        {analyticsStats.popularProducts.map((p: { id: string; name: string; count: number }, idx: number) => (
+                        {analyticsStats.popularProducts?.map((p: { id: string; name: string; count: number }, idx: number) => (
                           <div key={p.id} className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                               <span className="w-6 h-6 bg-[#14b8a6] text-white rounded-full flex items-center justify-center text-xs">
@@ -1070,7 +1070,7 @@ export default function AdminPage() {
                     </div>
                   )}
                   
-                  {analyticsStats.recentLogs.length > 0 && (
+                  {analyticsStats && analyticsStats.recentLogs?.length > 0 && (
                     <div className="space-y-4">
                       {/* 密码使用统计 */}
                       {Object.keys(analyticsStats.passwordStats || {}).length > 0 && (
@@ -1121,7 +1121,7 @@ export default function AdminPage() {
                       <div className="bg-white rounded-xl p-4">
                         <h4 className="font-medium text-gray-700 mb-3">最近访问记录</h4>
                         <div className="max-h-60 overflow-y-auto space-y-2">
-                          {analyticsStats.recentLogs.slice(0, 50).map((log: { id: string; password_used: string; ip: string; device: string; browser: string; visited_at: string }) => (
+                          {analyticsStats.recentLogs?.slice(0, 50).map((log: { id: string; password_used: string; ip: string; device: string; browser: string; visited_at: string }) => (
                             <div key={log.id} className="flex items-center justify-between text-xs py-1 border-b border-gray-100 last:border-0">
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <span className="font-mono bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded truncate max-w-[80px]">{log.password_used}</span>
