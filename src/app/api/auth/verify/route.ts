@@ -1,39 +1,78 @@
 import { NextResponse } from 'next/server';
-import { validPasswords } from '@/lib/products';
 import { getSupabaseAdmin } from '@/lib/db';
 
-// 超级管理员密码
+// 超级管理员密码（硬编码，用于紧急访问）
 const SUPER_ADMIN_PASSWORD = 'admin2026';
 
-// 从数据库获取管理员密码列表
-async function getAdminPasswords(): Promise<string[]> {
+// 默认访客密码（当数据库无配置时使用）
+const DEFAULT_VISITOR_PASSWORD = 'atelier2024';
+
+// 默认管理员密码（当数据库无配置时使用）
+const DEFAULT_ADMIN_PASSWORD = 'admin2024';
+
+// 从数据库获取密码配置
+async function getPasswords() {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return ['admin2024']; // 默认密码
+    return {
+      visitor: [DEFAULT_VISITOR_PASSWORD],
+      admin: [DEFAULT_ADMIN_PASSWORD]
+    };
   }
-  
-  const { data, error } = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'admin_password')
-    .single();
-  
-  if (error || !data?.value) {
-    return ['admin2024']; // 默认密码
-  }
-  
+
   try {
-    const value = data.value;
-    if (value.startsWith('[')) {
-      return JSON.parse(value);
-    } else if (value.includes(',')) {
-      return value.split(',').filter(Boolean);
-    } else if (value) {
-      return [value];
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', ['visitor_password', 'admin_password']);
+
+    if (error) {
+      return {
+        visitor: [DEFAULT_VISITOR_PASSWORD],
+        admin: [DEFAULT_ADMIN_PASSWORD]
+      };
     }
-    return ['admin2024'];
+
+    const visitorSetting = data?.find(d => d.key === 'visitor_password');
+    const adminSetting = data?.find(d => d.key === 'admin_password');
+
+    // 解析访客密码
+    let visitorPasswords = [DEFAULT_VISITOR_PASSWORD];
+    if (visitorSetting?.value) {
+      try {
+        const value = visitorSetting.value;
+        if (value.startsWith('[')) {
+          visitorPasswords = JSON.parse(value);
+        } else if (value) {
+          visitorPasswords = [value];
+        }
+      } catch {}
+    }
+
+    // 解析管理员密码
+    let adminPasswords = [DEFAULT_ADMIN_PASSWORD];
+    if (adminSetting?.value) {
+      try {
+        const value = adminSetting.value;
+        if (value.startsWith('[')) {
+          adminPasswords = JSON.parse(value);
+        } else if (value.includes(',')) {
+          adminPasswords = value.split(',').filter(Boolean);
+        } else if (value) {
+          adminPasswords = [value];
+        }
+      } catch {}
+    }
+
+    return {
+      visitor: visitorPasswords,
+      admin: adminPasswords
+    };
   } catch {
-    return ['admin2024'];
+    return {
+      visitor: [DEFAULT_VISITOR_PASSWORD],
+      admin: [DEFAULT_ADMIN_PASSWORD]
+    };
   }
 }
 
@@ -47,12 +86,9 @@ async function recordAccess(
   if (!supabase) return;
 
   try {
-    // 获取请求信息
     const forwarded = req.headers.get('x-forwarded-for');
     const ip = forwarded?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
-
-    // 解析设备信息
     const originalUA = userAgent;
     const androidMatch = originalUA.match(/Android[^;]*;\s*([^)]+)\)/);
     const androidDevice = androidMatch ? androidMatch[1].trim() : '';
@@ -138,7 +174,6 @@ async function recordAccess(
       location = '本地网络';
     }
 
-    // 插入记录
     const { error } = await supabase.from('access_logs').insert({
       ip,
       password_used: password,
@@ -149,22 +184,20 @@ async function recordAccess(
       page_url: '/verify',
       visited_at: new Date().toISOString()
     });
-    
-    if (error) {
-      console.error('[访问记录] 插入失败:', error);
-    } else {
+
+    if (!error) {
       // 自动清理超过1000条的旧记录
       await supabase.rpc('delete_old_access_logs', { keep_count: 1000 });
     }
-  } catch (error) {
-    console.error('[访问记录] 记录失败:', error);
+  } catch {
+    // 静默失败，不影响验证流程
   }
 }
 
 export async function POST(request: Request) {
   try {
     const { password } = await request.json();
-    
+
     if (!password) {
       return NextResponse.json(
         { success: false, message: '请输入密码' },
@@ -172,10 +205,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // 获取所有密码配置
+    const { visitor: visitorPasswords, admin: adminPasswords } = await getPasswords();
+
     // 检查超级管理员密码
     if (password === SUPER_ADMIN_PASSWORD) {
       await recordAccess(request, password, 'super_admin');
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
         isAdmin: true,
         isSuperAdmin: true,
@@ -183,11 +219,10 @@ export async function POST(request: Request) {
       });
     }
 
-    // 获取管理员密码列表并验证
-    const adminPasswords = await getAdminPasswords();
+    // 检查管理员密码（优先于访客密码）
     if (adminPasswords.includes(password)) {
       await recordAccess(request, password, 'admin');
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
         isAdmin: true,
         isSuperAdmin: false,
@@ -195,47 +230,15 @@ export async function POST(request: Request) {
       });
     }
 
-    // 检查代码中定义的后备密码
-    if (validPasswords.includes(password)) {
+    // 检查访客密码
+    if (visitorPasswords.includes(password)) {
       await recordAccess(request, password, 'visitor');
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
         isAdmin: false,
         isSuperAdmin: false,
         categoryPermission: null
       });
-    }
-
-    // 从数据库获取访客密码列表
-    const supabaseAdmin = getSupabaseAdmin();
-    if (supabaseAdmin) {
-      const { data: visitorData, error } = await supabaseAdmin
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'visitor_password')
-        .single();
-      
-      if (!error && visitorData?.value) {
-        let visitorPasswords: string[] = [];
-        try {
-          const value = visitorData.value;
-          if (value.startsWith('[')) {
-            visitorPasswords = JSON.parse(value);
-          } else if (value) {
-            visitorPasswords = [value];
-          }
-        } catch {}
-        
-        if (visitorPasswords.length > 0 && visitorPasswords.includes(password)) {
-          await recordAccess(request, password, 'visitor');
-          return NextResponse.json({ 
-            success: true,
-            isAdmin: false,
-            isSuperAdmin: false,
-            categoryPermission: null
-          });
-        }
-      }
     }
 
     return NextResponse.json(

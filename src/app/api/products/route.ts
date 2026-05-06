@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllProducts, getSupabaseAdmin } from '@/lib/db';
-import { products as fallbackProducts } from '@/lib/products';
 
 export async function GET(request: NextRequest) {
   try {
-    // 检查是否为管理员请求（通过 query 参数）
     const { searchParams } = new URL(request.url);
     const includeHidden = searchParams.get('includeHidden') === 'true';
     
@@ -12,14 +10,14 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      products: products || fallbackProducts
+      products
     });
   } catch (error) {
     console.error('获取产品失败:', error);
     return NextResponse.json({ 
       success: false, 
       message: '获取产品失败',
-      products: fallbackProducts 
+      products: [] 
     });
   }
 }

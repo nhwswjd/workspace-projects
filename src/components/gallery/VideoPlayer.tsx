@@ -5,6 +5,9 @@ import { Play, Pause, Volume2, VolumeX, Maximize, X } from 'lucide-react';
 import { Video } from '@/types';
 import { cn } from '@/lib/utils';
 
+// 控制栏自动隐藏延迟（毫秒）
+const CONTROLS_HIDE_DELAY = 3000;
+
 interface VideoPlayerProps {
   video: Video;
   isAuthenticated: boolean;
@@ -140,7 +143,7 @@ export function VideoPlayer({
     if (isPlaying) {
       hideControlsTimeout.current = setTimeout(() => {
         setShowControls(false);
-      }, 3000);
+      }, CONTROLS_HIDE_DELAY);
     }
   };
 

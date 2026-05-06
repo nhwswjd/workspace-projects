@@ -1,7 +1,6 @@
 import { getSupabaseClient } from '@/storage/database/supabase-client';
 import type { Product, Category } from '@/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getAllCategories } from './products';
 
 // 延迟初始化 supabaseAdmin，避免构建时错误
 let _supabaseAdmin: SupabaseClient | null = null;
@@ -158,7 +157,25 @@ export async function getProductById(id: string): Promise<Product | null> {
 
 // ============ 分类查询 ============
 export async function getCategories(): Promise<Category[]> {
-  return getAllCategories();
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available. Check environment variables.');
+  }
+  
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('sort_order', { ascending: true, nullsFirst: false });
+  
+  if (error) throw error;
+  if (!data) return [];
+  
+  return data.map((c): Category => ({
+    id: c.id as string,
+    name: c.name as string,
+    description: (c.description as string | null) || '',
+    icon: (c.icon as string | null) || '',
+  }));
 }
 
 // ============ 产品 CRUD ============
