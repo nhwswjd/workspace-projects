@@ -32,10 +32,6 @@ const upload = multer({
 
 app.prepare().then(() => {
   const server = createServer(async (req, res) => {
-    // ffmpeg.wasm 需要这些 headers 支持 SharedArrayBuffer
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-    
     try {
       const parsedUrl = parse(req.url!, true);
     
