@@ -66,9 +66,7 @@ const imageCompressionOptions = {
 // 压缩图片
 async function compressImage(file: File): Promise<File> {
   try {
-    console.log(`[压缩] 原始图片: ${file.name}, 大小: ${(file.size / 1024).toFixed(1)}KB`);
     const compressedFile = await imageCompression(file, imageCompressionOptions);
-    console.log(`[压缩] 压缩后: ${file.name}, 大小: ${(compressedFile.size / 1024).toFixed(1)}KB, 减少: ${((1 - compressedFile.size / file.size) * 100).toFixed(0)}%`);
     return compressedFile;
   } catch (error) {
     console.error('[压缩] 图片压缩失败，使用原图:', error);

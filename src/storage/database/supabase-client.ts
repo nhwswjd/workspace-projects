@@ -50,19 +50,13 @@ function getSupabaseCredentials(): SupabaseCredentials | null {
   const anonKey = process.env.COZE_SUPABASE_ANON_KEY 
     || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
     || process.env.SUPABASE_ANON_KEY
-    || DEFAULT_SUPABASE_ANON_KEY;  // 硬编码默认值
-
-  console.log('[Supabase] getSupabaseCredentials:');
-  console.log('[Supabase]   - COZE_SUPABASE_URL:', !!process.env.COZE_SUPABASE_URL);
-  console.log('[Supabase]   - NEXT_PUBLIC_SUPABASE_URL:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log('[Supabase]   - Using DEFAULT_SUPABASE_URL:', !process.env.COZE_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.SUPABASE_URL);
+    || DEFAULT_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
     console.error('[Supabase] Credentials missing! url:', !!url, 'anonKey:', !!anonKey);
     return null;
   }
 
-  console.log('[Supabase] URL loaded:', url.substring(0, 50) + '...');
   return { url, anonKey };
 }
 
@@ -92,7 +86,6 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
   } else {
     const serviceRoleKey = getSupabaseServiceRoleKey();
     key = serviceRoleKey ?? anonKey;
-    console.log('[Supabase] Using service role key:', !!serviceRoleKey);
   }
 
   const globalOptions: Record<string, unknown> = {};
@@ -109,12 +102,11 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
         globalOptions.fetch = wrappedFetch;
       }
     }
-  } catch (err) {
-    console.log('[Supabase] SDK wrapper not available, using default fetch');
+  } catch {
+    // SDK wrapper not available, use default fetch
   }
 
   try {
-    console.log('[Supabase] Creating client with URL:', url.substring(0, 40) + '...');
     const client = createClient(url, key, {
       global: globalOptions as Record<string, string>,
       db: {
@@ -125,7 +117,6 @@ function getSupabaseClient(token?: string): SupabaseClient | null {
         persistSession: false,
       },
     });
-    console.log('[Supabase] Client created successfully');
     return client;
   } catch (error) {
     console.error('[Supabase] Failed to create client:', error);

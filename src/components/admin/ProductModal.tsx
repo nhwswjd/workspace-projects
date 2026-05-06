@@ -80,7 +80,6 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
     const key = ENV_SUPABASE_KEY || DEFAULT_SUPABASE_ANON_KEY;
     
     if (url && key) {
-      console.log('[ProductModal] Creating Supabase client with URL:', url.substring(0, 30) + '...');
       return createClient(url, key);
     }
     
@@ -119,8 +118,6 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
   }, [product]);
 
   const uploadFile = async (file: File, type: 'images' | 'videos'): Promise<UploadResult> => {
-    console.log('[ProductModal] uploadFile called, supabaseClient:', supabaseClient ? 'EXISTS' : 'NULL');
-    
     if (!supabaseClient) {
       return { success: false, message: 'Supabase客户端未初始化，请刷新页面重试' };
     }
@@ -160,7 +157,6 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('[ProductModal] handleCoverUpload called');
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -192,7 +188,6 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('[ProductModal] handleImageUpload called');
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     
@@ -460,7 +455,7 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
               ) : (
                 <button
                   type="button"
-                  onClick={() => { console.log('[ProductModal] 封面按钮被点击'); coverInputRef.current?.click(); }}
+                  onClick={() => { coverInputRef.current?.click(); }}
                   className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-gray-400"
                 >
                   <ImageIcon size={24} />
@@ -469,7 +464,7 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
               )}
               <button
                 type="button"
-                onClick={() => { console.log('[ProductModal] 封面按钮被点击'); coverInputRef.current?.click(); }}
+                onClick={() => { coverInputRef.current?.click(); }}
                 className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
                 disabled={uploadingImages.cover === 'uploading'}
               >
@@ -492,7 +487,7 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
             <input type="file" ref={imageInputRef} onChange={handleImageUpload} accept="image/*" multiple className="hidden" />
             <button
               type="button"
-              onClick={() => { console.log('[ProductModal] 图片按钮被点击'); imageInputRef.current?.click(); }}
+              onClick={() => { imageInputRef.current?.click(); }}
               className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm mb-2"
               disabled={Object.values(uploadingImages).includes('uploading')}
             >
