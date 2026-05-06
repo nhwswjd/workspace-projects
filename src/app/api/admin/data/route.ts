@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
       randomSortRules: rulesResult.data?.value ? JSON.parse(rulesResult.data.value) : [],
       tags: tagsResult.data || [],
       categories: categoriesResult.data || [],
-      featuredOptions: featuredResult.data?.filter((f: any) => f.position === 'top-right') || [],
-      featuredRightBottomOptions: featuredResult.data?.filter((f: any) => f.position === 'bottom-right') || [],
+      featuredOptions: featuredResult.data?.filter((f: any) => f.type === 'featured') || [],
+      featuredRightBottomOptions: featuredResult.data?.filter((f: any) => f.type === 'featured_right_bottom') || [],
       adminPassword: adminPwdResult.data?.value || ''
     });
   } catch (error) {
