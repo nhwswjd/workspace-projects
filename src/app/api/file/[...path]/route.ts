@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!url || !key) {
+    throw new Error('Supabase configuration is missing');
+  }
+  
+  return createClient(url, key);
+}
 
 export async function GET(
   request: NextRequest,
@@ -27,7 +35,7 @@ export async function GET(
 
   try {
     // 使用 service role key 创建服务端客户端
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = getSupabaseAdmin();
     
     // 从 Storage 下载文件
     const { data, error } = await supabase.storage

@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.COZE_SUPABASE_URL!,
-  process.env.COZE_SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseAdmin() {
+  const url = process.env.COZE_SUPABASE_URL;
+  const key = process.env.COZE_SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!url || !key) {
+    throw new Error('Supabase configuration is missing');
+  }
+  
+  return createClient(url, key);
+}
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdmin();
     const { searchParams } = new URL(request.url);
     const isSuperAdmin = searchParams.get('super_admin') === 'true';
 
