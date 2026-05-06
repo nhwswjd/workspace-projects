@@ -124,12 +124,12 @@ export default function AdminPage() {
       if (brandRes.value) setSiteName(brandRes.value);
       
       // 加载标签
-      const tagsRes = results[5];
+      const tagsRes = results[4];
       if (tagsRes?.tags) setTags(tagsRes.tags);
       
       // 只有超级管理员才解析管理员密码
-      if (isSuperAdmin && results[6]?.value) {
-        const passwords = parsePasswords(results[6].value);
+      if (isSuperAdmin && results[5]?.value) {
+        const passwords = parsePasswords(results[5].value);
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
         }
