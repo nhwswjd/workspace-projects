@@ -48,6 +48,15 @@ const parsePasswords = (value: string): string[] => {
   return value ? [value] : [];
 };
 
+// 提取第一个图片URL（兼容字符串和对象格式）
+const getFirstImageUrl = (images: any[] | undefined): string | undefined => {
+  if (!images || images.length === 0) return undefined;
+  const first = images[0];
+  if (typeof first === 'string') return first;
+  if (typeof first === 'object' && first?.url) return first.url;
+  return undefined;
+};
+
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'settings' | 'backup' | 'tags'>('products');
   const [products, setProducts] = useState<Product[]>([]);
@@ -980,9 +989,9 @@ export default function AdminPage() {
                 <div key={product.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
                   <div className="aspect-[3/4] relative">
                     <a href={`/product/${product.id}`} className="block w-full h-full">
-                      {(product.coverImage || product.cover_image || (product.images && product.images[0])) ? (
+                      {(product.coverImage || product.cover_image || getFirstImageUrl(product.images)) ? (
                         <img
-                          src={product.coverImage || product.cover_image || product.images?.[0]}
+                          src={product.coverImage || product.cover_image || getFirstImageUrl(product.images)}
                           alt={product.name}
                           className="w-full h-full object-cover"
                         />
