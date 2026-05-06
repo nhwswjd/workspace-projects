@@ -702,13 +702,7 @@ export default function AdminPage() {
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => {
-                if (tab.id === 'tags') {
-                  window.location.href = '/admin/tags';
-                } else {
-                  setActiveTab(tab.id as any);
-                }
-              }}
+              onClick={() => setActiveTab(tab.id as any)}
               className={`flex-shrink-0 px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'text-teal-600 border-b-2 border-teal-600'
