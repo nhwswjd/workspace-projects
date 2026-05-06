@@ -1,7 +1,7 @@
 import { getSupabaseClient } from '@/storage/database/supabase-client';
-import { products as staticProducts, categories as staticCategories } from './products';
 import type { Product, Category } from '@/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getAllCategories } from './products';
 
 // 延迟初始化 supabaseAdmin，避免构建时错误
 let _supabaseAdmin: SupabaseClient | null = null;
@@ -12,227 +12,156 @@ export function getSupabaseAdmin(): SupabaseClient | null {
   return _supabaseAdmin;
 }
 
-// 为了向后兼容，导出 supabaseAdmin（可能是 null）
+// 导出 supabaseAdmin（向后兼容）
 export const supabaseAdmin = null as SupabaseClient | null;
 
-// 静态数据导出（作为后备）
-export const products = staticProducts as Product[];
-export const categories = staticCategories as Category[];
+// 导出空数组（向后兼容）
+export const products: Product[] = [];
+export const categories: Category[] = [];
 
-// 数据库查询函数
-export async function getAllProducts(includeHidden = false): Promise<Product[]> {
-  try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      console.error('[DB] Supabase client not available, returning static data');
-      console.error('[DB] Check environment variables: COZE_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL');
-      return staticProducts as Product[];
-    }
-    
-    let query = supabase
-      .from('products')
-      .select('*')
-      .order('sort_order', { ascending: true, nullsFirst: false });
-    
-    // 如果不是管理员请求，只返回未隐藏的产品（包含 NULL 值）
-    if (!includeHidden) {
-      query = query.or('hidden.eq.false,hidden.is.null');
-    }
-    
-    const { data, error } = await query;
-    
-    console.log('[DB] Query result - data count:', data?.length || 0, 'error:', error);
-    
-    // 如果查询出错或数据库为空，返回静态数据
-    if (error || !data || data.length === 0) {
-      console.log('[DB] Returning static products due to:', error ? 'error' : 'empty data');
-      return staticProducts as Product[];
-    }
-    
-    console.log('[DB] Converting', data.length, 'products from database');
-    
-    // 转换为Product格式
-    const dbProducts = data.map((p: Record<string, unknown>) => ({
-      id: p.id as string,
-      sku: p.sku as string,
-      name: p.name as string,
-      tags: (p.tags as string[]) || [],
-      description: (p.description as string) || '',
-      category: p.category as string,
-      categoryId: p.category_id as string,
-      coverImage: p.cover_image as string,
-      images: (Array.isArray(p.images) 
-        ? p.images.map((img: unknown) => {
-            if (typeof img === 'string') return img;
-            if (typeof img === 'object' && img !== null && 'url' in img) return (img as { url: string }).url;
-            return null;
-          }).filter((url): url is string => url !== null)
-        : []),
-      videos: (Array.isArray(p.videos) 
-        ? p.videos.map((v: unknown) => {
-            if (typeof v === 'string') return { url: v, thumbnail: '' };
-            if (typeof v === 'object' && v !== null && 'url' in v) return v as { url: string; thumbnail: string };
-            return null;
-          }).filter(Boolean)
-        : []),
-      featured: (p.featured as '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
-      featuredRightBottom: (p.featured_right_bottom as '右下' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
-      location: (p.location as string) || '',
-      hidden: (p.hidden as boolean) || false,
-      sortOrder: (p.sort_order as number) || 0,
-      notes: (p.notes as string) || '',
-    })) as unknown as Product[];
-    
-    // 合并静态数据和数据库数据
-    const dbProductIds = new Set(dbProducts.map(p => p.id));
-    const staticProductsToAdd = staticProducts.filter(p => !dbProductIds.has(p.id));
-    let mergedProducts = [...dbProducts, ...staticProductsToAdd];
-    
-    // 访客请求时过滤掉隐藏的产品
-    if (!includeHidden) {
-      mergedProducts = mergedProducts.filter(p => !p.hidden);
-    }
-    
-    mergedProducts.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    
-    return mergedProducts;
-  } catch {
-    return staticProducts as Product[];
-  }
+// ============ 私有：数据库行转产品对象 ============
+interface ProductRow {
+  id: string;
+  sku: string;
+  name: string;
+  tags: string[];
+  description: string;
+  category: string;
+  category_id: string;
+  cover_image: string;
+  images: unknown[];
+  videos: unknown[];
+  featured: '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null;
+  featured_right_bottom: '右下' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null;
+  location: string;
+  hidden: boolean;
+  sort_order: number;
+  notes?: string;
+  [key: string]: unknown;
 }
 
-export async function getCategories(): Promise<Category[]> {
-  try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      return staticCategories as Category[];
-    }
-    
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('id');
-    
-    if (error) throw error;
-    
-    return data.map((c: Record<string, unknown>) => ({
-      id: c.id as string,
-      name: c.name as string,
-      description: (c.description as string) || '',
-    })) as Category[];
-  } catch {
-    return staticCategories as Category[];
+function transformProductRow(p: ProductRow): Product {
+  // 处理 images 数组：兼容字符串和对象格式
+  const images = Array.isArray(p.images)
+    ? p.images.map((img: unknown) => {
+        if (typeof img === 'string') return img;
+        if (typeof img === 'object' && img !== null && 'url' in img) {
+          return (img as { url: string }).url;
+        }
+        return null;
+      }).filter((url): url is string => url !== null)
+    : [];
+
+  // 处理 videos 数组：兼容字符串和对象格式
+  const videos: Product['videos'] = Array.isArray(p.videos)
+    ? p.videos.map((v: unknown, idx: number) => {
+        if (typeof v === 'string') {
+          return { id: `video-${idx}`, url: v, poster: '' };
+        }
+        if (typeof v === 'object' && v !== null && 'url' in v) {
+          const videoObj = v as { url: string; thumbnail?: string };
+          return { 
+            id: `video-${idx}`, 
+            url: videoObj.url, 
+            poster: videoObj.thumbnail || '' 
+          };
+        }
+        return null;
+      }).filter((v): v is NonNullable<typeof v> => v !== null)
+    : [];
+
+  return {
+    id: p.id,
+    sku: p.sku,
+    name: p.name,
+    tags: p.tags || [],
+    description: p.description || '',
+    category: p.category,
+    categoryId: p.category_id,
+    coverImage: p.cover_image,
+    images,
+    videos,
+    featured: p.featured || null,
+    featuredRightBottom: p.featured_right_bottom || null,
+    location: p.location || '',
+    hidden: p.hidden || false,
+    sortOrder: p.sort_order || 0,
+    notes: p.notes || '',
+  };
+}
+
+// ============ 产品查询 ============
+export async function getAllProducts(includeHidden = false): Promise<Product[]> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available. Check environment variables.');
   }
+  
+  let query = supabase
+    .from('products')
+    .select('*')
+    .order('sort_order', { ascending: true, nullsFirst: false });
+  
+  if (!includeHidden) {
+    query = query.or('hidden.eq.false,hidden.is.null');
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) throw error;
+  if (!data) return [];
+  
+  return data.map(transformProductRow);
 }
 
 export async function getProductsByCategory(categoryId: string, includeHidden = false): Promise<Product[]> {
-  try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      const filtered = (staticProducts.filter(p => p.categoryId === categoryId) as Product[]);
-      filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-      return filtered;
-    }
-    
-    let query = supabase
-      .from('products')
-      .select('*')
-      .eq('category_id', categoryId)
-      .order('sort_order', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: false });
-    
-    if (!includeHidden) {
-      query = query.eq('hidden', false).or('hidden.is.null');
-    }
-    
-    let { data, error } = await query;
-    
-    if (error) throw error;
-    
-    const dbProducts = (data || []).map((p: Record<string, unknown>) => ({
-      id: p.id as string,
-      sku: p.sku as string,
-      name: p.name as string,
-      tags: (p.tags as string[]) || [],
-      description: (p.description as string) || '',
-      category: p.category as string,
-      categoryId: p.category_id as string,
-      coverImage: p.cover_image as string,
-      images: (p.images as string[]) || [],
-      videos: (Array.isArray(p.videos) 
-        ? p.videos.map((v: unknown) => {
-            if (typeof v === 'string') return { url: v, thumbnail: '' };
-            if (typeof v === 'object' && v !== null && 'url' in v) return v as { url: string; thumbnail: string };
-            return null;
-          }).filter(Boolean)
-        : []),
-      featured: (p.featured as '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
-      location: (p.location as string) || '',
-      hidden: (p.hidden as boolean) || false,
-      sortOrder: (p.sort_order as number) || 0,
-    })) as unknown as Product[];
-    
-    const staticFiltered = staticProducts.filter(p => p.categoryId === categoryId);
-    const dbProductIds = new Set(dbProducts.map(p => p.id));
-    const staticToAdd = staticFiltered.filter(p => !dbProductIds.has(p.id));
-    let mergedProducts = [...dbProducts, ...staticToAdd];
-    
-    if (!includeHidden) {
-      mergedProducts = mergedProducts.filter(p => !p.hidden);
-    }
-    
-    mergedProducts.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    
-    return mergedProducts;
-  } catch {
-    const filtered = (staticProducts.filter(p => p.categoryId === categoryId) as Product[]);
-    filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return filtered;
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available. Check environment variables.');
   }
+  
+  let query = supabase
+    .from('products')
+    .select('*')
+    .eq('category_id', categoryId)
+    .order('sort_order', { ascending: true, nullsFirst: false });
+  
+  if (!includeHidden) {
+    query = query.eq('hidden', false).or('hidden.is.null');
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) throw error;
+  if (!data) return [];
+  
+  return data.map(transformProductRow);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      return (staticProducts.find(p => p.id === id) as Product) || null;
-    }
-    
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) throw error;
-    
-    return {
-      id: data.id as string,
-      sku: data.sku as string,
-      name: data.name as string,
-      tags: (data.tags as string[]) || [],
-      description: (data.description as string) || '',
-      category: data.category as string,
-      categoryId: data.category_id as string,
-      coverImage: data.cover_image as string,
-      images: (data.images as string[]) || [],
-      videos: (Array.isArray(data.videos) 
-        ? (data.videos as unknown[]).map((v: unknown) => {
-            if (typeof v === 'string') return { url: v, thumbnail: '' };
-            if (typeof v === 'object' && v !== null && 'url' in v) return v as { url: string; thumbnail: string };
-            return null;
-          }).filter(Boolean)
-        : []),
-      featured: (data.featured as '右上' | '新品' | '热销' | '特惠' | '推荐' | '爆款' | null) || null,
-      location: (data.location as string) || '',
-      hidden: (data.hidden as boolean) || false,
-    } as unknown as Product;
-  } catch {
-    return (staticProducts.find(p => p.id === id) as Product) || null;
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error('Database not available. Check environment variables.');
   }
+  
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) return null;
+  if (!data) return null;
+  
+  return transformProductRow(data as ProductRow);
 }
 
-// 产品 CRUD 操作
+// ============ 分类查询 ============
+export async function getCategories(): Promise<Category[]> {
+  return getAllCategories();
+}
+
+// ============ 产品 CRUD ============
 export async function createProduct(product: Partial<Product>): Promise<Product> {
   const supabase = getSupabaseClient();
   if (!supabase) {
@@ -251,8 +180,11 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     images: product.images || [],
     videos: product.videos || [],
     featured: product.featured || null,
+    featured_right_bottom: product.featuredRightBottom || null,
     location: product.location || '',
     hidden: product.hidden || false,
+    sort_order: product.sortOrder || 0,
+    notes: product.notes || '',
   };
 
   const { data, error } = await supabase
@@ -262,7 +194,7 @@ export async function createProduct(product: Partial<Product>): Promise<Product>
     .single();
 
   if (error) throw error;
-  return data as unknown as Product;
+  return transformProductRow(data as ProductRow);
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
@@ -282,53 +214,21 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   if (updates.images !== undefined) updateData.images = updates.images;
   if (updates.videos !== undefined) updateData.videos = updates.videos;
   if (updates.featured !== undefined) updateData.featured = updates.featured;
+  if (updates.featuredRightBottom !== undefined) updateData.featured_right_bottom = updates.featuredRightBottom;
   if (updates.location !== undefined) updateData.location = updates.location;
   if (updates.hidden !== undefined) updateData.hidden = updates.hidden;
   if (updates.sortOrder !== undefined) updateData.sort_order = updates.sortOrder;
+  if (updates.notes !== undefined) updateData.notes = updates.notes;
 
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('products')
     .update(updateData)
     .eq('id', id)
     .select()
     .single();
 
-  if (error || !data) {
-    const staticProduct = products.find(p => p.id === id);
-    const baseProduct = data || staticProduct;
-    
-    if (!baseProduct) {
-      throw new Error(`Product ${id} not found`);
-    }
-
-    const insertData = {
-      id: baseProduct.id,
-      sku: updateData.sku ?? baseProduct.sku,
-      name: updateData.name ?? baseProduct.name,
-      tags: updateData.tags ?? baseProduct.tags,
-      description: updateData.description ?? baseProduct.description,
-      category: updateData.category ?? baseProduct.category,
-      category_id: updateData.category_id ?? baseProduct.categoryId,
-      cover_image: updateData.cover_image ?? baseProduct.coverImage,
-      images: updateData.images ?? baseProduct.images,
-      videos: updateData.videos ?? baseProduct.videos,
-      featured: updateData.featured ?? baseProduct.featured,
-      location: updateData.location ?? baseProduct.location,
-      hidden: updateData.hidden ?? baseProduct.hidden,
-      sort_order: updateData.sort_order ?? baseProduct.sortOrder ?? 0,
-    };
-
-    const { data: insertDataResult, error: insertError } = await supabase
-      .from('products')
-      .upsert(insertData, { onConflict: 'id' })
-      .select()
-      .single();
-
-    if (insertError) throw insertError;
-    return insertDataResult as unknown as Product;
-  }
-
-  return data as unknown as Product;
+  if (error) throw error;
+  return transformProductRow(data as ProductRow);
 }
 
 export async function deleteProduct(id: string): Promise<void> {
@@ -345,45 +245,21 @@ export async function deleteProduct(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export { getAllCategories } from './products';
-
-// 站点设置管理
+// ============ 站点设置 ============
 export async function getSiteSetting(key: string): Promise<string | null> {
-  try {
-    const supabase = getSupabaseClient();
-    if (!supabase) {
-      // 返回静态默认值
-      if (key === 'brand_name') {
-        const { brandInfo } = await import('./products');
-        return brandInfo.name;
-      }
-      return null;
-    }
-
-    const { data, error } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', key)
-      .single();
-
-    if (error || !data) {
-      // 返回静态默认值
-      if (key === 'brand_name') {
-        const { brandInfo } = await import('./products');
-        return brandInfo.name;
-      }
-      return null;
-    }
-
-    return data.value;
-  } catch {
-    // 返回静态默认值
-    if (key === 'brand_name') {
-      const { brandInfo } = await import('./products');
-      return brandInfo.name;
-    }
+  const supabase = getSupabaseClient();
+  if (!supabase) {
     return null;
   }
+
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', key)
+    .single();
+
+  if (error || !data) return null;
+  return data.value;
 }
 
 export async function updateSiteSetting(key: string, value: string): Promise<void> {
