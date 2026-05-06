@@ -26,7 +26,7 @@ export function useFFmpeg(): FFmpegHook {
   const fetchFileRef = useRef<any>(null);
 
   const load = useCallback(async (): Promise<boolean> => {
-    if (ffmpegRef.current && isReady) {
+    if (ffmpegRef.current && ffmpegRef.current.loaded) {
       return true;
     }
 
@@ -56,11 +56,11 @@ export function useFFmpeg(): FFmpegHook {
         console.log('[FFmpeg]', (data as { message: string }).message);
       });
 
-      // 加载 WASM 文件
-      const baseURL = '/ffmpeg/umd';
+      // 加载 WASM 文件 - 使用 CDN
+      const cdnBaseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
       await ffmpeg.load({
-        coreURL: `${baseURL}/ffmpeg-core.js`,
-        wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+        coreURL: `${cdnBaseURL}/ffmpeg-core.js`,
+        wasmURL: `${cdnBaseURL}/ffmpeg-core.wasm`,
       });
 
       setIsReady(true);
@@ -74,7 +74,7 @@ export function useFFmpeg(): FFmpegHook {
       setIsLoading(false);
       return false;
     }
-  }, [isReady]);
+  }, []);
 
   const compressVideo = useCallback(async (
     videoUrl: string,
