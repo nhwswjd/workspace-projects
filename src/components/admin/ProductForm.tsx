@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import imageCompression from 'browser-image-compression';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile } from '@ffmpeg/util';
 
 // Supabase配置
 const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
@@ -139,15 +137,21 @@ const uploadVideoFile = async (file: File): Promise<string | null> => {
 // FFmpeg实例（全局复用）
 let ffmpegInstance: any = null;
 let ffmpegLoaded = false;
+let ffmpegFetchFile: any = null;
 
 // 初始化FFmpeg
 async function getFFmpeg() {
   if (ffmpegInstance && ffmpegLoaded) {
-    return { ffmpeg: ffmpegInstance, fetchFile };
+    return { ffmpeg: ffmpegInstance, fetchFile: ffmpegFetchFile };
   }
   
   console.log('[视频压缩] 开始加载 FFmpeg...');
   
+  // 动态导入避免 SSR 问题
+  const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+  const { fetchFile } = await import('@ffmpeg/util');
+  
+  ffmpegFetchFile = fetchFile;
   ffmpegInstance = new FFmpeg();
   
   ffmpegInstance.on('progress', ({ progress }: { progress: number }) => {
