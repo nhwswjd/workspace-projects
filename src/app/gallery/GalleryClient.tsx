@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Image as ImageIcon } from 'lucide-react';
+import { getCachedProducts } from '@/contexts/ProductCacheContext';
 
 interface Product {
   id: string;
@@ -73,13 +74,28 @@ export default function GalleryClient() {
     setIsAuthenticated(true);
   }, [router]);
 
-  // 获取数据
+  // 获取数据（优先使用缓存）
   useEffect(() => {
     if (!isAuthenticated) return;
 
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        // 尝试从缓存获取
+        const cached = getCachedProducts();
+        if (cached) {
+          // 缓存有效，直接使用
+        const cachedProducts = cached.products as unknown as Product[];
+        const cachedCategories = cached.categories as unknown as Category[];
+        setProducts(cachedProducts);
+        setCategories(cachedCategories);
+        setDisplayedProducts(cachedProducts.slice(0, PAGE_SIZE));
+        setHasMore(cachedProducts.length > PAGE_SIZE);
+        setIsLoading(false);
+        return;
+        }
+
+        // 缓存无效，从 API 获取
         const [productsRes, categoriesRes] = await Promise.all([
           fetch('/api/products'),
           fetch('/api/categories')
@@ -89,6 +105,19 @@ export default function GalleryClient() {
         const allProducts = productsData.products || [];
         setProducts(allProducts);
         setCategories(categoriesData.categories || []);
+        
+        // 保存到缓存
+        try {
+          sessionStorage.setItem('productListCache', JSON.stringify({
+            products: allProducts,
+            categories: categoriesData.categories || [],
+            selectedCategory: null,
+            lastFetched: Date.now(),
+            totalCount: allProducts.length
+          }));
+        } catch (e) {
+          // ignore storage errors
+        }
         
         // 初始只显示前 PAGE_SIZE 个
         setDisplayedProducts(allProducts.slice(0, PAGE_SIZE));
