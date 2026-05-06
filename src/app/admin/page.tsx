@@ -71,6 +71,32 @@ export default function AdminPage() {
   const [showTagModal, setShowTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<{ id?: string; name: string } | null>(null);
   const [tagName, setTagName] = useState("");
+  
+  // 右上标签状态
+  const [featuredOptions, setFeaturedOptions] = useState<{ id: string; name: string }[]>([]);
+  const [newFeatured, setNewFeatured] = useState('');
+  const [editingFeatured, setEditingFeatured] = useState<string | null>(null);
+  const [editingFeaturedName, setEditingFeaturedName] = useState('');
+  
+  // 右下标签状态
+  const [featuredRightBottomOptions, setFeaturedRightBottomOptions] = useState<{ id: string; name: string }[]>([]);
+  const [newFeaturedRightBottom, setNewFeaturedRightBottom] = useState('');
+  const [editingFeaturedRightBottom, setEditingFeaturedRightBottom] = useState<string | null>(null);
+  const [editingFeaturedRightBottomName, setEditingFeaturedRightBottomName] = useState('');
+  
+  // 分类状态
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [newCategory, setNewCategory] = useState('');
+  const [editingCategory, setEditingCategory] = useState<{ id: string; name: string } | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
+  
+  // 消息提示
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 3000);
+  };
   const [analyticsStats, setAnalyticsStats] = useState<{
     todayVisits: number;
     yesterdayVisits: number;
@@ -106,6 +132,8 @@ export default function AdminPage() {
         fetch('/api/site-settings/visitor_password').then(r => r.json()).catch(() => ({ value: '' })),
         fetch('/api/site-settings/random-sort-rules').then(r => r.json()).catch(() => ({ rules: [] })),
         fetch('/api/tags').then(r => r.json()).catch(() => ({ tags: [] })),
+        fetch('/api/categories').then(r => r.json()).catch(() => ({ categories: [] })),
+        fetch('/api/featured-options').then(r => r.json()).catch(() => ({ featuredOptions: [], featuredRightBottomOptions: [] })),
       ];
       
       // 只有超级管理员才加载管理员密码
@@ -127,8 +155,17 @@ export default function AdminPage() {
       const tagsRes = results[4];
       if (tagsRes?.tags) setTags(tagsRes.tags);
       
+      // 加载分类
+      const categoriesRes = results[5];
+      if (categoriesRes?.categories) setCategories(categoriesRes.categories);
+      
+      // 加载右上/右下标签
+      const featuredRes = results[6];
+      if (featuredRes?.featuredOptions) setFeaturedOptions(featuredRes.featuredOptions || []);
+      if (featuredRes?.featuredRightBottomOptions) setFeaturedRightBottomOptions(featuredRes.featuredRightBottomOptions || []);
+      
       // 只有超级管理员才解析管理员密码
-      if (isSuperAdmin && results[5]?.value) {
+      if (isSuperAdmin && results[7]?.value) {
         const passwords = parsePasswords(results[5].value);
         if (passwords.length > 0) {
           setAdminPasswords(passwords);
@@ -345,6 +382,27 @@ export default function AdminPage() {
     }
   };
 
+  const handleAddTagDirectly = async () => {
+    if (!tagName.trim()) return;
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: tagName.trim() })
+      });
+      const data = await res.json();
+      if (data.tag) {
+        setTags([...tags, data.tag]);
+        setTagName('');
+        showToast('标签添加成功');
+      } else {
+        showToast(data.error || '添加失败', 'error');
+      }
+    } catch {
+      showToast('添加失败', 'error');
+    }
+  };
+
   const handleDeleteTag = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
@@ -354,6 +412,183 @@ export default function AdminPage() {
         showToast('标签已删除');
       } else {
         showToast('删除失败', 'error');
+      }
+    } catch {
+      showToast('删除失败', 'error');
+    }
+  };
+
+  // ========== 分类操作 ==========
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCategory.trim() })
+      });
+      const data = await res.json();
+      if (data.category) {
+        setCategories([...categories, data.category]);
+        setNewCategory('');
+        showToast('分类添加成功');
+      } else {
+        showToast(data.error || '添加失败', 'error');
+      }
+    } catch {
+      showToast('添加失败', 'error');
+    }
+  };
+
+  const handleUpdateCategory = async (id: string) => {
+    if (!editingCategoryName.trim()) return;
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name: editingCategoryName.trim() })
+      });
+      const data = await res.json();
+      if (data.category) {
+        setCategories(categories.map(c => c.id === id ? data.category : c));
+        setEditingCategory(null);
+        showToast('分类更新成功');
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    } catch {
+      showToast('更新失败', 'error');
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('确定要删除这个分类吗？')) return;
+    try {
+      const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setCategories(categories.filter(c => c.id !== id));
+        showToast('分类已删除');
+      } else {
+        showToast(data.error || '删除失败', 'error');
+      }
+    } catch {
+      showToast('删除失败', 'error');
+    }
+  };
+
+  // ========== 右上标签操作 ==========
+  const handleAddFeatured = async () => {
+    if (!newFeatured.trim()) return;
+    try {
+      const res = await fetch('/api/featured-options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'featured', name: newFeatured.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFeaturedOptions([...featuredOptions, data.data]);
+        setNewFeatured('');
+        showToast('右上标签添加成功');
+      } else {
+        showToast(data.error || '添加失败', 'error');
+      }
+    } catch {
+      showToast('添加失败', 'error');
+    }
+  };
+
+  const handleUpdateFeatured = async (id: string) => {
+    if (!editingFeaturedName.trim()) return;
+    try {
+      const res = await fetch('/api/featured-options', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name: editingFeaturedName.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFeaturedOptions(featuredOptions.map(o => o.id === id ? data.data : o));
+        setEditingFeatured(null);
+        showToast('右上标签更新成功');
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    } catch {
+      showToast('更新失败', 'error');
+    }
+  };
+
+  const handleDeleteFeatured = async (id: string) => {
+    if (!confirm('确定要删除这个标签吗？')) return;
+    try {
+      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setFeaturedOptions(featuredOptions.filter(o => o.id !== id));
+        showToast('右上标签已删除');
+      } else {
+        showToast(data.error || '删除失败', 'error');
+      }
+    } catch {
+      showToast('删除失败', 'error');
+    }
+  };
+
+  // ========== 右下标签操作 ==========
+  const handleAddFeaturedRightBottom = async () => {
+    if (!newFeaturedRightBottom.trim()) return;
+    try {
+      const res = await fetch('/api/featured-options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'featured_right_bottom', name: newFeaturedRightBottom.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFeaturedRightBottomOptions([...featuredRightBottomOptions, data.data]);
+        setNewFeaturedRightBottom('');
+        showToast('右下标签添加成功');
+      } else {
+        showToast(data.error || '添加失败', 'error');
+      }
+    } catch {
+      showToast('添加失败', 'error');
+    }
+  };
+
+  const handleUpdateFeaturedRightBottom = async (id: string) => {
+    if (!editingFeaturedRightBottomName.trim()) return;
+    try {
+      const res = await fetch('/api/featured-options', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name: editingFeaturedRightBottomName.trim() })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFeaturedRightBottomOptions(featuredRightBottomOptions.map(o => o.id === id ? data.data : o));
+        setEditingFeaturedRightBottom(null);
+        showToast('右下标签更新成功');
+      } else {
+        showToast(data.error || '更新失败', 'error');
+      }
+    } catch {
+      showToast('更新失败', 'error');
+    }
+  };
+
+  const handleDeleteFeaturedRightBottom = async (id: string) => {
+    if (!confirm('确定要删除这个标签吗？')) return;
+    try {
+      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setFeaturedRightBottomOptions(featuredRightBottomOptions.filter(o => o.id !== id));
+        showToast('右下标签已删除');
+      } else {
+        showToast(data.error || '删除失败', 'error');
       }
     } catch {
       showToast('删除失败', 'error');
@@ -829,50 +1064,267 @@ export default function AdminPage() {
         {/* 标签管理 */}
         {activeTab === 'tags' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-xl p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-700">标签列表</h3>
-                <button
-                  onClick={() => {
-                    setEditingTag(null);
-                    setTagName('');
-                    setShowTagModal(true);
-                  }}
-                  className="px-4 py-2 bg-[#14b8a6] text-white text-sm rounded-lg hover:bg-[#14b8a6]/90"
-                >
-                  添加标签
-                </button>
+            {/* 消息提示 */}
+            {message && (
+              <div className={`p-3 rounded ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {message.text}
               </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {tags.length === 0 ? (
-                  <p className="text-sm text-gray-500">暂无标签，请点击上方添加</p>
-                ) : (
-                  tags.map((tag: { id: string; name: string }) => (
-                    <div
-                      key={tag.id}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-[#14b8a6]/10 text-[#14b8a6] rounded-full text-sm"
-                    >
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* 普通标签 */}
+              <div className="bg-white rounded-xl p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">普通标签</h3>
+                <p className="text-xs text-gray-500 mb-3">用于产品分类筛选</p>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    placeholder="输入标签名称"
+                    value={tagName}
+                    onChange={(e) => setTagName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (editingTag?.id) {
+                          // 更新标签 - 通过 modal 处理
+                        } else if (tagName.trim()) {
+                          // 添加标签
+                          handleAddTagDirectly();
+                        }
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20"
+                  />
+                  <button
+                    onClick={() => {
+                      if (tagName.trim()) {
+                        handleAddTagDirectly();
+                      }
+                    }}
+                    className="px-3 py-2 bg-[#14b8a6] text-white rounded-lg hover:bg-[#14b8a6]/90"
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {tags.map(tag => (
+                    <div key={tag.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                       <span>{tag.name}</span>
-                      <button
-                        onClick={() => {
-                          setEditingTag(tag);
-                          setTagName(tag.name);
-                          setShowTagModal(true);
-                        }}
-                        className="hover:text-[#14b8a6]/70"
-                      >
-                        ✎
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTag(tag.id)}
-                        className="hover:text-red-500"
-                      >
-                        ×
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => {
+                            setEditingTag(tag);
+                            setTagName(tag.name);
+                            setShowTagModal(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-[#14b8a6]"
+                        >
+                          ✎
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTag(tag.id)}
+                          className="p-1 text-gray-400 hover:text-red-500"
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
-                  ))
-                )}
+                  ))}
+                </div>
+              </div>
+
+              {/* 右上标签 */}
+              <div className="bg-white rounded-xl p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-1">右上标签</h3>
+                <p className="text-xs text-gray-500 mb-3">显示在图片右上角</p>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    placeholder="输入标签名称"
+                    value={newFeatured}
+                    onChange={(e) => setNewFeatured(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddFeatured()}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20"
+                  />
+                  <button
+                    onClick={handleAddFeatured}
+                    disabled={!newFeatured.trim()}
+                    className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {featuredOptions.map(option => (
+                    <div key={option.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      {editingFeatured === option.id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editingFeaturedName}
+                            onChange={(e) => setEditingFeaturedName(e.target.value)}
+                            className="flex-1 px-2 py-1 border border-gray-200 rounded text-sm mr-2"
+                            autoFocus
+                          />
+                          <button onClick={() => handleUpdateFeatured(option.id)} className="p-1 text-green-500">✓</button>
+                          <button onClick={() => setEditingFeatured(null)} className="p-1 text-gray-400">×</button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="flex items-center gap-2">
+                            <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">右上</span>
+                            {option.name}
+                          </span>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingFeatured(option.id);
+                                setEditingFeaturedName(option.name);
+                              }}
+                              className="p-1 text-gray-400 hover:text-[#14b8a6]"
+                            >
+                              ✎
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFeatured(option.id)}
+                              className="p-1 text-gray-400 hover:text-red-500"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 右下标签 */}
+              <div className="bg-white rounded-xl p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-1">右下标签</h3>
+                <p className="text-xs text-gray-500 mb-3">显示在图片右下角</p>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    placeholder="输入标签名称"
+                    value={newFeaturedRightBottom}
+                    onChange={(e) => setNewFeaturedRightBottom(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddFeaturedRightBottom()}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20"
+                  />
+                  <button
+                    onClick={handleAddFeaturedRightBottom}
+                    disabled={!newFeaturedRightBottom.trim()}
+                    className="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {featuredRightBottomOptions.map(option => (
+                    <div key={option.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      {editingFeaturedRightBottom === option.id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editingFeaturedRightBottomName}
+                            onChange={(e) => setEditingFeaturedRightBottomName(e.target.value)}
+                            className="flex-1 px-2 py-1 border border-gray-200 rounded text-sm mr-2"
+                            autoFocus
+                          />
+                          <button onClick={() => handleUpdateFeaturedRightBottom(option.id)} className="p-1 text-green-500">✓</button>
+                          <button onClick={() => setEditingFeaturedRightBottom(null)} className="p-1 text-gray-400">×</button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="flex items-center gap-2">
+                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded">右下</span>
+                            {option.name}
+                          </span>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingFeaturedRightBottom(option.id);
+                                setEditingFeaturedRightBottomName(option.name);
+                              }}
+                              className="p-1 text-gray-400 hover:text-[#14b8a6]"
+                            >
+                              ✎
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFeaturedRightBottom(option.id)}
+                              className="p-1 text-gray-400 hover:text-red-500"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 分类管理 */}
+              <div className="bg-white rounded-xl p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-1">分类管理</h3>
+                <p className="text-xs text-gray-500 mb-3">用于产品分类筛选</p>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    placeholder="输入分类名称"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6]/20"
+                  />
+                  <button
+                    onClick={handleAddCategory}
+                    disabled={!newCategory.trim()}
+                    className="px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 disabled:opacity-50"
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {categories.map(category => (
+                    <div key={category.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      {editingCategory?.id === category.id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editingCategoryName}
+                            onChange={(e) => setEditingCategoryName(e.target.value)}
+                            className="flex-1 px-2 py-1 border border-gray-200 rounded text-sm mr-2"
+                            autoFocus
+                          />
+                          <button onClick={() => handleUpdateCategory(category.id)} className="p-1 text-green-500">✓</button>
+                          <button onClick={() => setEditingCategory(null)} className="p-1 text-gray-400">×</button>
+                        </>
+                      ) : (
+                        <>
+                          <span>{category.name}</span>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => {
+                                setEditingCategory(category);
+                                setEditingCategoryName(category.name);
+                              }}
+                              className="p-1 text-gray-400 hover:text-[#14b8a6]"
+                            >
+                              ✎
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCategory(category.id)}
+                              className="p-1 text-gray-400 hover:text-red-500"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
