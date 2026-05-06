@@ -1,18 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Upload, X, ImageIcon, Video, Loader2, Check, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Product, Category } from '@/types/admin'; 
-
-// 硬编码默认值 - 确保即使环境变量未设置也能工作
-const DEFAULT_SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
-
-// 在模块加载时就获取环境变量（而不是在组件内）
-const ENV_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const ENV_SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+import type { Product, Category } from '@/types/admin';
+import { getSupabaseClient } from '@/lib/supabase';
 
 interface ProductModalProps {
   product: Product | null;
@@ -74,23 +66,13 @@ export default function ProductModal({ product, categories, onClose, onSave }: P
   // 调试信息状态
   const [debugInfo, setDebugInfo] = useState<string>('');
   
-  // 直接创建 Supabase 客户端，不延迟
-  const supabaseClient = useMemo(() => {
-    const url = ENV_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-    const key = ENV_SUPABASE_KEY || DEFAULT_SUPABASE_ANON_KEY;
-    
-    if (url && key) {
-      return createClient(url, key);
-    }
-    
-    console.error('[ProductModal] Cannot create Supabase client: URL or KEY is empty');
-    return null;
-  }, []);
+  // 使用统一的 Supabase 客户端
+  const supabaseClient = getSupabaseClient();
   
   // 调试信息更新到 useEffect
   useEffect(() => {
-    const url = ENV_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-    const key = ENV_SUPABASE_KEY || DEFAULT_SUPABASE_ANON_KEY;
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
     setDebugInfo(`URL: ${url ? 'SET (' + url.substring(0, 30) + '...)' : 'EMPTY'}, KEY: ${key ? 'SET' : 'EMPTY'}`);
   }, []);
 

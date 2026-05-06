@@ -1,12 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase配置
-const SUPABASE_URL = 'https://br-bonny-deer-52ec6415.supabase2.aidap-global.cn-beijing.volces.com';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNTgwNTI0MTIsInJvbGUiOiJhbm9uIn0.0FNIFZWNcQgZ0tL9cLNFtcrVjBFxH_npbv2TBvAQkOw';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase';
 
 interface Category {
   id: string;
@@ -65,7 +61,8 @@ const generateFileName = (file: File): string => {
 
 // 上传单个文件到Supabase
 const uploadFile = async (file: File): Promise<string | null> => {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
   const fileName = generateFileName(file);
   
   const { error } = await supabase.storage
@@ -83,7 +80,8 @@ const uploadFile = async (file: File): Promise<string | null> => {
 
 // 上传视频文件到Supabase
 const uploadVideoFile = async (file: File): Promise<string | null> => {
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = getSupabaseClient();
+  if (!supabase) return null;
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 8);
   const fileName = `${timestamp}-${randomStr}.mp4`;

@@ -1,17 +1,4 @@
-export { createClient } from '@supabase/supabase-js'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL 
-  || process.env.COZE_SUPABASE_URL 
-  || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
-  || process.env.COZE_SUPABASE_ANON_KEY 
-  || ''
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY 
-  || process.env.COZE_SUPABASE_SERVICE_ROLE_KEY 
-  || ''
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
-export const getSupabaseClient = () => supabase
-export const getSupabaseAdmin = () => supabaseAdmin
+// 统一导出 Supabase 客户端
+// getSupabaseAdmin 在 @/lib/db.ts 中定义
+export { getSupabaseAdmin } from '@/lib/db';
+export { getSupabaseClient, supabaseUrl, supabaseAnonKey } from '@/storage/database/supabase-client';

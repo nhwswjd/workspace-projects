@@ -4,6 +4,10 @@ export async function GET() {
   try {
     const supabase = getSupabaseAdmin();
     
+    if (!supabase) {
+      return Response.json({ error: 'Database not configured' }, { status: 500 });
+    }
+    
     // 获取 Storage 中的所有文件
     const [imagesResult, videosResult] = await Promise.all([
       supabase.storage.from('product-images').list('', { limit: 1000 }),

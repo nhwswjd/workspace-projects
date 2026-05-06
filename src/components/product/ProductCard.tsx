@@ -9,6 +9,14 @@ interface ProductCardProps {
   showCategory?: boolean;
 }
 
+// 安全代理 URL
+function getSecureUrl(url: string | undefined): string {
+  if (!url) return '/placeholder.png';
+  if (url.startsWith('/')) return url;
+  const encodedUrl = encodeURIComponent(url);
+  return `/api/file?url=${encodedUrl}`;
+}
+
 export default function ProductCard({ product, showCategory = true }: ProductCardProps) {
   // 使用产品自带的 featured 字段，没有则不显示标签
   const getTagStyle = () => {
@@ -36,7 +44,7 @@ export default function ProductCard({ product, showCategory = true }: ProductCar
         {/* 图片容器 */}
         <div className="relative overflow-hidden" style={{ aspectRatio: '3/4' }}>
           <Image
-            src={product.coverImage}
+            src={getSecureUrl(product.coverImage)}
             alt={product.name}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"

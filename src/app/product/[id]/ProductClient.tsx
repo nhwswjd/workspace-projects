@@ -7,6 +7,16 @@ import { ArrowLeft } from "lucide-react";
 
 type Product = any;
 
+// 获取代理 URL
+function getProxyUrl(url: string): string {
+  if (!url) return '';
+  // 如果是 Supabase Storage URL，使用代理
+  if (url.includes('storage.v1.object.public')) {
+    return `/api/file/${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 interface ProductClientProps {
   product: Product;
 }
@@ -36,16 +46,16 @@ export default function ProductClient({ product }: ProductClientProps) {
         product_id: product.id,
         product_name: product.name
       })
-    }).catch(err => console.error('访问统计失败:', err));
+    }).catch(() => {});
   }, [router, product.id, product.name]);
 
   // 获取视频URL - 简化逻辑
   const getVideoUrl = (data: unknown): string => {
     if (!data) return '';
-    if (typeof data === 'string') return data;
+    if (typeof data === 'string') return getProxyUrl(data);
     if (typeof data === 'object') {
       const obj = data as Record<string, unknown>;
-      if (obj.url && typeof obj.url === 'string') return obj.url;
+      if (obj.url && typeof obj.url === 'string') return getProxyUrl(obj.url);
     }
     return '';
   };
@@ -68,7 +78,7 @@ export default function ProductClient({ product }: ProductClientProps) {
   const allImages = [
     product.coverImage,
     ...(product.images as string[] || []),
-  ].filter(Boolean);
+  ].filter(Boolean).map(url => getProxyUrl(url));
 
   return (
     <div className="min-h-screen bg-white pb-8 relative">

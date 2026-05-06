@@ -8,6 +8,16 @@ import { cn } from '@/lib/utils';
 // 控制栏自动隐藏延迟（毫秒）
 const CONTROLS_HIDE_DELAY = 3000;
 
+// 获取代理 URL
+function getProxyUrl(url: string): string {
+  if (!url) return '';
+  // 如果是 Supabase Storage URL，使用代理
+  if (url.includes('storage.v1.object.public')) {
+    return `/api/file/${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 interface VideoPlayerProps {
   video: Video;
   isAuthenticated: boolean;
@@ -157,7 +167,7 @@ export function VideoPlayer({
     return (
       <div className="relative aspect-[3/4] overflow-hidden rounded-lg">
         <img
-          src={video.poster}
+          src={getProxyUrl(video.poster || '')}
           alt="视频封面"
           className="w-full h-full object-cover blur-sm"
         />
@@ -183,8 +193,8 @@ export function VideoPlayer({
       {/* Video element */}
       <video
         ref={videoRef}
-        src={video.url}
-        poster={video.poster}
+        src={getProxyUrl(video.url)}
+        poster={getProxyUrl(video.poster || '')}
         className={cn(
           'w-full h-full object-contain transition-opacity duration-300',
           isLoading ? 'opacity-0' : 'opacity-100'

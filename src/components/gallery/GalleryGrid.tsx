@@ -12,15 +12,43 @@ interface GalleryGridProps {
   onVideoClick: (video: Video) => void;
 }
 
+// 安全代理 URL，避免直接暴露存储地址
+function getSecureUrl(url: string): string {
+  if (!url) return '';
+  // 如果是相对路径，直接返回
+  if (url.startsWith('/')) return url;
+  // 如果需要代理，转换为代理 URL
+  const encodedUrl = encodeURIComponent(url);
+  return `/api/file?url=${encodedUrl}`;
+}
+
 export function GalleryGrid({
   product,
   isAuthenticated,
   onImageClick,
   onVideoClick,
 }: GalleryGridProps) {
-  const mediaItems = [
-    ...product.images.map((src, idx) => ({ type: 'image' as const, src, index: idx })),
-    ...product.videos.map((video) => ({ type: 'video' as const, ...video })),
+  const mediaItems: Array<{
+    type: 'image' | 'video';
+    src?: string;
+    poster?: string;
+    url?: string;
+    thumbnail?: string;
+    id?: string;
+    index: number;
+    duration?: string;
+  }> = [
+    ...product.images.map((img: string, idx: number) => ({
+      type: 'image' as const,
+      src: img,
+      index: idx,
+    })),
+    ...product.videos.map((video: Video) => ({
+      type: 'video' as const,
+      ...video,
+      poster: video.poster,
+      index: product.images.length,
+    })),
   ];
 
   return (
@@ -29,8 +57,8 @@ export function GalleryGrid({
         if (item.type === 'video') {
           return (
             <button
-              key={item.id}
-              onClick={() => onVideoClick(item)}
+              key={item.id || `video-${idx}`}
+              onClick={() => onVideoClick(item as Video)}
               disabled={!isAuthenticated}
               className={cn(
                 'relative aspect-[3/4] overflow-hidden rounded-lg group cursor-pointer disabled:cursor-not-allowed',
@@ -38,8 +66,8 @@ export function GalleryGrid({
               )}
             >
               <Image
-                src={item.poster}
-                alt={`视频 ${item.id}`}
+                src={getSecureUrl(item.poster || item.thumbnail || item.url || '')}
+                alt={`视频 ${item.id || idx + 1}`}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="33vw"
@@ -67,7 +95,7 @@ export function GalleryGrid({
 
         return (
           <button
-            key={item.src}
+            key={item.src || `image-${idx}`}
             onClick={() => onImageClick(item.index)}
             disabled={!isAuthenticated}
             className={cn(
@@ -76,7 +104,7 @@ export function GalleryGrid({
             )}
           >
             <Image
-              src={item.src}
+              src={getSecureUrl(item.src || '')}
               alt={`图片 ${item.index + 1}`}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"

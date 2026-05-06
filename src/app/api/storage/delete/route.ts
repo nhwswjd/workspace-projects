@@ -9,6 +9,11 @@ export async function POST(request: Request) {
     }
 
     const supabase = getSupabaseAdmin();
+    
+    if (!supabase) {
+      return Response.json({ error: 'Database not configured' }, { status: 500 });
+    }
+    
     const results: { success: string[]; failed: string[]; deletedSize: number } = { 
       success: [], 
       failed: [],
@@ -22,7 +27,7 @@ export async function POST(request: Request) {
         
         console.log(`[删除文件] bucket: ${bucket}, name: ${fileName}`);
         
-        const { error } = await supabase.storage.from(bucket).remove([fileName]);
+        const { error } = await supabase!.storage.from(bucket).remove([fileName]);
         
         if (error) {
           console.error(`删除失败: ${fileName}`, error);
