@@ -22,6 +22,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       products
+    }, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
     });
   } catch (error) {
     console.error('获取产品失败:', error);
