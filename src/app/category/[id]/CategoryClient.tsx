@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
+import ImagePreview from '@/components/ImagePreview';
 
 interface CategoryClientProps {
   category: Category;
@@ -14,6 +15,7 @@ interface CategoryClientProps {
 
 export default function CategoryClient({ category, products, allCategories }: CategoryClientProps) {
   const router = useRouter();
+  const [previewImage, setPreviewImage] = useState<{ images: string[]; index: number } | null>(null);
 
   // 检查登录状态 - 未登录则跳转到首页
   useEffect(() => {
@@ -87,8 +89,14 @@ export default function CategoryClient({ category, products, allCategories }: Ca
                     src={product.coverImage}
                     alt={product.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300 cursor-zoom-in"
                     sizes="(max-width: 768px) 50vw, 33vw"
+                    onClick={() => {
+                      const images = product.images && product.images.length > 0
+                        ? product.images
+                        : [product.coverImage];
+                      setPreviewImage({ images: images as string[], index: 0 });
+                    }}
                   />
                   {/* 精选标签 - 右上角 */}
                   {product.featured && (
@@ -126,6 +134,15 @@ export default function CategoryClient({ category, products, allCategories }: Ca
             ))}
           </div>
         </div>
+      )}
+
+      {/* 图片预览 */}
+      {previewImage && (
+        <ImagePreview
+          images={previewImage.images}
+          initialIndex={previewImage.index}
+          onClose={() => setPreviewImage(null)}
+        />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import ImagePreview from "@/components/ImagePreview";
 
 type Product = any;
 
@@ -24,6 +25,7 @@ interface ProductClientProps {
 export default function ProductClient({ product }: ProductClientProps) {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ images: string[]; index: number } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -124,7 +126,8 @@ export default function ProductClient({ product }: ProductClientProps) {
                 <img
                   src={img}
                   alt={`${product.name} - 图片 ${index + 1}`}
-                  className="w-full object-cover"
+                  className="w-full object-cover cursor-zoom-in"
+                  onClick={() => setPreviewImage({ images: allImages, index })}
                 />
               </div>
             ))}
@@ -160,6 +163,15 @@ export default function ProductClient({ product }: ProductClientProps) {
           </div>
         )}
       </div>
+
+      {/* 图片预览 */}
+      {previewImage && (
+        <ImagePreview
+          images={previewImage.images}
+          initialIndex={previewImage.index}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
     </div>
   );
 }

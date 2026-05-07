@@ -4,11 +4,13 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Image as ImageIcon } from 'lucide-react';
 import { getCachedProducts } from '@/contexts/ProductCacheContext';
+import ImagePreview from '@/components/ImagePreview';
 
 interface Product {
   id: string;
   sku: string;
   name: string;
+  description?: string;
   category: string;
   categoryId: string;
   coverImage: string;
@@ -61,6 +63,9 @@ export default function GalleryClient() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // 图片预览状态
+  const [previewImage, setPreviewImage] = useState<{ images: string[]; index: number } | null>(null);
 
   const PAGE_SIZE = 20; // 每页加载数量
 
@@ -146,10 +151,22 @@ export default function GalleryClient() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(p =>
+        // 名称
         p.name?.toLowerCase().includes(query) ||
+        // SKU
         p.sku?.toLowerCase().includes(query) ||
+        // 产品描述
+        (p.description && p.description.toLowerCase().includes(query)) ||
+        // 产品标签
+        p.tags?.some((tag: string) => tag.toLowerCase().includes(query)) ||
+        // 地点
         p.location?.toLowerCase().includes(query) ||
-        p.tags?.some((tag: string) => tag.toLowerCase().includes(query))
+        // 右上标签
+        (p.featured && p.featured.toLowerCase().includes(query)) ||
+        // 右下标签
+        (p.featuredRightBottom && p.featuredRightBottom.toLowerCase().includes(query)) ||
+        // 所属分类
+        p.category?.toLowerCase().includes(query)
       );
     }
 
@@ -311,18 +328,22 @@ export default function GalleryClient() {
               <div className="grid-layout">
                 {displayedProducts.map((product) => (
                   <div key={product.id} className="grid-item">
-                    <a 
-                      href={`/product/${product.id}`}
-                      className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
-                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-                    >
+                    <div className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
+                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                       <div className="relative" style={{ paddingBottom: '133.33%' }}>
                         {(product.coverImage || (product.images && product.images[0])) ? (
                           <img
                             src={product.coverImage || product.images?.[0]}
                             alt={product.name}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
                             loading="lazy"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const images = product.images && product.images.length > 0 
+                                ? product.images 
+                                : [product.coverImage || ''];
+                              setPreviewImage({ images: images as string[], index: 0 });
+                            }}
                           />
                         ) : (
                           <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
@@ -355,7 +376,7 @@ export default function GalleryClient() {
                         )}
                         <p className="text-xs text-gray-400 mt-1">{product.location}</p>
                       </div>
-                    </a>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -383,6 +404,15 @@ export default function GalleryClient() {
           </>
         )}
       </main>
+
+      {/* 图片预览 */}
+      {previewImage && (
+        <ImagePreview
+          images={previewImage.images}
+          initialIndex={previewImage.index}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
     </>
   );
 }
