@@ -9,7 +9,9 @@ export async function GET(request: NextRequest) {
   }
 
   // 验证 URL 是否来自允许的域名
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseUrl = process.env.COZE_SUPABASE_URL 
+    || process.env.NEXT_PUBLIC_SUPABASE_URL 
+    || process.env.SUPABASE_URL;
   const allowedHost = supabaseUrl?.replace('https://', '').replace('http://', '');
   
   try {
