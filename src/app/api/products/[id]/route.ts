@@ -55,9 +55,8 @@ export async function PUT(
     const body = await request.json();
     const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, featuredRightBottom, featured_right_bottom, location, hidden, sortOrder, notes } = body;
 
-    const productData: Record<string, unknown> = {
-      id, // 确保ID被设置，用于 upsert
-    };
+    // 分离 id 和其他数据
+    const productData: Record<string, unknown> = {};
     if (sku !== undefined) productData.sku = sku;
     if (name !== undefined) productData.name = name;
     if (tags !== undefined) productData.tags = tags;
@@ -75,12 +74,20 @@ export async function PUT(
     if (sortOrder !== undefined) productData.sort_order = sortOrder;
     if (notes !== undefined) productData.notes = notes;
 
-    // 使用 upsert 确保无论产品是否已存在都能成功更新
-    const { error } = await supabaseAdmin
+    // 使用 update 操作更新现有记录
+    const { data, error } = await supabaseAdmin
       .from('products')
-      .upsert(productData, { onConflict: 'id' });
+      .update(productData)
+      .eq('id', id)
+      .select()
+      .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Update error:', error);
+      throw error;
+    }
+    
+    console.log('Update result:', data, 'Product data:', productData);
 
     return NextResponse.json({ success: true, message: '产品更新成功' });
   } catch (error) {
