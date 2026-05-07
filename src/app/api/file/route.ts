@@ -22,8 +22,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL' }, { status: 403 });
     }
     
-    // 验证路径前缀
-    const validPaths = ['storage/v1/object/public/products', 'storage/v1/object/public/videos', 'storage/v1/object/public/thumbnails'];
+    // 验证路径前缀 - 包含所有可能的 bucket
+    const validPaths = [
+      'storage/v1/object/public/products', 
+      'storage/v1/object/public/videos', 
+      'storage/v1/object/public/thumbnails',
+      'storage/v1/object/public/product-images'
+    ];
     const hasValidPath = validPaths.some(p => urlObj.pathname.includes(p));
     
     if (!hasValidPath) {

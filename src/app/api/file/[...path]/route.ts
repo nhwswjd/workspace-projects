@@ -29,7 +29,7 @@ export async function GET(
   const filePath = path.join('/');
   
   // 验证路径格式（只允许访问 storage/v1/object/public/ 下的文件）
-  const allowedPrefixes = ['products/', 'videos/', 'thumbnails/'];
+  const allowedPrefixes = ['products/', 'videos/', 'thumbnails/', 'product-images/'];
   const isAllowed = allowedPrefixes.some(prefix => filePath.startsWith(prefix));
   
   if (!isAllowed) {
@@ -47,7 +47,7 @@ export async function GET(
 
     if (error || !data) {
       // 尝试其他 bucket
-      const buckets = ['products', 'videos', 'thumbnails'];
+      const buckets = ['products', 'videos', 'thumbnails', 'product-images'];
       for (const bucket of buckets) {
         const { data: altData, error: altError } = await supabase.storage
           .from(bucket)
