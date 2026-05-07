@@ -398,6 +398,10 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
       });
 
       if (res.ok) {
+        // 清除产品列表缓存，确保首页显示最新数据
+        try {
+          sessionStorage.removeItem('productListCache');
+        } catch {}
         alert(isEditMode ? '保存成功' : '创建成功');
         onSuccess?.();
       } else {

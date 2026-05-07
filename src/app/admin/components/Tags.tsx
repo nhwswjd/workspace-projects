@@ -50,6 +50,7 @@ export default function Tags({
       });
       if (res.ok) {
         setNewTag('');
+        clearProductCache();
         onRefresh();
         showToast('标签已添加');
       }
@@ -62,6 +63,7 @@ export default function Tags({
     try {
       const res = await fetch(`/api/tags/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
+        clearProductCache();
         onRefresh();
         showToast('标签已删除');
       } else {
@@ -81,6 +83,7 @@ export default function Tags({
       });
       if (res.ok) {
         setNewCategory('');
+        clearProductCache();
         onRefresh();
         showToast('分类已添加');
       }
@@ -93,6 +96,7 @@ export default function Tags({
     try {
       const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
+        clearProductCache();
         onRefresh();
         showToast('分类已删除');
       } else {
@@ -112,6 +116,7 @@ export default function Tags({
       });
       if (res.ok) {
         setNewFeaturedName('');
+        clearProductCache();
         onRefresh();
         showToast('右上标签已添加');
       }
@@ -124,6 +129,7 @@ export default function Tags({
     try {
       const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
+        clearProductCache();
         onRefresh();
         showToast('右上标签已删除');
       } else {
@@ -143,6 +149,7 @@ export default function Tags({
       });
       if (res.ok) {
         setNewBottomRightFeaturedName('');
+        clearProductCache();
         onRefresh();
         showToast('右下标签已添加');
       }
@@ -155,6 +162,7 @@ export default function Tags({
     try {
       const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
+        clearProductCache();
         onRefresh();
         showToast('右下标签已删除');
       } else {
@@ -164,6 +172,11 @@ export default function Tags({
   };
 
   const normalTags = tags.filter(t => t.type === 'normal');
+
+  // 清除产品列表缓存
+  const clearProductCache = () => {
+    try { sessionStorage.removeItem('productListCache'); } catch {}
+  };
 
   return (
     <div className="space-y-8">

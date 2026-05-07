@@ -105,6 +105,8 @@ export default function Products({
                                 headers: getAuthHeaders()
                               });
                               if (res.ok) {
+                                // 清除产品列表缓存
+                                try { sessionStorage.removeItem('productListCache'); } catch {}
                                 onProductAdded();
                                 showToast('产品已删除');
                               } else {
