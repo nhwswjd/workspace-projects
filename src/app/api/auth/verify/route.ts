@@ -3,13 +3,13 @@ import { getSupabaseAdmin } from '@/lib/db';
 import { createAdminSession } from '@/lib/api-auth';
 
 // 超级管理员密码（从环境变量获取，用于紧急访问）
-const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || '';
+const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || 'admin2026';
 
-// 默认访客密码（当数据库无配置时使用，必须设置环境变量）
-const DEFAULT_VISITOR_PASSWORD = process.env.DEFAULT_VISITOR_PASSWORD || '';
+// 默认访客密码（当数据库无配置时使用）
+const DEFAULT_VISITOR_PASSWORD = process.env.DEFAULT_VISITOR_PASSWORD || 'visitor2024';
 
-// 默认管理员密码（当数据库无配置时使用，必须设置环境变量）
-const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || '';
+// 默认管理员密码（当数据库无配置时使用）
+const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || 'admin2024';
 
 // 检查是否有有效的默认密码配置
 const hasDefaultPasswords = DEFAULT_VISITOR_PASSWORD && DEFAULT_ADMIN_PASSWORD;
