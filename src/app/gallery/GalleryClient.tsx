@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Image as ImageIcon } from 'lucide-react';
 import { getCachedProducts } from '@/contexts/ProductCacheContext';
-import ImagePreview from '@/components/ImagePreview';
 
 interface Product {
   id: string;
@@ -63,9 +62,6 @@ export default function GalleryClient() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  // 图片预览状态
-  const [previewImage, setPreviewImage] = useState<{ images: string[]; index: number } | null>(null);
 
   const PAGE_SIZE = 20; // 每页加载数量
 
@@ -328,22 +324,18 @@ export default function GalleryClient() {
               <div className="grid-layout">
                 {displayedProducts.map((product) => (
                   <div key={product.id} className="grid-item">
-                    <div className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
-                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <a 
+                      href={`/product/${product.id}`}
+                      className="block bg-white rounded-xl overflow-hidden hover:shadow-float transition-shadow"
+                      style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                    >
                       <div className="relative" style={{ paddingBottom: '133.33%' }}>
                         {(product.coverImage || (product.images && product.images[0])) ? (
                           <img
                             src={product.coverImage || product.images?.[0]}
                             alt={product.name}
-                            className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
+                            className="absolute inset-0 w-full h-full object-cover"
                             loading="lazy"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              const images = product.images && product.images.length > 0 
-                                ? product.images 
-                                : [product.coverImage || ''];
-                              setPreviewImage({ images: images as string[], index: 0 });
-                            }}
                           />
                         ) : (
                           <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
@@ -376,7 +368,7 @@ export default function GalleryClient() {
                         )}
                         <p className="text-xs text-gray-400 mt-1">{product.location}</p>
                       </div>
-                    </div>
+                    </a>
                   </div>
                 ))}
               </div>
@@ -404,15 +396,6 @@ export default function GalleryClient() {
           </>
         )}
       </main>
-
-      {/* 图片预览 */}
-      {previewImage && (
-        <ImagePreview
-          images={previewImage.images}
-          initialIndex={previewImage.index}
-          onClose={() => setPreviewImage(null)}
-        />
-      )}
     </>
   );
 }
