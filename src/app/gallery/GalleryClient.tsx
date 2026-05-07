@@ -283,7 +283,7 @@ export default function GalleryClient() {
 
         {/* 分类标签 */}
         <div className="px-1.5 pb-1.5">
-          <div className="flex gap-1 overflow-x-auto hide-scrollbar py-1">
+          <div className="w-full flex gap-1 overflow-x-auto hide-scrollbar py-1">
             <button
               onClick={() => setSelectedCategory('all')}
               className={`px-2 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border
