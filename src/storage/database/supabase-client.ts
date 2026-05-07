@@ -65,41 +65,20 @@ function getSupabaseServiceRoleKey(): string | undefined {
 }
 
 function getSupabaseClient(token?: string): SupabaseClient | null {
-  loadEnv();
-  
-  const url = process.env.COZE_SUPABASE_URL 
-    || process.env.NEXT_PUBLIC_SUPABASE_URL 
-    || process.env.SUPABASE_URL
-    || '';
-  const anonKey = process.env.COZE_SUPABASE_ANON_KEY 
-    || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
-    || process.env.SUPABASE_ANON_KEY
-    || '';
-  const serviceRoleKey = process.env.COZE_SUPABASE_SERVICE_ROLE_KEY 
-    || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  // 诊断日志（所有环境）
-  console.log('[Supabase] ENV Check:', {
-    hasUrl: !!url,
-    hasAnonKey: !!anonKey,
-    hasServiceRoleKey: !!serviceRoleKey,
-    nodeEnv: process.env.NODE_ENV,
-    urlPrefix: url ? url.substring(0, 30) + '...' : 'EMPTY'
-  });
-  
-  if (!url || !anonKey) {
-    console.error('[Supabase] Missing credentials:', { url: !!url, anonKey: !!anonKey });
+  const credentials = getSupabaseCredentials();
+  if (!credentials) {
+    console.error('[Supabase] getSupabaseClient: credentials is null');
     return null;
   }
+
+  const { url, anonKey } = credentials;
 
   let key: string;
   if (token) {
     key = anonKey;
   } else {
+    const serviceRoleKey = getSupabaseServiceRoleKey();
     key = serviceRoleKey ?? anonKey;
-    if (!serviceRoleKey) {
-      console.warn('[Supabase] Using anon key for service operations');
-    }
   }
 
   const globalOptions: Record<string, unknown> = {};
