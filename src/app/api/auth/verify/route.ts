@@ -20,7 +20,6 @@ async function getPasswords() {
   
   // 如果没有配置默认密码且数据库不可用，返回空数组
   if (!supabase && !hasDefaultPasswords) {
-    console.warn('[Auth] No database and no default passwords configured');
     return { visitor: [] as string[], admin: [] as string[] };
   }
   

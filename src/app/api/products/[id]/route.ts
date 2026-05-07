@@ -34,12 +34,6 @@ export async function PUT(
   try {
     // 验证管理员会话
     const auth = await verifyAdminSession(request);
-    console.log('[PUT /api/products/[id]] auth check:', { 
-      valid: auth.valid, 
-      isSuperAdmin: auth.isSuperAdmin,
-      hasToken: !!request.headers.get('x-admin-session'),
-      token: request.headers.get('x-admin-session')?.substring(0, 20) + '...'
-    });
     if (!auth.valid) {
       return NextResponse.json(
         { success: false, message: '未授权访问，请先登录' },
@@ -75,9 +69,6 @@ export async function PUT(
     else if (sort_order !== undefined) productData.sort_order = sort_order;
     if (notes !== undefined) productData.notes = notes;
 
-    console.log('Featured field values:', { featured, featuredRightBottom, featured_right_bottom });
-    console.log('Product data to update:', productData);
-
     // 使用 update 操作更新现有记录
     const { data, error } = await supabaseAdmin
       .from('products')
@@ -87,22 +78,9 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('Update error:', error);
       return NextResponse.json({ success: false, message: '更新产品失败: ' + error.message }, { status: 500 });
     }
     
-    console.log('Update result:', data, 'Product data:', productData);
-    
-    // 验证更新是否成功
-    if (data) {
-      const { data: verifyData } = await supabaseAdmin
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
-      console.log('Verify after update:', verifyData);
-    }
-
     return NextResponse.json({ success: true, message: '产品更新成功' });
   } catch (error) {
     console.error('更新产品失败:', error);
@@ -186,19 +164,12 @@ export async function DELETE(
       }
     }
     
-    console.log('[删除产品] 准备删除文件:', JSON.stringify(filesToDelete));
-    
     // 删除存储文件
     for (const file of filesToDelete) {
       try {
-        const { error } = await supabaseAdmin.storage.from(file.bucket).remove([file.name]);
-        if (error) {
-          console.error(`删除文件失败: ${file.bucket}/${file.name}`, error);
-        } else {
-          console.log(`删除成功: ${file.bucket}/${file.name}`);
-        }
-      } catch (err) {
-        console.error(`删除文件异常: ${file.name}`, err);
+        await supabaseAdmin.storage.from(file.bucket).remove([file.name]);
+      } catch {
+        // 文件删除失败不影响产品删除
       }
     }
     

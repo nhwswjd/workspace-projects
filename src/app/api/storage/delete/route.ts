@@ -54,16 +54,12 @@ export async function POST(request: NextRequest) {
           results.failed.push(`${bucket}/${fileName} - 无效的文件名`);
           continue;
         }
-        
-        console.log(`[删除文件] bucket: ${bucket}, name: ${fileName}`);
-        
+
         const { error } = await supabase!.storage.from(bucket).remove([fileName]);
         
         if (error) {
-          console.error(`删除失败: ${fileName}`, error);
           results.failed.push(`${bucket}/${fileName}`);
         } else {
-          console.log(`删除成功: ${fileName}`);
           results.success.push(`${bucket}/${fileName}`);
         }
       } catch (err) {

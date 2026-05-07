@@ -102,13 +102,11 @@ export async function createAdminSession(
     
     if (error) {
       // 如果表不存在或其他错误，返回 fallback token
-      console.warn('[Session] 创建会话失败，使用 fallback token:', error.message);
       return `fallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     }
     
     return sessionToken;
-  } catch (error) {
-    console.error('[Session] 创建会话异常:', error);
+  } catch {
     return `fallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   }
 }
