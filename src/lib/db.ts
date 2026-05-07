@@ -119,25 +119,11 @@ export async function getProductsByCategory(categoryId: string, includeHidden = 
     throw new Error('Database not available. Check environment variables.');
   }
   
-  // 先获取分类名称（categoryId 可能是 UUID 或名称）
-  let categoryName = categoryId;
-  
-  // 如果是 UUID 格式，查询获取分类名称
-  if (categoryId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-    const { data: catData } = await supabase
-      .from('categories')
-      .select('name')
-      .eq('id', categoryId)
-      .single();
-    if (catData) {
-      categoryName = catData.name;
-    }
-  }
-  
+  // 直接使用 categoryId 作为分类名称查询产品
   let query = supabase
     .from('products')
     .select('*')
-    .eq('category', categoryName)
+    .eq('category', categoryId)
     .order('sort_order', { ascending: true, nullsFirst: false });
   
   if (!includeHidden) {
