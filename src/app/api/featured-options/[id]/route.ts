@@ -3,7 +3,10 @@ import { getSupabaseAdmin } from '@/lib/db';
 import { verifyAdminSession } from '@/lib/api-auth';
 
 // 更新标签选项
-export async function PUT(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   // 验证管理员会话
   const auth = await verifyAdminSession(request);
   if (!auth.valid) {
@@ -15,12 +18,14 @@ export async function PUT(request: NextRequest) {
 
   const supabase = getSupabaseAdmin();
   if (!supabase) return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
-  const body = await request.json();
-  const { id, name, sort_order } = body;
 
+  const { id } = await params;
   if (!id) {
     return NextResponse.json({ success: false, error: '缺少ID' }, { status: 400 });
   }
+
+  const body = await request.json();
+  const { name, sort_order } = body;
 
   const updateData: { name?: string; sort_order?: number } = {};
   if (name !== undefined) updateData.name = name;
@@ -41,7 +46,10 @@ export async function PUT(request: NextRequest) {
 }
 
 // 删除标签选项
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   // 验证管理员会话
   const auth = await verifyAdminSession(request);
   if (!auth.valid) {
@@ -53,9 +61,8 @@ export async function DELETE(request: NextRequest) {
 
   const supabase = getSupabaseAdmin();
   if (!supabase) return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
 
+  const { id } = await params;
   if (!id) {
     return NextResponse.json({ success: false, error: '缺少ID' }, { status: 400 });
   }
