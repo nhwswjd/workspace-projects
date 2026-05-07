@@ -119,9 +119,9 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
   const [tags, setTags] = useState<string[]>([]); // 改为数组
   const [tagInput, setTagInput] = useState(''); // 手动输入标签
   const [hidden, setHidden] = useState(initialData?.hidden || false);
-  const [featured, setFeatured] = useState(initialData?.featured || '');
-  const [featuredRightBottom, setFeaturedRightBottom] = useState(initialData?.featured_right_bottom || '');
-  const [sortOrder, setSortOrder] = useState(initialData?.sort_order || 0);
+  const [featured, setFeatured] = useState(initialData?.featured?.trim() || '');
+  const [featuredRightBottom, setFeaturedRightBottom] = useState(initialData?.featured_right_bottom?.trim() || '');
+  const [sortOrder, setSortOrder] = useState(initialData?.sort_order ?? 0);
   const [notes, setNotes] = useState(initialData?.notes || '');
   // 转换视频数据格式（兼容旧数据）
   const convertVideos = (v: VideoItem[] | string[] | null | undefined): VideoItem[] => {
@@ -629,8 +629,8 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                   type="button"
                   onClick={() => setFeaturedRightBottom(opt.name)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    featuredRightBottom === opt.name
-                      ? 'bg-green-500 text-white'
+                    featuredRightBottom?.trim() === opt.name.trim()
+                      ? 'bg-green-600 text-white'
                       : 'bg-green-50 text-green-700 hover:bg-green-100'
                   }`}
                 >
