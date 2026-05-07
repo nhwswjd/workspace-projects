@@ -75,6 +75,9 @@ export async function PUT(
     else if (sort_order !== undefined) productData.sort_order = sort_order;
     if (notes !== undefined) productData.notes = notes;
 
+    console.log('Featured field values:', { featured, featuredRightBottom, featured_right_bottom });
+    console.log('Product data to update:', productData);
+
     // 使用 update 操作更新现有记录
     const { data, error } = await supabaseAdmin
       .from('products')
