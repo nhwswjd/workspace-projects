@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Tag, Category, FeaturedOption } from './types';
+import { useAuth } from '@/hooks/useAuth';
 
 interface TagsProps {
   tags: Tag[];
@@ -22,6 +23,16 @@ export default function Tags({
   showToast,
   onRefresh
 }: TagsProps) {
+  const { getSessionToken } = useAuth();
+  
+  // 辅助函数
+  const getAuthHeaders = (extraHeaders?: Record<string, string>): Record<string, string> => {
+    const token = getSessionToken();
+    const headers: Record<string, string> = { ...extraHeaders };
+    if (token) headers['x-admin-session'] = token;
+    return headers;
+  };
+  
   // 标签状态
   const [newTag, setNewTag] = useState('');
   const [newCategory, setNewCategory] = useState('');
@@ -34,7 +45,7 @@ export default function Tags({
     try {
       const res = await fetch('/api/tags', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ name: newTag.trim(), type: 'normal' })
       });
       if (res.ok) {
@@ -49,7 +60,7 @@ export default function Tags({
   const handleDeleteTag = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/tags/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/tags/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
         onRefresh();
         showToast('标签已删除');
@@ -65,7 +76,7 @@ export default function Tags({
     try {
       const res = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ name: newCategory.trim() })
       });
       if (res.ok) {
@@ -80,7 +91,7 @@ export default function Tags({
   const handleDeleteCategory = async (id: string) => {
     if (!confirm('确定要删除这个分类吗？')) return;
     try {
-      const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
         onRefresh();
         showToast('分类已删除');
@@ -96,7 +107,7 @@ export default function Tags({
     try {
       const res = await fetch('/api/featured-options', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ type: 'featured', name: newFeaturedName.trim() })
       });
       if (res.ok) {
@@ -111,7 +122,7 @@ export default function Tags({
   const handleDeleteFeatured = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
         onRefresh();
         showToast('右上标签已删除');
@@ -127,7 +138,7 @@ export default function Tags({
     try {
       const res = await fetch('/api/featured-options', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ type: 'featured_right_bottom', name: newBottomRightFeaturedName.trim() })
       });
       if (res.ok) {
@@ -142,7 +153,7 @@ export default function Tags({
   const handleDeleteFeaturedRightBottom = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
         onRefresh();
         showToast('右下标签已删除');

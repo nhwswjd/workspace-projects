@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Category {
   id: string;
@@ -106,6 +107,7 @@ interface VideoItem {
 
 export default function ProductForm({ initialData, onSuccess }: ProductFormProps) {
   const isEditMode = !!initialData?.id;
+  const { getSessionToken } = useAuth();
   
   // 表单状态
   const [name, setName] = useState(initialData?.name || '');
@@ -382,10 +384,16 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
     try {
       const url = isEditMode ? `/api/products/${initialData.id}` : '/api/products';
       const method = isEditMode ? 'PUT' : 'POST';
+      const sessionToken = getSessionToken();
+      
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (sessionToken) {
+        headers['x-admin-session'] = sessionToken;
+      }
       
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
 

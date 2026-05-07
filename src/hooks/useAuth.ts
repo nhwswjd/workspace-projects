@@ -6,6 +6,7 @@ const AUTH_KEY = 'atelier_authenticated';
 const CATEGORY_KEY = 'atelier_category_permission';
 const ADMIN_KEY = 'atelier_is_admin';
 const SUPER_ADMIN_KEY = 'atelier_is_super_admin';
+const SESSION_TOKEN_KEY = 'atelier_session_token';
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -13,17 +14,20 @@ export function useAuth() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [categoryPermission, setCategoryPermission] = useState<string | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(AUTH_KEY);
     const storedCategory = localStorage.getItem(CATEGORY_KEY);
     const storedAdmin = localStorage.getItem(ADMIN_KEY);
     const storedSuperAdmin = localStorage.getItem(SUPER_ADMIN_KEY);
+    const storedToken = localStorage.getItem(SESSION_TOKEN_KEY);
     if (stored === 'true') {
       setIsAuthenticated(true);
       setCategoryPermission(storedCategory);
       setIsAdmin(storedAdmin === 'true');
       setIsSuperAdmin(storedSuperAdmin === 'true');
+      setSessionToken(storedToken);
     }
     setIsLoading(false);
   }, []);
@@ -64,6 +68,11 @@ export function useAuth() {
           localStorage.removeItem(CATEGORY_KEY);
           setCategoryPermission(null);
         }
+        // 存储会话 Token
+        if (data.sessionToken) {
+          localStorage.setItem(SESSION_TOKEN_KEY, data.sessionToken);
+          setSessionToken(data.sessionToken);
+        }
         setIsAuthenticated(true);
         return { success: true, isAdmin: data.isAdmin, isSuperAdmin: data.isSuperAdmin };
       }
@@ -78,10 +87,12 @@ export function useAuth() {
     localStorage.removeItem(CATEGORY_KEY);
     localStorage.removeItem(ADMIN_KEY);
     localStorage.removeItem(SUPER_ADMIN_KEY);
+    localStorage.removeItem(SESSION_TOKEN_KEY);
     setIsAuthenticated(false);
     setIsAdmin(false);
     setIsSuperAdmin(false);
     setCategoryPermission(null);
+    setSessionToken(null);
     
     // 如果需要，导航到首页
     if (navigateToHome && typeof window !== 'undefined') {
@@ -96,5 +107,9 @@ export function useAuth() {
     return false;
   }, [isAuthenticated, categoryPermission]);
 
-  return { isAuthenticated, isLoading, isAdmin, isSuperAdmin, checkPassword, logout, categoryPermission, hasCategoryAccess };
+  const getSessionToken = useCallback((): string | null => {
+    return localStorage.getItem(SESSION_TOKEN_KEY);
+  }, []);
+
+  return { isAuthenticated, isLoading, isAdmin, isSuperAdmin, checkPassword, logout, categoryPermission, hasCategoryAccess, sessionToken, getSessionToken };
 }

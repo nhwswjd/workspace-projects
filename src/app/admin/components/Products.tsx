@@ -1,6 +1,7 @@
 'use client';
 
 import { Product } from './types';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProductsProps {
   products: Product[];
@@ -17,6 +18,16 @@ export default function Products({
   showToast,
   onProductAdded
 }: ProductsProps) {
+  const { getSessionToken } = useAuth();
+  
+  // 辅助函数
+  const getAuthHeaders = (extraHeaders?: Record<string, string>): Record<string, string> => {
+    const token = getSessionToken();
+    const headers: Record<string, string> = { ...extraHeaders };
+    if (token) headers['x-admin-session'] = token;
+    return headers;
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -90,7 +101,8 @@ export default function Products({
                             if (!confirm('确定要删除这个产品吗？')) return;
                             try {
                               const res = await fetch(`/api/products/${product.id}`, {
-                                method: 'DELETE'
+                                method: 'DELETE',
+                                headers: getAuthHeaders()
                               });
                               if (res.ok) {
                                 onProductAdded();

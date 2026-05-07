@@ -123,7 +123,7 @@ export default function AdminPage() {
     browserStats: Record<string, number>;
   } | null>(null);
   const [clearingLogs, setClearingLogs] = useState(false);
-  const { isAuthenticated, isAdmin, isSuperAdmin, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isSuperAdmin, isLoading: authLoading, getSessionToken } = useAuth();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -139,7 +139,13 @@ export default function AdminPage() {
     }
   }, [authLoading, isAuthenticated, isAdmin, isSuperAdmin]);
 
-  const loadData = async () => {
+  // 辅助函数：获取带认证的 headers
+  const getAuthHeaders = (extraHeaders?: Record<string, string>): Record<string, string> => {
+    const token = getSessionToken();
+    const headers: Record<string, string> = { ...extraHeaders };
+    if (token) headers['x-admin-session'] = token;
+    return headers;
+  };const loadData = async () => {
     try {
       // 使用合并API，一次请求获取所有数据
       const res = await fetch(`/api/admin/data?super_admin=${isSuperAdmin}`);
@@ -215,7 +221,7 @@ export default function AdminPage() {
       try {
         const res = await fetch('/api/site-settings/admin_password', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
         });
         if (res.ok) {
@@ -233,7 +239,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/site-settings/admin_password', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
       });
       if (res.ok) {
@@ -250,7 +256,7 @@ export default function AdminPage() {
       try {
         const res = await fetch('/api/site-settings/visitor_password', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
         });
         if (res.ok) {
@@ -268,7 +274,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/site-settings/visitor_password', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ value: JSON.stringify(newPasswords) }),
       });
       if (res.ok) {
@@ -292,7 +298,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/products/random-sort', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ from, to }),
       });
       const data = await res.json();
@@ -318,7 +324,7 @@ export default function AdminPage() {
     try {
       await fetch('/api/site-settings/random-sort-rules', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ rules: updatedRules }),
       });
       setRandomRules(updatedRules);
@@ -352,7 +358,7 @@ export default function AdminPage() {
         ? JSON.stringify({ id: editingTag.id, name: tagName.trim() })
         : JSON.stringify({ name: tagName.trim() });
 
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body });
+      const res = await fetch(url, { method, headers: getAuthHeaders({ 'Content-Type': 'application/json' }), body });
       
       if (res.ok) {
         const data = await res.json();
@@ -377,7 +383,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/tags', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ name: tagName.trim() })
       });
       const data = await res.json();
@@ -396,7 +402,7 @@ export default function AdminPage() {
   const handleDeleteTag = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/tags?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/tags?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       if (res.ok) {
         setTags(tags.filter(t => t.id !== id));
         showToast('标签已删除');
@@ -414,7 +420,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ name: newCategory.trim() })
       });
       const data = await res.json();
@@ -435,7 +441,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/categories', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ id, name: editingCategoryName.trim() })
       });
       const data = await res.json();
@@ -454,7 +460,7 @@ export default function AdminPage() {
   const handleDeleteCategory = async (id: string) => {
     if (!confirm('确定要删除这个分类吗？')) return;
     try {
-      const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/categories?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         setCategories(categories.filter(c => c.id !== id));
@@ -473,7 +479,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/featured-options', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ type: 'featured', name: newFeatured.trim() })
       });
       const data = await res.json();
@@ -494,7 +500,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/featured-options', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ id, name: editingFeaturedName.trim() })
       });
       const data = await res.json();
@@ -513,7 +519,7 @@ export default function AdminPage() {
   const handleDeleteFeatured = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         setFeaturedOptions(featuredOptions.filter(o => o.id !== id));
@@ -532,7 +538,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/featured-options', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ type: 'featured_right_bottom', name: newFeaturedRightBottom.trim() })
       });
       const data = await res.json();
@@ -553,7 +559,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/featured-options', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ id, name: editingFeaturedRightBottomName.trim() })
       });
       const data = await res.json();
@@ -572,7 +578,7 @@ export default function AdminPage() {
   const handleDeleteFeaturedRightBottom = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         setFeaturedRightBottomOptions(featuredRightBottomOptions.filter(o => o.id !== id));
@@ -740,7 +746,10 @@ export default function AdminPage() {
     }
     setClearingLogs(true);
     try {
-      const res = await fetch('/api/analytics/clear', { method: 'POST' });
+      const token = getSessionToken();
+      const headers: Record<string, string> = {};
+      if (token) headers['x-admin-session'] = token;
+      const res = await fetch('/api/analytics/clear', { method: 'POST', headers });
       const data = await res.json();
       if (data.success) {
         alert(`已清除 ${data.deleted} 条访问记录`);
@@ -805,9 +814,12 @@ export default function AdminPage() {
     setIsCleaning(true);
     try {
       const fileNames = selected.map((f) => ({ name: f.name, bucket: f.bucket }));
+      const token = getSessionToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['x-admin-session'] = token;
       const res = await fetch('/api/storage/delete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ files: fileNames }),
       });
       const data = await res.json();
