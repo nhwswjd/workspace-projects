@@ -498,10 +498,10 @@ export default function AdminPage() {
   const handleUpdateFeatured = async (id: string) => {
     if (!editingFeaturedName.trim()) return;
     try {
-      const res = await fetch('/api/featured-options', {
+      const res = await fetch(`/api/featured-options/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ id, name: editingFeaturedName.trim() })
+        body: JSON.stringify({ name: editingFeaturedName.trim() })
       });
       const data = await res.json();
       if (data.success) {
@@ -519,7 +519,7 @@ export default function AdminPage() {
   const handleDeleteFeatured = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      const res = await fetch(`/api/featured-options/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         setFeaturedOptions(featuredOptions.filter(o => o.id !== id));
@@ -557,10 +557,10 @@ export default function AdminPage() {
   const handleUpdateFeaturedRightBottom = async (id: string) => {
     if (!editingFeaturedRightBottomName.trim()) return;
     try {
-      const res = await fetch('/api/featured-options', {
+      const res = await fetch(`/api/featured-options/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ id, name: editingFeaturedRightBottomName.trim() })
+        body: JSON.stringify({ name: editingFeaturedRightBottomName.trim() })
       });
       const data = await res.json();
       if (data.success) {
@@ -578,7 +578,7 @@ export default function AdminPage() {
   const handleDeleteFeaturedRightBottom = async (id: string) => {
     if (!confirm('确定要删除这个标签吗？')) return;
     try {
-      const res = await fetch(`/api/featured-options?id=${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      const res = await fetch(`/api/featured-options/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
         setFeaturedRightBottomOptions(featuredRightBottomOptions.filter(o => o.id !== id));
