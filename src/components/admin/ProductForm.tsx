@@ -401,10 +401,16 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
         alert(isEditMode ? '保存成功' : '创建成功');
         onSuccess?.();
       } else {
-        alert(isEditMode ? '保存失败' : '创建失败');
+        // 获取详细错误信息
+        let errorMsg = isEditMode ? '保存失败' : '创建失败';
+        try {
+          const data = await res.json();
+          if (data.message) errorMsg += ': ' + data.message;
+        } catch {}
+        alert(errorMsg);
       }
-    } catch {
-      alert('操作失败');
+    } catch (err) {
+      alert('操作失败: ' + (err instanceof Error ? err.message : '未知错误'));
     } finally {
       setSaving(false);
     }

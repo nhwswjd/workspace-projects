@@ -34,6 +34,12 @@ export async function PUT(
   try {
     // 验证管理员会话
     const auth = await verifyAdminSession(request);
+    console.log('[PUT /api/products/[id]] auth check:', { 
+      valid: auth.valid, 
+      isSuperAdmin: auth.isSuperAdmin,
+      hasToken: !!request.headers.get('x-admin-session'),
+      token: request.headers.get('x-admin-session')?.substring(0, 20) + '...'
+    });
     if (!auth.valid) {
       return NextResponse.json(
         { success: false, message: '未授权访问，请先登录' },
