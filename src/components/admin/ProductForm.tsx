@@ -813,6 +813,21 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                 <div className="grid grid-cols-2 gap-4">
                   {videos.map((video, index) => video && (
                     <div key={index} className="relative bg-gray-100 rounded-xl overflow-hidden border border-gray-200" style={{minHeight: '150px'}}>
+                      {/* 删除按钮 - 始终在最上层 */}
+                      <div className="absolute top-0 left-0 right-0 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent p-2 z-10">
+                        <span className="text-white text-xs font-medium">
+                          视频 {index + 1}
+                          {video.thumbnail ? ' ✓' : ''}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveVideo(index)}
+                          className="w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      {/* 视频预览内容 */}
                       {typeof video === 'string' ? (
                         <video 
                           src={video} 
@@ -820,54 +835,37 @@ export default function ProductForm({ initialData, onSuccess }: ProductFormProps
                           controls 
                           preload="metadata"
                         />
-                      ) : (
-                        video.thumbnail ? (
-                          <div className="relative">
-                            <img src={video.thumbnail} className="w-full h-48 object-cover" alt={`视频 ${index + 1}`} />
-                            <video 
-                              src={video.url} 
-                              className="hidden"
-                              preload="metadata"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  const v = e.currentTarget.parentElement?.querySelector('video');
-                                  if (v) { v.classList.remove('hidden'); v.play(); }
-                                }}
-                                className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center"
-                              >
-                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 5v14l11-7z"/>
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
+                      ) : video.thumbnail ? (
+                        <div className="relative">
+                          <img src={video.thumbnail} className="w-full h-48 object-cover" alt={`视频 ${index + 1}`} />
                           <video 
                             src={video.url} 
-                            className="w-full h-auto max-h-48 object-contain" 
-                            controls 
+                            className="hidden"
                             preload="metadata"
                           />
-                        )
-                      )}
-                      <div className="absolute top-0 left-0 right-0 flex items-center justify-between bg-gradient-to-b from-black/70 to-transparent p-2">
-                        <span className="text-white text-xs font-medium">
-                          视频 {index + 1}
-                          {video.thumbnail ? ' ✓' : ''}
-                        </span>
-                        <div className="flex gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveVideo(index)}
-                            className="w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
-                          >
-                            ×
-                          </button>
+                          <div className="absolute inset-0 flex items-center justify-center z-20">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                const v = e.currentTarget.parentElement?.querySelector('video');
+                                if (v) { v.classList.remove('hidden'); v.play(); }
+                              }}
+                              className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center"
+                            >
+                              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                              </svg>
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <video 
+                          src={video.url} 
+                          className="w-full h-auto max-h-48 object-contain" 
+                          controls 
+                          preload="metadata"
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
