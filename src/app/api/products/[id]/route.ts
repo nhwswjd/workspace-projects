@@ -53,7 +53,7 @@ export async function PUT(
     }
     const { id } = await params;
     const body = await request.json();
-    const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, featuredRightBottom, featured_right_bottom, location, hidden, sortOrder, notes } = body;
+    const { sku, name, tags, description, category, categoryId, coverImage, images, videos, featured, featuredRightBottom, featured_right_bottom, location, hidden, sortOrder, sort_order, notes } = body;
 
     // 分离 id 和其他数据
     const productData: Record<string, unknown> = {};
@@ -72,6 +72,7 @@ export async function PUT(
     if (location !== undefined) productData.location = location;
     if (hidden !== undefined) productData.hidden = hidden;
     if (sortOrder !== undefined) productData.sort_order = sortOrder;
+    else if (sort_order !== undefined) productData.sort_order = sort_order;
     if (notes !== undefined) productData.notes = notes;
 
     // 使用 update 操作更新现有记录
@@ -84,10 +85,20 @@ export async function PUT(
 
     if (error) {
       console.error('Update error:', error);
-      throw error;
+      return NextResponse.json({ success: false, message: '更新产品失败: ' + error.message }, { status: 500 });
     }
     
     console.log('Update result:', data, 'Product data:', productData);
+    
+    // 验证更新是否成功
+    if (data) {
+      const { data: verifyData } = await supabaseAdmin
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      console.log('Verify after update:', verifyData);
+    }
 
     return NextResponse.json({ success: true, message: '产品更新成功' });
   } catch (error) {
