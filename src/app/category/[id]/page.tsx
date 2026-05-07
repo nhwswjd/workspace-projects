@@ -2,6 +2,9 @@ import { notFound } from 'next/navigation';
 import { getCategories, getProductsByCategory } from '@/lib/db';
 import CategoryClient from './CategoryClient';
 
+// 确保每次请求都是实时的，不使用缓存
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
