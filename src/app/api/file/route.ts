@@ -11,28 +11,29 @@ export async function GET(request: NextRequest) {
   // 验证 URL 是否来自允许的域名
   const supabaseUrl = process.env.COZE_SUPABASE_URL 
     || process.env.NEXT_PUBLIC_SUPABASE_URL 
-    || process.env.SUPABASE_URL;
-  const allowedHost = supabaseUrl?.replace('https://', '').replace('http://', '');
+    || process.env.SUPABASE_URL
+    || 'br-bonny-deer-52ec6415'; // 硬编码备选
+  
+  // 提取允许的域名关键字（第一个子域名部分）
+  const allowedDomainPart = supabaseUrl.replace('https://', '').replace('http://', '').split('.')[0];
+  
+  // 允许的图片域名白名单
+  const allowedDomains = [
+    'picsum.photos',      // Lorem Picsum
+    'images.unsplash.com', // Unsplash
+    allowedDomainPart,     // Supabase Storage
+  ];
   
   try {
     const urlObj = new URL(url);
     
-    // 验证域名
-    if (!urlObj.hostname.includes(allowedHost?.split('.')[0] || '')) {
-      return NextResponse.json({ error: 'Invalid URL' }, { status: 403 });
-    }
+    // 验证域名是否在白名单中
+    const isAllowedDomain = allowedDomains.some(domain => 
+      urlObj.hostname.includes(domain)
+    );
     
-    // 验证路径前缀 - 包含所有可能的 bucket
-    const validPaths = [
-      'storage/v1/object/public/products', 
-      'storage/v1/object/public/videos', 
-      'storage/v1/object/public/thumbnails',
-      'storage/v1/object/public/product-images'
-    ];
-    const hasValidPath = validPaths.some(p => urlObj.pathname.includes(p));
-    
-    if (!hasValidPath) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    if (!isAllowedDomain) {
+      return NextResponse.json({ error: 'Domain not allowed' }, { status: 403 });
     }
 
     // 代理请求
