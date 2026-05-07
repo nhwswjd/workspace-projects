@@ -49,7 +49,7 @@ export default function EditProductPage() {
               location: p.location || '',
               tags: Array.isArray(p.tags) ? p.tags.join('，') : (p.tags || ''),
               featured: p.featured || '',
-              featured_right_bottom: p.featuredRightBottom || '',
+              featured_right_bottom: p.featured_right_bottom || '',
               hidden: p.hidden || false,
               sort_order: p.sort_order || 0,
               cover_image: typeof p.cover_image === 'string' ? p.cover_image : p.cover_image?.url || '',
