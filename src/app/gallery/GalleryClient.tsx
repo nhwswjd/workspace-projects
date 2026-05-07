@@ -10,7 +10,7 @@ interface Product {
   sku: string;
   name: string;
   category: string;
-  category_id: string;
+  categoryId: string;
   coverImage: string;
   featured?: string | null;
   location: string;
@@ -138,7 +138,7 @@ export default function GalleryClient() {
 
     if (selectedCategory !== 'all') {
       result = result.filter(p => 
-        p.category_id === selectedCategory || 
+        p.categoryId === selectedCategory || 
         p.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
